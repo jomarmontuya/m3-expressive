@@ -1207,3 +1207,30 @@ Task: Phase 0 open-source preparation — security audit + OSS basics
 
 ## Stage Summary
 Verification: git ls-files confirms no sensitive files tracked; bun run lint 0 errors (2 known warnings). NOT committed — awaits Jomar. Open decisions flagged to Jomar: publish strategy (recommend fresh clean public repo over pushing this history), worklog.md keep-private vs publish, Base UI rc.0→v1 spike (remaining Phase 0 item).
+
+---
+Task ID: 18b-repo-publish
+Agent: orchestrator (Z.ai Code)
+Task: Commit Phase 0 work and create private GitHub repo under Jomar's profile
+
+## Work Log
+- Gates re-verified (tsc 0 non-exempt, lint 0 errors, build:package exit 0) — includes the parallel session's showcase additions (CommandPalette, ComponentsIndexView, EndpointRow).
+- Single commit of the full working tree (lint-fix session + OSS prep + docs + parallel showcase work), then `gh repo create m3-expressive --private --source=. --push` as jomarmontuya.
+
+## Stage Summary
+Live: https://github.com/jomarmontuya/m3-expressive (PRIVATE, main tracking origin). Post-commit working tree holds only fresh vr-current captures from the parallel session. Flip-to-public checklist remains: worklog.md in/out decision, Base UI rc.0→v1 spike, registry build (Phase 1), polish.
+
+---
+Task ID: 16-ux-round2
+Agent: orchestrator (Claude Code)
+Task: Screenshot-driven fixes round 2 — Code tab wrap at narrow widths, playground control column width + hidden options.
+
+Work Log:
+- ComponentView.tsx Code tab segmented: removed icons + "Source code"→"Source" (261px→175px; fits single line at 320px and 375px — the segmented control cannot shrink below intrinsic width, same root cause as the theme popover round).
+- PropsPlayground.tsx: control column 340px→400px (owner request) AND segmented option groups switched from single-row overflow-x-auto (options beyond ~300px were effectively hidden — "hidden button" report) to a fixed grid-cols-3 layout: every option visible, deterministic position. flex-wrap variants were tried first and REJECTED — wrap points land on font-metric boundaries and made consecutive VR captures differ 2.8–4.7% on random components (button/icon-button/fab/extended-fab/snackbar etc.); grid-cols-3 verified stable across 3 consecutive vr:check runs (0 changed each).
+- Side note: an ad-hoc pixelmatch diff analysis bug (pixelmatch writes dimmed pixels everywhere; naive nonzero-RGB check reports 100% diff) — use direct per-pixel comparison for band analysis.
+
+Stage Summary:
+- Live-verified at 1280x900: control column 400px, 0 options beyond the column, 0 clipped labels on button/chip/date-picker playgrounds.
+- Code tab verified at 320px + 375px: segmented control 175px, no internal wrap, no page h-scroll.
+- Gates: tsc 0 src errors; lint 0 errors (2 pre-existing warnings); VR baselines refreshed 41/41 --force then PASS on 3 consecutive checks (identical 39-40 · minor 1-2 · changed 0).

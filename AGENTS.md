@@ -11,7 +11,7 @@ A **Material 3 Expressive React component library** plus everything that ships a
 - `mini-services/mcp-server/` — an MCP server exposing the library to AI agents (stdio + HTTP)
 - `src/app/llms.txt/route.ts` — an `/llms.txt` agent handbook route
 
-**Stack:** Bun (runtime + package manager) · Next.js 16 App Router · React 19 · TypeScript strict · Tailwind 4 · framer-motion 12 · `@base-ui-components/react` 1.0.0-rc.0 · Prisma 6 + SQLite.
+**Stack:** Bun (runtime + package manager) · Next.js 16 App Router · React 19 · TypeScript strict · Tailwind 4 · framer-motion 12 · `@base-ui-components/react` 1.0.0-rc.0.
 
 **Path alias:** `@/*` → `./src/*`.
 
@@ -40,18 +40,14 @@ src/lib/m3/registry.ts    TABLE: id → { meta, file } for all 41 components
 | Task | Command |
 |---|---|
 | Dev server (port 3000, logs to `dev.log`) | `bun run dev` |
-| Full stack (install + `db:push` + dev + mini-services) | `.zscripts/dev.sh` |
 | Lint | `bun run lint` |
 | Typecheck (repo) | `bunx tsc --noEmit` |
 | Typecheck (npm package) | `cd packages/m3-expressive-react && bun run typecheck` |
 | Build npm package | `bun run build:package` |
 | VR baseline capture | `bun run vr:baseline` (add `--only id1,id2` / `--force`) |
 | VR diff check | `bun run vr:check` |
-| DB | `bun run db:push` · `db:generate` · `db:migrate` · `db:reset` |
 | MCP server (HTTP, port 3210) | `cd mini-services/mcp-server && bun install && bun run dev` |
 | MCP server (stdio, what clients spawn) | `cd mini-services/mcp-server && bun start` |
-
-SQLite lives at `db/custom.db` (`DATABASE_URL` in `.env`, gitignored — never commit it).
 
 ## Component contract (mandatory)
 
@@ -64,7 +60,7 @@ Every component file in `src/components/m3/` must:
 5. Be re-exported from the barrel `src/components/m3/index.ts`.
 6. Have a `<Name>Demo` in the matching `src/components/showcase/demos/<category>-demos.tsx` (categories: actions, communication→feedback, containment, inputs, navigation) plus an entry in that batch's demo map (`meta.demoName` must resolve through `src/components/showcase/demo-registry.ts`).
 
-**Forbidden inside `src/components/m3/**`:** imports from `@/components/ui` (the shadcn scaffold). Use Base UI primitives, framer-motion, `Ripple`, and `MaterialSymbol` instead. The shadcn `src/components/ui/` set is app-shell scaffolding only.
+**Forbidden inside `src/components/m3/**`:** re-introducing shadcn/Radix scaffolding (the old `src/components/ui/` set was removed as dead code). Use Base UI primitives, framer-motion, `Ripple`, and `MaterialSymbol` only.
 
 **Styling rules:** token-driven, not hardcoded. Springs/easings/durations from `@/lib/m3/tokens`; colors via Tailwind M3 classes (`bg-m3-*`, `text-m3-*`, `border-m3-*`); type via `md-*` classes; state layers `.m3-state`; focus `.m3-focus`; elevation `.m3-elevation-*`.
 
@@ -80,7 +76,7 @@ Every component file in `src/components/m3/` must:
 CI (`.github/workflows/ci.yml`) runs these on every push/PR — pass all four locally before declaring done:
 
 1. `bun run lint` → 0 errors (one known pre-existing warning in `src/app/layout.tsx`).
-2. `bunx tsc --noEmit` → no errors in `src/` or `scripts/`. Errors under `examples/` and `skills/` are pre-existing scaffold noise and exempt.
+2. `bunx tsc --noEmit` → no errors.
 3. `bun run build:package` → succeeds.
 4. `bun run vr:check` → no component in `changed` status. Requires the dev server running on `:3000` first (`bun run dev` in the background).
 
@@ -114,7 +110,5 @@ Follow `packages/m3-expressive-react/PUBLISHING.md` exactly. Highlights: version
 - **`worklog.md` is append-only.** Every task appends a block: `Task ID` / `Agent` / `Task` / `Work Log` / `Stage Summary`. Never rewrite or truncate existing entries; append at the end.
 - **`audit/`** holds per-family M3 spec audit docs (spec vs. implementation vs. deviations). Consult the matching audit file before "fixing" a component's visual behavior — apparent oddities are often spec-mandated.
 - **`tool-results/`** holds committed VR baselines (`vr-baselines/`), current captures (`vr-current/`), and `vr-report.json`. Baselines are never overwritten without `--force`.
-- **`tests/`** contains bash tests for the `.zscripts/` build orchestration (platform-sandbox heritage, rarely modified — don't refactor opportunistically).
-- **`examples/`** and the old `skills/` dir are scaffold; exempt from the tsc gate.
-- **Prisma** (`prisma/schema.prisma`, `src/lib/db.ts`) is a minimal User/Post scaffold via the `db` PrismaClient singleton — the library itself doesn't use it.
+- **Removed as dead code (2026-08):** Prisma scaffold, shadcn `src/components/ui/` set, `examples/`, `tests/`, `.zscripts/`, `tailwind.config.ts`, `components.json`, plus 57 unused dependencies.
 - Component count references drift across docs (39/40/41 as the library grew). The registry `TABLE` in `src/lib/m3/registry.ts` is the current truth: **41**.

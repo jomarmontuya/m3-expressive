@@ -61,7 +61,6 @@ The agent handbook is served at `/llms.txt` on the running site. Every component
 
 ```bash
 bun install
-bun run db:generate && bun run db:push
 bun run dev          # showcase on :3000
 ```
 

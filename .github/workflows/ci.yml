@@ -13,10 +13,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Lint
         run: bun run lint
-      - name: Type-check (src/)
-        run: |
-          bunx tsc --noEmit | tee tsc.log || true
-          if grep -qvE "^(examples/|skills/|$)" tsc.log; then echo "::error::src/ or scripts/ type errors"; grep -vE "^(examples/|skills/|$)" tsc.log; exit 1; fi
+      - name: Type-check
+        run: bunx tsc --noEmit
       - name: Build npm package (m3-expressive-react)
         run: bun run build:package
       - name: Visual regression check

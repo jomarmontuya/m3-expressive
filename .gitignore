@@ -53,9 +53,12 @@ server.log
 
 # runtime artifacts — never commit
 /db/
-/upload/*
-/download/*
-!/download/README.md
+/upload/
+/download/
+
+# internal strategy docs — keep local until public launch
+/audit/
+/docs/
 
 # Skills directory
 /skills/

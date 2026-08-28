@@ -11,8 +11,7 @@ Thanks for considering a contribution. This repo is a component library with a s
 
 ```bash
 bun install
-bun run db:generate && bun run db:push   # local SQLite scaffold
-bun run dev                              # showcase app on http://localhost:3000
+bun run dev   # showcase app on http://localhost:3000
 ```
 
 ## The component contract
