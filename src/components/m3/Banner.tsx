@@ -31,8 +31,11 @@ export interface BannerProps {
 }
 
 /**
- * M3 Banner — a prominent, dismissible surface-displayed message at the top of
- * a screen section, with optional icon and text action buttons.
+ * M3 Banner — a prominent, screen-wide message at the top of a screen section
+ * with optional icon and text action buttons. Per the official spec the
+ * container has square corners (shape none) and full width, and the action row
+ * sits below the content above a divider, end-aligned (official reference
+ * implementation), on surface-container-low.
  */
 export function Banner({
   icon,
@@ -53,7 +56,7 @@ export function Banner({
           transition={asTransition(springs.defaultSpatial)}
           className={cn("overflow-hidden", fullWidth && "w-full", className)}
         >
-          <div className="rounded-lg bg-m3-surface-container-low">
+          <div className="bg-m3-surface-container-low">
             <div className="flex items-start gap-4 px-4 py-3">
               {icon && (
                 <MaterialSymbol
@@ -68,20 +71,20 @@ export function Banner({
                   type="button"
                   onClick={onClose}
                   aria-label="Dismiss banner"
-                  className="m3-state shrink-0 rounded-full p-1 text-m3-on-surface-variant"
+                  className="m3-state flex size-9 shrink-0 items-center justify-center rounded-full text-m3-on-surface-variant"
                 >
                   <MaterialSymbol icon="close" size={20} />
                 </button>
               )}
             </div>
             {actions && actions.length > 0 && (
-              <div className="flex flex-wrap items-center justify-end gap-2 border-t border-m3-outline-variant px-2 py-1">
+              <div className="flex min-h-[52px] flex-wrap items-center justify-end gap-2 border-t border-m3-outline-variant px-2 py-1">
                 {actions.map((action) => (
                   <button
                     key={action.label}
                     type="button"
                     onClick={action.onClick}
-                    className="m3-state md-label-large rounded-full px-3 py-2 text-m3-primary"
+                    className="m3-state md-label-large flex h-10 items-center rounded-full px-3 text-m3-primary"
                   >
                     {action.label}
                   </button>

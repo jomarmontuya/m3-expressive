@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, type Transition } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -33,13 +33,12 @@ const variantStyles: Record<ButtonGroupVariant, string> = {
 /** Selected segments swap to secondary-container with a transparent border. */
 const selectedStyles = "border-transparent bg-m3-secondary-container text-m3-on-secondary-container";
 
-/**
- * tokens.ts widens `type` to `string`; framer-motion's Transition union needs
- * the literal "spring". This shim re-pins it while reusing the token values.
- */
-function spring(t: Transition): Transition {
-  return { ...t, type: "spring" };
-}
+/** Disabled tokens: container on-surface 12% (outlined keeps 12% border), content on-surface 38%. */
+const disabledStyles: Record<ButtonGroupVariant, string> = {
+  outlined: "border border-m3-on-surface/12 text-m3-on-surface/38",
+  filled: "bg-m3-on-surface/12 text-m3-on-surface/38",
+  tonal: "bg-m3-on-surface/12 text-m3-on-surface/38",
+};
 
 export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   buttons: ButtonGroupItem[];
@@ -58,6 +57,8 @@ export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
  * M3 Expressive connected button group — a row of pill buttons with a 4px
  * gutter and shared emphasis. Supports single/multiple selection and the
  * signature M3E variable-width treatment where the hovered segment grows.
+ * The 40dp small size exposes an expanded 48dp touch target via an
+ * invisible ::before hit-area extension.
  */
 export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(function ButtonGroup(
   {
@@ -129,16 +130,17 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(fu
             animate={variableWidths ? { flexGrow: isHot ? 1.4 : 1 } : undefined}
             transition={
               variableWidths
-                ? { scale: spring(springs.fastVisual), flexGrow: spring(springs.defaultSpatial) }
-                : spring(springs.fastVisual)
+                ? { scale: springs.fastVisual, flexGrow: springs.defaultSpatial }
+                : springs.fastVisual
             }
             className={cn(
-              "m3-state relative inline-flex select-none items-center justify-center gap-2 overflow-hidden rounded-full font-semibold md-label-large",
+              "m3-state m3-focus relative inline-flex select-none items-center justify-center gap-2 rounded-full md-label-large",
               "transition-colors duration-150",
+              "before:absolute before:-inset-y-1 before:content-['']",
               s.padding,
-              variantStyles[variant],
-              isSelected && selectedStyles,
-              disabled && "opacity-38 pointer-events-none"
+              disabled ? disabledStyles[variant] : variantStyles[variant],
+              !disabled && isSelected && selectedStyles,
+              disabled && "pointer-events-none"
             )}
             style={variableWidths ? { height: s.height, flexBasis: 0, minWidth: 0 } : { height: s.height }}
           >

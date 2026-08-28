@@ -9,8 +9,11 @@ import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { colorRoles, springs, shapes, typeScale, stateOpacities } from "@/lib/m3/tokens";
+import { m3Themes } from "@/lib/m3/themes";
+import { useM3Theme } from "@/hooks/use-m3-theme";
 
 const TABS = [
+  { value: "themes", label: "Themes", icon: "style" },
   { value: "color", label: "Color", icon: "palette" },
   { value: "typography", label: "Typography", icon: "text_fields" },
   { value: "shape", label: "Shape", icon: "rounded_corner" },
@@ -21,7 +24,7 @@ const TABS = [
 ];
 
 export function FoundationsView({ tab = "color", onTab }: { tab?: string; onTab: (t: string) => void }) {
-  const activeTab = TABS.some((t) => t.value === tab) ? tab : "color";
+  const activeTab = TABS.some((t) => t.value === tab) ? tab : "themes";
   return (
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       <div className="md-label-large text-m3-primary">Design foundations</div>
@@ -37,6 +40,7 @@ export function FoundationsView({ tab = "color", onTab }: { tab?: string; onTab:
       </div>
 
       <div className="mt-8">
+        {activeTab === "themes" && <ThemesTab />}
         {activeTab === "color" && <ColorTab />}
         {activeTab === "typography" && <TypographyTab />}
         {activeTab === "shape" && <ShapeTab />}
@@ -44,6 +48,96 @@ export function FoundationsView({ tab = "color", onTab }: { tab?: string; onTab:
         {activeTab === "motion" && <MotionTab />}
         {activeTab === "states" && <StatesTab />}
         {activeTab === "icons" && <IconsTab />}
+      </div>
+    </div>
+  );
+}
+
+/* ================= THEMES ================= */
+function ThemesTab() {
+  const { colorTheme, setColorTheme, mode, setMode, isDark } = useM3Theme();
+  return (
+    <div>
+      <SectionTitle
+        title="Curated color schemes"
+        text="Four complete Material 3 schemes — each with full light and dark tonal sets. Applying one re-themes the entire application instantly because every component consumes semantic tokens."
+      />
+
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-m3-outline-variant p-4">
+        <span className="md-title-small text-m3-on-surface">Appearance</span>
+        <div className="flex gap-2">
+          <Button size="sm" variant={mode === "light" ? "filled" : "outlined"} icon="light_mode" onClick={() => setMode("light")}>Light</Button>
+          <Button size="sm" variant={mode === "system" ? "filled" : "outlined"} icon="brightness_auto" onClick={() => setMode("system")}>System</Button>
+          <Button size="sm" variant={mode === "dark" ? "filled" : "outlined"} icon="dark_mode" onClick={() => setMode("dark")}>Dark</Button>
+        </div>
+        <span className="md-body-small text-m3-on-surface-variant sm:ml-auto">
+          Currently rendering: <strong>{isDark ? "dark" : "light"}</strong> scheme
+          {mode === "system" ? " (following your OS)" : ""}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {m3Themes.map((theme) => {
+          const active = theme.id === colorTheme;
+          return (
+            <Card key={theme.id} variant={active ? "filled" : "outlined"} className="p-0">
+              {/* light scheme preview band */}
+              <div className="flex h-14" style={{ background: theme.light.surface }}>
+                <div className="flex w-full items-center gap-1 px-3">
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.light.primary }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.light.primaryContainer }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.light.secondaryContainer }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.light.tertiaryContainer }} />
+                  <span className="ml-auto rounded-lg border px-2 py-1 md-label-small" style={{ borderColor: theme.light.outline, color: theme.light.onSurface }}>
+                    Aa
+                  </span>
+                </div>
+              </div>
+              {/* dark scheme preview band */}
+              <div className="flex h-14" style={{ background: theme.dark.surface }}>
+                <div className="flex w-full items-center gap-1 px-3">
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.dark.primary }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.dark.primaryContainer }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.dark.secondaryContainer }} />
+                  <span className="h-8 w-8 rounded-lg" style={{ background: theme.dark.tertiaryContainer }} />
+                  <span className="ml-auto rounded-lg border px-2 py-1 md-label-small" style={{ borderColor: theme.dark.outline, color: theme.dark.onSurface }}>
+                    Aa
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="md-title-medium text-m3-on-surface">{theme.label}</div>
+                    <div className="md-label-small text-m3-on-surface-variant">seed {theme.seed} · light + dark</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant={active ? "filled" : "tonal"}
+                    icon={active ? "check" : "palette"}
+                    disabled={active}
+                    onClick={() => setColorTheme(theme.id)}
+                  >
+                    {active ? "Active" : "Apply"}
+                  </Button>
+                </div>
+                <p className="mt-2 md-body-small text-m3-on-surface-variant">{theme.description}</p>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="mt-6 rounded-2xl bg-m3-surface-container-low p-5">
+        <div className="md-title-small text-m3-on-surface">How theming works</div>
+        <p className="mt-2 md-body-medium text-m3-on-surface-variant">
+          Themes are <code className="font-mono">&lt;html data-theme&gt;</code> + <code className="font-mono">.dark</code> class
+          combinations that swap the 24 <code className="font-mono">--md-*</code> CSS custom properties. Components read
+          semantic roles only, so one attribute change re-themes every surface, control, dialog and
+          motion color in the app. Persisted to localStorage; applied pre-paint by an inline script
+          (no flash). Agents can fetch full schemes via <code className="font-mono">/api/registry?themes=true</code> or
+          the MCP tools <code className="font-mono">list_themes</code> / <code className="font-mono">get_theme</code>.
+        </p>
       </div>
     </div>
   );

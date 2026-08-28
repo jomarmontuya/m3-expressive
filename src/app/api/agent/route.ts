@@ -19,9 +19,10 @@ export async function GET() {
       protocol: [
         "1. List components: GET /api/registry?summary=true",
         "2. Full docs for one component (props, variants, guidelines, example): GET /api/registry?component=<id>",
-        "3. Full registry dump: GET /api/registry  ·  Token dump: GET /api/registry?tokens=true",
+        "3. Full registry dump: GET /api/registry  ·  Token dump: GET /api/registry?tokens=true  ·  Themes: GET /api/registry?themes=true",
         "4. Plain-text handbook for LLM context windows: GET /llms.txt",
-        "5. Emit code using the import lines from metadata; never invent props not present in the props schema.",
+        "5. PREFERRED for MCP-capable agents: run the MCP server at mini-services/mcp-server (stdio) — tools: list_components, get_component, get_component_api, get_component_examples, get_component_guidelines, get_component_states, get_component_source, list_themes, get_theme, get_design_tokens, get_motion_guidance, get_accessibility_guidance, search_components. See mini-services/mcp-server/README.md for client config.",
+        "6. Emit code using the import lines from metadata; never invent props not present in the props schema.",
       ],
       designRules: [
         "Always import from the barrel: import { Button, Card } from '@/components/m3' — or use the per-file path shown in each component's importLine.",
@@ -41,6 +42,25 @@ export async function GET() {
       categories: m3Registry.categories,
       componentCount: m3Registry.totalCount,
       m3eComponents: m3Registry.components.filter((c) => c.m3e).map((c) => c.id),
+      mcpServer: {
+        name: "m3-expressive",
+        transport: "stdio",
+        path: "mini-services/mcp-server/index.ts",
+        run: "bun run --cwd mini-services/mcp-server start",
+        docs: "mini-services/mcp-server/README.md",
+        tools: [
+          "list_components", "search_components", "get_component", "get_component_api",
+          "get_component_examples", "get_component_guidelines", "get_component_states",
+          "get_component_source", "list_themes", "get_theme", "get_design_tokens",
+          "get_motion_guidance", "get_accessibility_guidance",
+        ],
+      },
+      themes: [
+        { id: "baseline", label: "Material Violet", seed: "#6750A4" },
+        { id: "ocean", label: "Ocean Blue", seed: "#0B57D0" },
+        { id: "emerald", label: "Emerald Fresh", seed: "#006E1C" },
+        { id: "coral", label: "Warm Coral", seed: "#FB7C41" },
+      ],
     },
   };
   return NextResponse.json(base);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { m3Registry, getComponent, searchComponents } from "@/lib/m3/registry";
-import { colorRoles, springs, shapes, typeScale, stateOpacities } from "@/lib/m3/tokens";
+import { colorRoles, springs, shapes, typeScale, stateOpacities, elevations, easings, durations } from "@/lib/m3/tokens";
+import { m3Themes, getTheme, themeIds, defaultThemeId } from "@/lib/m3/themes";
 import { categoryLabels } from "@/lib/m3/types";
 
 /**
@@ -9,6 +10,8 @@ import { categoryLabels } from "@/lib/m3/types";
  * GET /api/registry?q=nav               → search components
  * GET /api/registry?summary=true        → lightweight index (no props/guidelines)
  * GET /api/registry?tokens=true         → design tokens only
+ * GET /api/registry?themes=true         → curated theme index
+ * GET /api/registry?themes=true&theme=ocean → single theme (full light+dark schemes)
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -32,11 +35,38 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       colorRoles,
       springs,
+      easings,
+      durations,
       shapes,
+      elevations,
       typeScale,
       stateLayers: stateOpacities,
+      themes: m3Themes.map((t) => ({ id: t.id, label: t.label, seed: t.seed, description: t.description })),
       typographyFont: "Roboto Flex (variable)",
       iconFont: "Material Symbols Rounded (variable)",
+    });
+  }
+
+  if (searchParams.get("themes")) {
+    const themeId = searchParams.get("theme");
+    if (themeId) {
+      const theme = getTheme(themeId);
+      if (!theme) {
+        return NextResponse.json({ error: `Theme "${themeId}" not found`, available: themeIds }, { status: 404 });
+      }
+      return NextResponse.json(theme);
+    }
+    return NextResponse.json({
+      default: defaultThemeId,
+      count: m3Themes.length,
+      themes: m3Themes.map((t) => ({
+        id: t.id,
+        label: t.label,
+        seed: t.seed,
+        description: t.description,
+        swatch: t.swatch,
+        schemes: ["light", "dark"],
+      })),
     });
   }
 

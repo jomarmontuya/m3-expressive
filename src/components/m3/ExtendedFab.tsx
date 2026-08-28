@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, type Transition } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -28,16 +28,12 @@ export interface ExtendedFabProps
 }
 
 /**
- * tokens.ts widens `type` to `string`; framer-motion's Transition union needs
- * the literal "spring". This shim re-pins it while reusing the token values.
- */
-function spring(t: Transition): Transition {
-  return { ...t, type: "spring" };
-}
-
-/**
  * M3 Extended FAB — a wider floating action button with an icon and
  * text label, for the primary action when an icon alone is not clear.
+ * Official anatomy: 56dp height, 16dp corners, 24dp icon, 8dp icon-label
+ * gap, 20dp horizontal padding, label-large text. Elevation 3 → 4 on
+ * hover/pressed (lowered: 1 → 2); disabled uses the on-surface 12%/38%
+ * tokens with no elevation.
  */
 export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>(
   function ExtendedFab(
@@ -55,16 +51,16 @@ export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>
         disabled={disabled}
         whileHover={disabled ? undefined : { scale: 1.03 }}
         whileTap={disabled ? undefined : { scale: 0.94 }}
-        transition={spring(springs.expressive)}
+        transition={springs.expressive}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
         className={cn(
-          "m3-state relative inline-flex select-none items-center justify-center overflow-hidden rounded-2xl px-5",
-          "gap-3 font-semibold md-label-large",
+          "m3-state m3-focus relative inline-flex select-none items-center justify-center overflow-hidden rounded-2xl px-5",
+          "gap-2 md-label-large",
           "transition-[background-color,box-shadow] duration-200",
-          fabColorStyles[color],
-          disabled ? restElevation : hovered ? hoverElevation : restElevation,
-          disabled && "opacity-38 pointer-events-none",
+          disabled ? "bg-m3-on-surface/12 text-m3-on-surface/38" : fabColorStyles[color],
+          disabled ? undefined : hovered ? hoverElevation : restElevation,
+          disabled && "pointer-events-none",
           className
         )}
         style={{ height: 56 }}

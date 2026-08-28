@@ -29,7 +29,9 @@ export interface SnackbarProps {
 
 /**
  * M3 Snackbar — brief confirmation feedback at the bottom of the screen on an
- * inverse surface, with an optional icon, text action, and close control.
+ * inverse surface (4dp corners, elevation 3, 344–672px per the official web
+ * spec), with a text action and close control. The optional leading icon is a
+ * documented extension beyond the base M3 anatomy (text + action + close).
  */
 export function Snackbar({
   open,
@@ -58,7 +60,7 @@ export function Snackbar({
           exit={{ y: 60, opacity: 0 }}
           transition={asTransition(springs.expressive)}
           className={cn(
-            "m3-elevation-3 md-body-medium fixed bottom-6 left-6 z-[70] flex min-h-12 max-w-sm items-center gap-3 rounded-lg bg-m3-inverse-surface px-4 py-3 text-m3-inverse-on-surface",
+            "m3-elevation-3 md-body-medium fixed bottom-6 left-6 z-[70] flex min-h-12 min-w-[344px] max-w-[min(672px,calc(100vw-3rem))] items-center gap-3 rounded-[4px] bg-m3-inverse-surface px-4 py-3 text-m3-inverse-on-surface",
             className
           )}
         >
@@ -68,7 +70,7 @@ export function Snackbar({
             <button
               type="button"
               onClick={onAction}
-              className="m3-state md-label-large shrink-0 rounded-full px-3 py-1 uppercase text-m3-inverse-primary"
+              className="m3-state md-label-large min-h-9 shrink-0 rounded-full px-3 uppercase text-m3-inverse-primary"
             >
               {actionLabel}
             </button>
@@ -78,7 +80,7 @@ export function Snackbar({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="m3-state shrink-0 rounded-full p-1 text-m3-inverse-on-surface"
+              className="m3-state flex size-9 shrink-0 items-center justify-center rounded-full text-m3-inverse-on-surface"
             >
               <MaterialSymbol icon="close" size={18} />
             </button>

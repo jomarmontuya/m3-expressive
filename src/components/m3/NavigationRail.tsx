@@ -26,6 +26,10 @@ export interface NavigationRailProps {
   onChange: (v: string) => void;
   /** Slot above the items — typically a FAB */
   header?: React.ReactNode;
+  /** Leading menu icon (official rail anatomy item); renders when onMenuClick is set */
+  menuIcon?: string;
+  /** Called when the leading menu icon is pressed (showing the icon also toggles the expanded rail) */
+  onMenuClick?: () => void;
   /** Draw a hinge/fold divider along the leading edge (foldable devices) */
   foldingLine?: boolean;
   className?: string;
@@ -42,6 +46,8 @@ export function NavigationRail({
   value,
   onChange,
   header,
+  menuIcon = "menu",
+  onMenuClick,
   foldingLine = false,
   className,
 }: NavigationRailProps) {
@@ -57,6 +63,18 @@ export function NavigationRail({
         className
       )}
     >
+      {onMenuClick && (
+        <button
+          type="button"
+          aria-label="Menu"
+          title="Menu"
+          onClick={onMenuClick}
+          className="m3-state relative mb-2 flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant"
+        >
+          <Ripple />
+          <MaterialSymbol icon={menuIcon} size={24} />
+        </button>
+      )}
       {header && <div className="mb-2 flex justify-center">{header}</div>}
       <ul className="flex flex-col items-center gap-3">
         {items.map((item) => {

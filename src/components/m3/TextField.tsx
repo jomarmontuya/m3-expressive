@@ -15,12 +15,10 @@ export type TextFieldSize = "xs" | "sm" | "md" | "lg";
 
 /** M3E height scale: xs=32, sm=40, md=56, lg=72 */
 const sizeHeights: Record<TextFieldSize, number> = { xs: 32, sm: 40, md: 56, lg: 72 };
-const sizeRounded: Record<TextFieldSize, string> = {
-  xs: "rounded-lg",
-  sm: "rounded-xl",
-  md: "rounded-xl",
-  lg: "rounded-2xl",
-};
+
+/** M3 shape corner extra-small — official 4dp radius for both field variants. */
+const fieldRadius = "rounded-m3-xs";
+const fieldTopRadius = "rounded-t-m3-xs";
 
 export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   variant?: TextFieldVariant;
@@ -81,21 +79,23 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
   const showPlaceholder = placeholder != null && (!label || floated);
 
   return (
-    <div className={cn("relative", fullWidth && "w-full", disabled && "opacity-38", className)}>
+    <div className={cn("relative", fullWidth && "w-full", className)}>
       <div
         className={cn(
-          "m3-state relative flex items-center transition-[border-color,box-shadow] duration-150",
+          "group/field relative flex items-center transition-[border-color,box-shadow] duration-150",
           variant === "outlined"
             ? cn(
                 "border bg-transparent",
-                sizeRounded[size],
-                error
+                fieldRadius,
+                error && !disabled
                   ? "border-m3-error"
                   : focused
                     ? "border-m3-primary shadow-[inset_0_0_0_1px_var(--md-primary)]"
-                    : "border-m3-outline"
+                    : disabled
+                      ? "border-m3-outline/12"
+                      : "border-m3-outline hover:border-m3-on-surface"
               )
-            : "rounded-t-lg bg-m3-surface-container-highest"
+            : cn(fieldTopRadius, disabled ? "bg-m3-on-surface/4" : "bg-m3-surface-container-highest")
         )}
         style={{ height }}
       >
@@ -105,6 +105,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
             size={iconSize}
             className={cn(
               "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+              disabled && "opacity-38",
               error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
             )}
           />
@@ -131,9 +132,11 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
           className={cn(
             "h-full w-full bg-transparent text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant",
             inputTextClass,
+            disabled && "opacity-38",
             leadingIcon ? "pl-12" : "pl-4",
             error || trailingIcon ? "pr-12" : "pr-4"
           )}
+          style={variant === "filled" && label ? { paddingTop: Math.round(height * 0.28) } : undefined}
           {...props}
         />
         {(error || trailingIcon) && (
@@ -143,6 +146,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
             fill={error ? true : undefined}
             className={cn(
               "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2",
+              disabled && "opacity-38",
               error ? "text-m3-error" : "text-m3-on-surface-variant"
             )}
           />
@@ -152,7 +156,11 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
             <div
               className={cn(
                 "pointer-events-none absolute inset-x-0 bottom-0 h-px",
-                error ? "bg-m3-error" : "bg-m3-on-surface-variant"
+                disabled
+                  ? "bg-transparent"
+                  : error
+                    ? "bg-m3-error"
+                    : "bg-m3-on-surface-variant group-hover/field:bg-m3-on-surface"
               )}
             />
             <motion.div
@@ -172,12 +180,13 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
             className={cn(
               "pointer-events-none absolute z-[1]",
               variant === "outlined" ? "bg-m3-surface px-1" : "px-0",
+              disabled && "opacity-38",
               floated ? "md-body-small" : labelRestClass,
               error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
             )}
             initial={false}
             animate={{
-              top: variant === "outlined" ? (floated ? -8 : centerY - labelRestHalf) : floated ? 4 : centerY - labelRestHalf,
+              top: variant === "outlined" ? (floated ? -8 : centerY - labelRestHalf) : floated ? 8 : centerY - labelRestHalf,
               left: variant === "outlined"
                 ? floated
                   ? leadingIcon
@@ -198,7 +207,10 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
         )}
       </div>
       {helperText && (
-        <div id={helperId} className={cn("mt-1 px-4 md-body-small", error ? "text-m3-error" : "text-m3-on-surface-variant")}>
+        <div
+          id={helperId}
+          className={cn("mt-1 px-4 md-body-small", disabled && "opacity-38", error ? "text-m3-error" : "text-m3-on-surface-variant")}
+        >
           {helperText}
         </div>
       )}

@@ -26,7 +26,8 @@ export function CardDemo() {
       <Card variant="elevated" className="w-64 p-6">
         <span className="md-title-medium text-m3-on-surface">Elevated</span>
         <p className="md-body-medium text-m3-on-surface-variant">
-          A shadowed card resting on surface-container-low at elevation 1.
+          A shadowed card on surface-container-low at elevation 1 (12dp corners; hovers to
+          elevation 2).
         </p>
       </Card>
 
@@ -56,6 +57,14 @@ export function CardDemo() {
             {joined ? "Joined" : "Join"}
           </Button>
         </span>
+      </Card>
+
+      <Card variant="elevated" shape="extraLarge" className="w-64 p-6">
+        <MaterialSymbol icon="auto_awesome" size={28} className="text-m3-primary" />
+        <span className="md-title-medium text-m3-on-surface">M3E hero</span>
+        <p className="md-body-medium text-m3-on-surface-variant">
+          Expressive hero card using the 28dp extra-large shape.
+        </p>
       </Card>
     </div>
   );
@@ -91,6 +100,20 @@ export function ListDemo() {
           onClick={() => {}}
         />
       </List>
+
+      <List className="w-[360px] overflow-hidden rounded-[20px] bg-m3-surface-container py-1">
+        <ListItem leading={<MaterialSymbol icon="timer" />} headline="Single line" onClick={() => {}} />
+        <ListItem
+          leading={<MaterialSymbol icon="description" />}
+          headline="Three line"
+          supporting={
+            "Three-line rows grow to the official 88dp height: the headline stays on one line while the supporting text wraps over two lines and the content top-aligns."
+          }
+          lines={3}
+          trailingIcon="more_vert"
+          onClick={() => {}}
+        />
+      </List>
     </div>
   );
 }
@@ -104,8 +127,16 @@ export function BottomSheetDemo() {
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
       <Button variant="tonal" icon="keyboard_arrow_up" onClick={() => setOpen(true)}>
-        Open bottom sheet
+        Open modal bottom sheet
       </Button>
+
+      {/* Standard (persistent, inline, no scrim) */}
+      <BottomSheet variant="standard" open={false} onClose={() => {}} title="Standard">
+        <List>
+          <ListItem leading={<MaterialSymbol icon="bookmark" />} headline="Saved" onClick={() => {}} />
+          <ListItem leading={<MaterialSymbol icon="history" />} headline="Recent" onClick={() => {}} />
+        </List>
+      </BottomSheet>
 
       <BottomSheet
         open={open}
@@ -155,7 +186,7 @@ export function SideSheetDemo() {
         Open modal side sheet
       </Button>
 
-      {/* Standard (persistent, inline) */}
+      {/* Standard (persistent, inline, surface-toned) */}
       <SideSheet variant="standard" open={false} onClose={() => {}} side="right" title="Details">
         <List>
           <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" onClick={() => {}} />

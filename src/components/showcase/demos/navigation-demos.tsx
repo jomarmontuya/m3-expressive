@@ -126,7 +126,7 @@ export function NavigationDrawerDemo() {
           items={drawerItems}
           value={standardValue}
           onChange={setStandardValue}
-          header={<span className="md-title-large">Mail</span>}
+          header={<span className="md-label-large text-m3-on-surface-variant">Mail</span>}
         />
       </div>
       <NavigationDrawer
@@ -136,7 +136,7 @@ export function NavigationDrawerDemo() {
         items={drawerItems}
         value={modalValue}
         onChange={setModalValue}
-        header={<span className="md-title-large">Mail</span>}
+        header={<span className="md-label-large text-m3-on-surface-variant">Mail</span>}
         footer={
           <Button variant="text" icon="settings">
             Settings
@@ -156,6 +156,7 @@ export function NavigationRailDemo() {
           items={navItems}
           value={value}
           onChange={setValue}
+          onMenuClick={() => {}}
           header={
             <motion.button
               type="button"
@@ -226,6 +227,7 @@ export function BottomAppBarDemo() {
         </div>
         <BottomAppBar
           fullWidth
+          navigationIcon={{ icon: "menu", label: "Menu" }}
           actions={[
             { icon: "check_box", label: "Select" },
             { icon: "edit", label: "Edit" },

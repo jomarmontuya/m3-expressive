@@ -5,7 +5,7 @@ import { TextField } from "@/components/m3/TextField";
 import { SearchBar } from "@/components/m3/SearchBar";
 import { Autocomplete } from "@/components/m3/Autocomplete";
 import { Checkbox } from "@/components/m3/Checkbox";
-import { Radio } from "@/components/m3/Radio";
+import { Radio, RadioGroup } from "@/components/m3/Radio";
 import { Switch } from "@/components/m3/Switch";
 import { Slider } from "@/components/m3/Slider";
 import { Chip } from "@/components/m3/Chip";
@@ -135,7 +135,7 @@ export function RadioDemo() {
   const [plan, setPlan] = React.useState<string>("standard");
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
-      <div className="flex flex-col gap-1">
+      <RadioGroup label="Plan" className="gap-1">
         {PLANS.map((p) => (
           <Radio
             key={p}
@@ -144,7 +144,7 @@ export function RadioDemo() {
             label={p.charAt(0).toUpperCase() + p.slice(1)}
           />
         ))}
-      </div>
+      </RadioGroup>
       <Radio checked={false} disabled label="Unavailable" />
     </div>
   );

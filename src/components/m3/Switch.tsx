@@ -28,7 +28,9 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
 ) {
   const [pressed, setPressed] = React.useState(false);
   const thumbSize = pressed ? 28 : checked ? 24 : 16;
-  const thumbX = checked ? (pressed ? 20 : 24) : 0;
+  // Official geometry: off thumb rests 4dp from the track edge; on thumb at 24dp
+  // (pressed on-thumb clamps to 20dp so the expanded 28dp thumb stays inside).
+  const thumbX = checked ? (pressed ? 20 : 24) : 4;
 
   return (
     <motion.button
@@ -42,7 +44,7 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
       className={cn(
-        "m3-state relative inline-flex h-8 w-[52px] shrink-0 items-center rounded-full border-2 outline-none transition-colors duration-150",
+        "m3-state m3-focus relative inline-flex h-8 w-[52px] shrink-0 items-center rounded-full border-2 outline-none transition-colors duration-150",
         checked
           ? "border-m3-primary bg-m3-primary text-m3-on-primary"
           : "border-m3-outline bg-m3-surface-container-highest text-m3-on-surface-variant",

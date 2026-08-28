@@ -34,9 +34,11 @@ export interface BadgeProps {
 
 /**
  * M3 Badge — a small status marker for another element.
- * With `children` it pins to the anchor's top-right corner (-top-1 -right-2);
- * standalone it renders a 16px pill or a 6px dot.
- * Changing `value` remounts the badge, popping in with the bouncy M3E spring.
+ * With `children` it pins to the anchor's top-right corner using the official
+ * offsets (content badge overhangs 4px right / 2px top; the 6px dot sits flush
+ * in the corner). Standalone it renders a 16px pill or a 6px dot; a single
+ * digit renders as a 16×16 badge. Changing `value` remounts the badge,
+ * popping in with the bouncy M3E spring.
  */
 export function Badge({
   value,
@@ -50,7 +52,7 @@ export function Badge({
   const hasValue = value !== undefined && value !== "";
   const display =
     typeof value === "number" && value > max ? `${max}+` : value;
-  const stateCls = disabled ? "pointer-events-none opacity-40" : "";
+  const stateCls = disabled ? "pointer-events-none opacity-38" : "";
 
   const badge = showDot ? (
     <motion.span
@@ -58,6 +60,7 @@ export function Badge({
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       transition={asTransition(springs.bouncy)}
+      aria-hidden="true"
       className={cn("block h-[6px] w-[6px] rounded-full", colorStyles[color], className)}
     />
   ) : hasValue ? (
@@ -85,7 +88,17 @@ export function Badge({
   return (
     <span className="relative inline-flex">
       {children}
-      <span className={cn("absolute -right-2 -top-1 inline-flex", stateCls)}>{badge}</span>
+      <span
+        className={cn(
+          "absolute inline-flex",
+          // Official BadgedBox offsets: text badge 12dp from end / 14dp overlap;
+          // icon-only dot flush with the anchor corner.
+          showDot ? "right-0 top-0" : "-right-1 -top-0.5",
+          stateCls
+        )}
+      >
+        {badge}
+      </span>
     </span>
   );
 }

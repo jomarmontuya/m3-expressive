@@ -14,6 +14,8 @@ export interface BottomAppBarAction {
   onClick?: () => void;
 }
 
+export type BottomAppBarNavigationIcon = BottomAppBarAction;
+
 export interface BottomAppBarFab {
   icon: string;
   onClick?: () => void;
@@ -25,6 +27,8 @@ function spring(transition: (typeof springs)[keyof typeof springs]): Transition 
 }
 
 export interface BottomAppBarProps {
+  /** Leading navigation icon (official anatomy item; typically the hamburger/menu affordance) */
+  navigationIcon?: BottomAppBarNavigationIcon;
   actions?: BottomAppBarAction[];
   /** Trailing Material Symbol icon names */
   trailingIcons?: string[];
@@ -41,6 +45,7 @@ export interface BottomAppBarProps {
  * morphs its corner shape on press (M3 Expressive).
  */
 export function BottomAppBar({
+  navigationIcon,
   actions = [],
   trailingIcons = [],
   fab,
@@ -58,6 +63,18 @@ export function BottomAppBar({
       )}
     >
       <div className="flex items-center gap-1">
+        {navigationIcon && (
+          <button
+            type="button"
+            aria-label={navigationIcon.label ?? navigationIcon.icon}
+            title={navigationIcon.label}
+            onClick={navigationIcon.onClick}
+            className="m3-state relative flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant"
+          >
+            <Ripple />
+            <MaterialSymbol icon={navigationIcon.icon} size={24} />
+          </button>
+        )}
         {actions.map((action, i) => (
           <button
             key={`${action.icon}-${i}`}

@@ -2,20 +2,24 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs, type M3Spring } from "@/lib/m3/tokens";
+import { springs } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
-
-/** tokens.ts widens `type` to `string`; framer-motion needs the "spring" literal. */
-const spring = (s: M3Spring): Transition => ({ ...s, type: "spring" });
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ] as const;
 
-const WEEKDAY_INITIALS = ["S", "M", "T", "W", "T", "F", "S"] as const;
+const WEEKDAYS = [
+  { initial: "S", long: "Sunday" },
+  { initial: "M", long: "Monday" },
+  { initial: "T", long: "Tuesday" },
+  { initial: "W", long: "Wednesday" },
+  { initial: "T", long: "Thursday" },
+  { initial: "F", long: "Friday" },
+  { initial: "S", long: "Saturday" },
+] as const;
 
 const FIRST_YEAR = 1988;
 
@@ -33,6 +37,12 @@ function sameDay(a: Date, b: Date): boolean {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate()
   );
+}
+
+function isoOf(d: Date): string {
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
 /** 6×7 grid of days (weeks start on Sunday) covering the cursor month */
@@ -60,10 +70,13 @@ export interface DatePickerProps {
 }
 
 /**
- * M3 inline Date Picker — a rounded-[28px] surface with a month grid,
- * a tappable "month year" header that flips into a 4-column year grid
- * (1988 → current year + 10), today outlined in primary, and a
- * spring-animated selection pill shared via layoutId.
+ * M3 inline Date Picker — a rounded-[28px] surface-container-high panel
+ * with a month grid, a tappable "month year" header that flips into a
+ * 4-column year grid (1988 → current year + 10), today outlined in
+ * primary, and a spring-animated selection pill shared via layoutId
+ * (scoped per instance). The grid exposes ARIA grid roles with roving
+ * tabindex and arrow-key day navigation (←/→/↑/↓), Home/End for week
+ * start/end. Nav chevrons are 48dp targets.
  */
 export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(function DatePicker(
   { value, onChange, minDate, maxDate, fullWidth = false, className },
@@ -73,12 +86,20 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
   const selected = value ?? internal;
   const [cursor, setCursor] = React.useState<Date>(() => startOfMonth(value ?? new Date()));
   const [view, setView] = React.useState<"month" | "year">("month");
+  const [rovingOverride, setRovingOverride] = React.useState<string | null>(null);
+  // Scope the shared selection pill so multiple pickers never cross-animate
+  const pillId = React.useId();
 
   const selectedYearRef = React.useRef<HTMLButtonElement | null>(null);
+  const gridRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     if (view === "year") selectedYearRef.current?.scrollIntoView({ block: "center" });
   }, [view]);
+
+  React.useEffect(() => {
+    setRovingOverride(null);
+  }, [cursor]);
 
   const cells = React.useMemo(() => getMonthGrid(cursor), [cursor]);
 
@@ -114,11 +135,57 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
   const today = new Date();
   const highlightYear = (selected ?? cursor).getFullYear();
 
+  // Roving tabindex anchor: selected day in view → today → first enabled day of month
+  const activeIso = React.useMemo(() => {
+    if (rovingOverride) return rovingOverride;
+    const inView = (d: Date) => cells.some((c) => sameDay(c, d));
+    const pick =
+      (selected && inView(selected) && !isDisabledDay(selected) ? selected : undefined) ??
+      (inView(today) && !isDisabledDay(today) ? today : undefined) ??
+      cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)) ??
+      cells.find((c) => !isDisabledDay(c)) ??
+      cells[0];
+    return isoOf(pick);
+  }, [rovingOverride, cells, selected, today, cursor, isDisabledDay]);
+
+  const focusCell = (iso: string) => {
+    requestAnimationFrame(() => {
+      gridRef.current
+        ?.querySelector<HTMLButtonElement>(`button[data-iso="${iso}"]`)
+        ?.focus();
+    });
+  };
+
+  /** Arrow-key day navigation: ←/→ ±1 day, ↑/↓ ±7, Home/End week bounds */
+  const handleDayKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
+    let delta = 0;
+    if (e.key === "ArrowLeft") delta = -1;
+    else if (e.key === "ArrowRight") delta = 1;
+    else if (e.key === "ArrowUp") delta = -7;
+    else if (e.key === "ArrowDown") delta = 7;
+    else if (e.key === "Home") delta = -(idx % 7);
+    else if (e.key === "End") delta = 6 - (idx % 7);
+    else return;
+    e.preventDefault();
+    let i = idx + delta;
+    while (i >= 0 && i < cells.length && isDisabledDay(cells[i])) i += delta;
+    if (i < 0 || i >= cells.length) return;
+    const target = cells[i];
+    if (target.getMonth() !== cursor.getMonth() || target.getFullYear() !== cursor.getFullYear()) {
+      setCursor(startOfMonth(target));
+    }
+    setRovingOverride(isoOf(target));
+    focusCell(isoOf(target));
+  };
+
+  const weekRows: Date[][] = [];
+  for (let r = 0; r < 6; r++) weekRows.push(cells.slice(r * 7, r * 7 + 7));
+
   return (
     <div
       ref={ref}
       className={cn(
-        "rounded-[28px] bg-m3-surface-container-highest p-6",
+        "rounded-[28px] bg-m3-surface-container-high p-6",
         fullWidth ? "w-full" : "w-[328px]",
         className
       )}
@@ -137,17 +204,17 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
         <div className="flex items-center">
           <button
             type="button"
-            aria-label="Previous"
+            aria-label={view === "year" ? "Previous years" : "Previous month"}
             onClick={() => navigate(-1)}
-            className="m3-state m3-focus flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none"
+            className="m3-state m3-focus flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none"
           >
             <MaterialSymbol icon="chevron_left" />
           </button>
           <button
             type="button"
-            aria-label="Next"
+            aria-label={view === "year" ? "Next years" : "Next month"}
             onClick={() => navigate(1)}
-            className="m3-state m3-focus flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none"
+            className="m3-state m3-focus flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none"
           >
             <MaterialSymbol icon="chevron_right" />
           </button>
@@ -155,55 +222,73 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
       </div>
 
       {view === "month" ? (
-        <>
+        <div role="grid" ref={gridRef}>
           {/* Weekday row */}
-          <div className="grid grid-cols-7 justify-items-center">
-            {WEEKDAY_INITIALS.map((w, i) => (
+          <div role="row" className="grid grid-cols-7 justify-items-center">
+            {WEEKDAYS.map((w, i) => (
               <span
-                key={`${w}-${i}`}
+                key={`${w.long}-${i}`}
+                role="columnheader"
+                aria-label={w.long}
                 className="flex h-10 w-10 items-center justify-center md-label-medium text-m3-on-surface-variant"
               >
-                {w}
+                {w.initial}
               </span>
             ))}
           </div>
-          {/* Day grid */}
-          <div className="grid grid-cols-7 justify-items-center gap-y-1">
-            {cells.map((day) => {
-              const isSelected = selected !== undefined && sameDay(day, selected);
-              const isToday = sameDay(day, today);
-              const inMonth = day.getMonth() === cursor.getMonth();
-              const disabled = isDisabledDay(day);
-              return (
-                <button
-                  type="button"
-                  key={day.getTime()}
-                  disabled={disabled}
-                  onClick={() => handleSelect(day)}
-                  className={cn(
-                    "m3-state m3-focus relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
-                    disabled && "pointer-events-none opacity-38",
-                    !isSelected && isToday && "border border-m3-primary text-m3-primary",
-                    !isSelected &&
-                      !isToday &&
-                      (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
-                  )}
-                >
-                  {isSelected && (
-                    <motion.span
-                      layoutId="m3-day-pill"
-                      className="absolute inset-0 rounded-full bg-m3-primary"
-                      transition={spring(springs.expressive)}
-                    />
-                  )}
-                  <span className={cn("relative z-10", isSelected && "text-m3-on-primary")}>
-                    {day.getDate()}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
+          {/* Day grid — 40dp circular cells, roving tabindex + arrow keys */}
+          {weekRows.map((week, r) => (
+            <div key={`week-${r}`} role="row" className="grid grid-cols-7 justify-items-center">
+              {week.map((day, c) => {
+                const iso = isoOf(day);
+                const idx = r * 7 + c;
+                const isSelected = selected !== undefined && sameDay(day, selected);
+                const isToday = sameDay(day, today);
+                const inMonth = day.getMonth() === cursor.getMonth();
+                const disabled = isDisabledDay(day);
+                return (
+                  <div
+                    key={iso}
+                    role="gridcell"
+                    aria-selected={isSelected || undefined}
+                    aria-current={isToday ? "date" : undefined}
+                    aria-disabled={disabled || undefined}
+                    className="flex items-center justify-center"
+                  >
+                    <button
+                      type="button"
+                      data-iso={iso}
+                      disabled={disabled}
+                      tabIndex={iso === activeIso ? 0 : -1}
+                      aria-label={`${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}`}
+                      onClick={() => handleSelect(day)}
+                      onKeyDown={(e) => handleDayKeyDown(e, idx)}
+                      className={cn(
+                        "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
+                        disabled && "pointer-events-none opacity-38",
+                        !isSelected && isToday && "border border-m3-primary text-m3-primary",
+                        !isSelected &&
+                          !isToday &&
+                          (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
+                      )}
+                    >
+                      {isSelected && (
+                        <motion.span
+                          layoutId={pillId}
+                          className="absolute inset-0 rounded-full bg-m3-primary"
+                          transition={springs.expressive}
+                        />
+                      )}
+                      <span className={cn("relative z-10", isSelected && "text-m3-on-primary")}>
+                        {day.getDate()}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       ) : (
         /* Year grid: 4 columns, 1988 → current year + 10 */
         <div className="m3-scroll grid h-[300px] grid-cols-4 content-start gap-1 overflow-y-auto pt-2">

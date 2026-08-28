@@ -72,9 +72,9 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip
       transition={springs.fastVisual}
       aria-pressed={isSelectable ? selected : undefined}
       className={cn(
-        "m3-state relative inline-flex select-none items-center gap-2 overflow-hidden rounded-full border px-4 md-label-large transition-[background-color,border-color,box-shadow] duration-150",
+        "m3-state m3-focus relative inline-flex select-none items-center gap-2 overflow-hidden rounded-full border px-4 md-label-large transition-[background-color,border-color,box-shadow] duration-150",
         elevated && !selected
-          ? "m3-elevation-1 border-transparent bg-m3-surface-container-low text-m3-primary hover:m3-elevation-2"
+          ? "m3-elevation-1 border-transparent bg-m3-surface-container-low text-m3-primary hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_2px_6px_2px_rgb(0_0_0/0.15)]"
           : showCheck
             ? "border-transparent bg-m3-secondary-container text-m3-on-secondary-container"
             : "border-m3-outline bg-transparent text-m3-on-surface",
@@ -128,7 +128,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip
               if (!disabled) onRemove();
             }
           }}
-          className="m3-state -mr-1.5 grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface-variant transition-colors duration-150 hover:text-m3-on-surface"
+          className="m3-state -mr-2 grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface-variant transition-colors duration-150 hover:text-m3-on-surface"
         >
           <MaterialSymbol icon="cancel" size={18} />
         </span>

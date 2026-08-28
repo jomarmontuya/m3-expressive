@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence, type Transition } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs } from "@/lib/m3/tokens";
+import { springs, durations } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 import { fabColorStyles, type FabColor } from "./FAB";
@@ -14,14 +14,6 @@ export interface FabMenuAction {
   /** Optional label shown as a tooltip-style chip next to the action FAB */
   label?: string;
   onClick?: () => void;
-}
-
-/**
- * tokens.ts widens `type` to `string`; framer-motion's Transition union needs
- * the literal "spring". This shim re-pins it while reusing the token values.
- */
-function spring(t: Transition): Transition {
-  return { ...t, type: "spring" };
 }
 
 export interface FabMenuProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -37,7 +29,9 @@ export interface FabMenuProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * M3 Expressive FabMenu — a small FAB that expands into a staggered row or
  * column of related action FABs. The main 'edit' icon rotates 45° into a
- * close affordance while the actions spring in one after another.
+ * close affordance while the actions spring in one after another
+ * (50ms stagger = durations.short1 token). Dismisses on Escape and
+ * outside-pointerdown like any transient menu surface.
  */
 export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function FabMenu(
   {
@@ -53,6 +47,7 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
 ) {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const isOpen = open ?? internalOpen;
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   const setOpen = React.useCallback(
     (next: boolean) => {
@@ -62,11 +57,39 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
     [open, onOpenChange]
   );
 
+  /** Menu-like dismissal: Escape and outside pointerdown close the menu. */
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen, setOpen]);
+
+  const setRefs = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
+
   const isVertical = direction === "vertical";
 
   return (
     <div
-      ref={ref}
+      ref={setRefs}
       className={cn(
         "relative inline-flex gap-3",
         isVertical ? "flex-col items-end" : "flex-row items-center",
@@ -82,7 +105,7 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
-              transition={{ ...spring(springs.expressive), delay: i * 0.03 }}
+              transition={{ ...springs.expressive, delay: (i * durations.short1) / 1000 }}
               className={cn(
                 "inline-flex items-center gap-3",
                 isVertical ? "flex-row" : "flex-col"
@@ -93,6 +116,7 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
                   {action.label}
                 </span>
               )}
+              {/* 32dp action FAB — ::before extends the 32px hit area to 48dp */}
               <motion.button
                 type="button"
                 aria-label={action.label}
@@ -101,8 +125,8 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
                   setOpen(false);
                 }}
                 whileTap={{ scale: 0.96 }}
-                transition={spring(springs.fastVisual)}
-                className="m3-state relative m3-elevation-1 inline-flex h-8 w-8 select-none items-center justify-center overflow-hidden rounded-full bg-m3-primary-container text-m3-on-primary-container"
+                transition={springs.fastVisual}
+                className="m3-state m3-focus relative m3-elevation-1 inline-flex h-8 w-8 select-none items-center justify-center rounded-full bg-m3-primary-container text-m3-on-primary-container before:absolute before:-inset-2 before:content-['']"
               >
                 <Ripple />
                 <MaterialSymbol icon={action.icon} size={18} />
@@ -114,22 +138,24 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
       {/* Main FAB — icon morphs edit → close */}
       <motion.button
         type="button"
+        aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={isOpen ? "Close actions menu" : "Open actions menu"}
         onClick={() => setOpen(!isOpen)}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.94 }}
-        transition={spring(springs.expressive)}
+        transition={springs.expressive}
         className={cn(
-          "m3-state relative m3-elevation-3 inline-flex h-10 w-10 select-none items-center justify-center overflow-hidden rounded-2xl",
+          "m3-state m3-focus relative m3-elevation-3 inline-flex h-10 w-10 select-none items-center justify-center rounded-2xl",
           "transition-[background-color,box-shadow] duration-200",
+          "before:absolute before:-inset-1 before:content-['']",
           fabColorStyles[color]
         )}
       >
         <Ripple />
         <motion.span
           animate={{ rotate: isOpen ? 45 : 0 }}
-          transition={spring(springs.expressiveEffects)}
+          transition={springs.expressiveEffects}
           className="inline-flex"
         >
           <MaterialSymbol icon="edit" size={24} />

@@ -2,25 +2,20 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
-import type { M3Spring } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
-
-/** tokens.ts `satisfies` widens spring `type` to string; narrow for framer-motion. */
-const asTransition = (s: M3Spring): Transition => s as Transition;
 
 export interface DialogProps {
   open: boolean;
   /** Scrim click + Escape + close handling; ignored when dismissible is false. */
   onClose?: () => void;
-  /** Leading Material Symbol name above the headline. */
+  /** Leading Material Symbol centered above the headline. */
   icon?: string;
   headline?: string;
   /** Dialog body content. */
   children?: React.ReactNode;
-  /** Row of action buttons, right-aligned. */
+  /** Row of action buttons, right-aligned with the official 8dp gap. */
   actions?: React.ReactNode;
   /** Edge-to-edge full screen variant. */
   fullscreen?: boolean;
@@ -29,10 +24,17 @@ export interface DialogProps {
   className?: string;
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
+
 /**
- * M3 Dialog — a modal window that blocks the page underneath with a scrim.
- * Basic dialogs center on screen (max 560px); fullscreen dialogs cover the
- * viewport edge-to-edge.
+ * M3 Dialog — a modal window that blocks the page underneath with a 32%
+ * scrim. Basic dialogs center on screen on surface-container-high with
+ * 28dp corners, elevation 3 and the official 280–560dp width range;
+ * fullscreen dialogs cover the viewport edge-to-edge. The headline and
+ * body are wired via aria-labelledby / aria-describedby, focus is trapped
+ * inside while open, Escape/scrim dismiss when dismissible, and focus
+ * returns to the triggering element on close.
  */
 export function Dialog({
   open,
@@ -45,6 +47,11 @@ export function Dialog({
   dismissible = true,
   className,
 }: DialogProps) {
+  const headlineId = React.useId();
+  const bodyId = React.useId();
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -59,12 +66,45 @@ export function Dialog({
     };
   }, [open, dismissible, onClose]);
 
+  // Move focus into the dialog on open; return it to the trigger on close.
+  React.useEffect(() => {
+    if (!open) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    const timer = window.setTimeout(() => panelRef.current?.focus(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      restoreFocusRef.current?.focus?.();
+    };
+  }, [open]);
+
+  // Trap Tab focus inside the dialog surface.
+  const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab" || !panelRef.current) return;
+    const focusables = Array.from(
+      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
+    ).filter((el) => !el.hasAttribute("disabled"));
+    if (focusables.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey && (active === first || active === panelRef.current)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
         <div
           className={cn(
-            "fixed inset-0 z-[80] flex items-center justify-center p-4",
+            "fixed inset-0 z-[80] flex items-center justify-center p-6",
             fullscreen && "p-0"
           )}
         >
@@ -72,36 +112,59 @@ export function Dialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: durations.short4 / 1000, ease: "easeOut" }}
-            className="absolute inset-0 bg-m3-scrim/50"
+            // Named framer easing (tokens.ts easings.* are CSS strings, not
+            // framer Easing tuples); "easeOut" ≙ easings.standardDecelerate
+            transition={{
+              duration: durations.short4 / 1000,
+              ease: "easeOut",
+            }}
+            className="absolute inset-0 bg-m3-scrim/32"
             onClick={() => {
               if (dismissible) onClose?.();
             }}
           />
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
-            aria-label={headline}
+            aria-labelledby={headline ? headlineId : undefined}
+            aria-describedby={children ? bodyId : undefined}
+            tabIndex={-1}
+            onKeyDown={handleTab}
             initial={{ scale: 0.9, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={asTransition(springs.expressive)}
+            transition={springs.expressive}
             className={cn(
-              "m3-elevation-3 relative w-full bg-m3-surface-container-highest p-6",
-              fullscreen ? "h-full max-w-none rounded-none" : "max-w-[560px] rounded-3xl",
+              "m3-elevation-3 relative w-full bg-m3-surface-container-high p-6 outline-none",
+              fullscreen
+                ? "h-full max-w-none rounded-none"
+                : "min-w-[280px] max-w-[560px] rounded-[28px]",
               className
             )}
           >
             {icon && (
-              <MaterialSymbol icon={icon} size={24} className="mb-4 block text-m3-primary" />
+              // Official: 24dp primary icon, center-aligned, 16dp above the headline
+              <span className="mb-4 flex justify-center">
+                <MaterialSymbol icon={icon} size={24} className="text-m3-primary" />
+              </span>
             )}
             {headline && (
-              <h2 className="md-headline-small mb-4 text-m3-on-surface">{headline}</h2>
+              // Official: headline center-aligns when an icon is present, start-aligns otherwise
+              <h2
+                id={headlineId}
+                className={cn("md-headline-small mb-4 text-m3-on-surface", icon && "text-center")}
+              >
+                {headline}
+              </h2>
             )}
             {children && (
-              <div className="md-body-medium text-m3-on-surface-variant">{children}</div>
+              <div id={bodyId} className="md-body-medium text-m3-on-surface-variant">
+                {children}
+              </div>
             )}
             {actions && (
+              // Official action area: 8dp between text buttons, 24dp above / 24dp sides+below
               <div className="flex flex-wrap items-center justify-end gap-2 pt-6">{actions}</div>
             )}
           </motion.div>

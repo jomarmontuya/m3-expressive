@@ -23,7 +23,7 @@ export const buttonGroupMeta: M3ComponentMeta = {
     { name: "onValueChange", type: `(value: string[]) => void`, description: "Called with the next selected ids." },
     { name: "variableWidths", type: `boolean`, default: `false`, description: "M3E: hovered/selected segment flex-grows to 1.4 with a spring." },
     { name: "size", type: `'sm' | 'md' | 'lg'`, default: `'md'`, description: "Segment height: 40 / 56 / 76 px." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Disables every segment, dims to 38% opacity." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Disables every segment: container drops to on-surface 12%, content to 38%." },
   ],
   guidelines: {
     whenToUse: [
@@ -32,8 +32,8 @@ export const buttonGroupMeta: M3ComponentMeta = {
       "Use selection='multiple' for toggling independent formatting-style options.",
       "Use variableWidths on wide layouts for the expressive hover-growth effect.",
     ],
-    anatomy: ["4px gutter between segments", "Pill segments (40/56/76px tall)", "State layer + ripple per segment", "Secondary-container selected container"],
-    states: ["Unselected (variant colors)", "Selected (secondary-container, transparent border)", "Hover (8% state layer, grows when variableWidths)", "Focus (3px focus ring)", "Pressed (96% scale)", "Disabled (38% opacity)"],
+    anatomy: ["4px gutter between segments", "Pill segments (40/56/76px tall)", "State layer + ripple per segment", "Secondary-container selected container", "48dp minimum touch target (invisible ::before extension)"],
+    states: ["Unselected (variant colors)", "Selected (secondary-container, transparent border)", "Hover (8% state layer, grows when variableWidths)", "Focus (3px focus ring)", "Pressed (96% scale)", "Disabled (on-surface 12% container / 38% content)"],
     dos: [
       "Keep 2–5 segments in one group so emphasis stays balanced",
       "Give every segment an id; pair icons with labels when space allows",
@@ -66,12 +66,12 @@ export const dividerMeta: M3ComponentMeta = {
   name: "Divider",
   category: "containment",
   description:
-    "A divider is a thin line that groups content in lists and layouts, separating content into clear groups.",
+    "A divider is a 1dp thin line that groups content in lists and layouts, separating content into clear groups.",
   importLine: `import { Divider } from "@/components/m3";`,
   variants: ["full-width", "inset-start", "inset-middle", "inset-end", "vertical"],
   props: [
-    { name: "inset", type: `'none' | 'start' | 'middle' | 'end'`, default: `'none'`, description: "16px side inset, matching leading content in lists." },
-    { name: "thickness", type: `number`, default: `1`, description: "Stroke thickness in px." },
+    { name: "inset", type: `'none' | 'start' | 'middle' | 'end'`, default: `'none'`, description: "Horizontal 'start' uses the official M3 list divider insets: 16dp left / 24dp right (the 72dp start inset is the legacy M2 value). 'middle' = 16dp equal indents per the M3 divider guideline; 'end' is a library extension." },
+    { name: "thickness", type: `number`, default: `1`, description: "Stroke thickness in px (official 1dp)." },
     { name: "color", type: `'outline' | 'outline-variant'`, default: `'outline-variant'`, description: "Line color role." },
     { name: "orientation", type: `'horizontal' | 'vertical'`, default: `'horizontal'`, description: "Direction of the line." },
   ],
@@ -81,10 +81,10 @@ export const dividerMeta: M3ComponentMeta = {
       "Group sections inside cards, sheets, and dialogs.",
       "Use vertical dividers to split side-by-side content regions.",
     ],
-    anatomy: ["Divider line (outline-variant)", "Optional 16px inset"],
-    states: ["Full-width", "Inset", "Vertical"],
+    anatomy: ["Divider line (1dp, outline-variant)", "Optional insets (start = 16dp left / 24dp right per the M3 lists spec, middle = 16dp equal indents per the M3 divider guideline, end = 16dp extension)"],
+    states: ["Full-width", "Inset (start/middle/end)", "Vertical"],
     dos: [
-      "Use inset dividers under list items with leading icons or avatars",
+      "Use inset dividers under list items to align with their text (official 16dp/24dp insets)",
       "Keep dividers subtle — outline-variant for decoration",
       "Pair vertical dividers with generous side spacing",
     ],
@@ -106,7 +106,7 @@ export const datePickerMeta: M3ComponentMeta = {
   name: "Date Picker",
   category: "selection",
   description:
-    "Date pickers let users select a date from a calendar month grid, with a tappable header that switches to a year grid and clamping via min/max dates.",
+    "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Compact inline implementation — the official modal picker is 568×368dp (landscape) / 328×512dp (portrait) with a selected-date header, which this simplified grid intentionally omits.",
   importLine: `import { DatePicker } from "@/components/m3";`,
   variants: ["month-view", "year-view"],
   props: [
@@ -122,9 +122,10 @@ export const datePickerMeta: M3ComponentMeta = {
       "Use an inline date picker when choosing a date is the primary in-page task.",
       "Use minDate/maxDate to constrain scheduling to valid ranges.",
       "Pair with a readout chip to show the formatted selected date.",
+      "Wrap in a Dialog or BottomSheet when you need the official modal presentation.",
     ],
-    anatomy: ["Container (28px corners, surface-container-highest)", "Header (month-year label + prev/next)", "Weekday row (label-medium)", "6×7 day grid (40px circular cells)", "Year grid (4 columns)"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline)", "Selected (primary pill, spring morph via layoutId)", "Other month (on-surface-variant)", "Disabled (38% opacity)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6×7 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (primary pill, spring morph via layoutId)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus ±1 day / ±1 week, Home/End week bounds, Enter selects)"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
@@ -151,7 +152,7 @@ export const sideSheetMeta: M3ComponentMeta = {
   name: "Side Sheet",
   category: "containment",
   description:
-    "Side sheets are surfaces anchored to the left or right edge used for secondary content like filters or details; modal variants overlay a scrim, standard variants sit inline with the layout.",
+    "Side sheets are surfaces anchored to the left or right edge used for secondary content like filters or details; modal variants overlay a 32% scrim, standard variants sit inline with the layout on surface. The official 16dp radius rounds the inner (docked) edge only.",
   importLine: `import { SideSheet } from "@/components/m3";`,
   variants: ["modal", "standard"],
   props: [
@@ -162,7 +163,7 @@ export const sideSheetMeta: M3ComponentMeta = {
     { name: "title", type: `string`, description: "Panel heading (md-title-large) above a divider." },
     { name: "children", type: `React.ReactNode`, description: "Scrollable content." },
     { name: "footer", type: `React.ReactNode`, description: "Pinned footer above a divider." },
-    { name: "width", type: `number`, default: `320`, description: "Panel width in px." },
+    { name: "width", type: `number`, default: `360`, description: "Panel width in px (official max-width 400dp; values above 400 are clamped)." },
     { name: "className", type: `string`, description: "Extra classes for the panel." },
   ],
   guidelines: {
@@ -171,10 +172,10 @@ export const sideSheetMeta: M3ComponentMeta = {
       "Use the modal variant on small screens where the sheet must take focus.",
       "Use the standard variant in split-view layouts where content stays visible.",
     ],
-    anatomy: ["Panel (surface-container-low, 28px inner corners, width 320px)", "Title + divider", "Scrollable content", "Optional footer"],
-    states: ["Hidden", "Enter (spring x ±100% → 0)", "Open (body scroll locked for modal)", "Closed (scrim tap / Escape)"],
+    anatomy: ["Panel (modal: surface-container-low at elevation 1 · standard: surface, 16dp inner-edge corners only — edge corners stay square · 24dp padding · width 360dp capped at 400dp)", "Title + 12dp gap + divider", "Scrollable content", "Optional footer"],
+    states: ["Hidden", "Enter (spring x ±100% → 0)", "Open (32% scrim + body scroll locked for modal; focus moves into the sheet, Tab is trapped and restored to the trigger on close)", "Closed (scrim tap / Escape)"],
     dos: [
-      "Keep panel width between 240–400px",
+      "Keep panel width between 240–400px (official max-width is 400dp)",
       "Pair the modal variant with a scrim tap to dismiss",
       "Reserve footers for confirm/cancel actions",
     ],
@@ -199,7 +200,7 @@ export const dialogMeta: M3ComponentMeta = {
   name: "Dialog",
   category: "containment",
   description:
-    "Dialogs inform users about a task and can contain critical information or require decisions — a modal surface over a scrim that blocks interaction until resolved.",
+    "Dialogs inform users about a task and can contain critical information or require decisions — a modal surface over a 32% scrim that blocks interaction until resolved. Focus is trapped inside while open and returns to the trigger on close.",
   importLine: `import { Dialog } from "@/components/m3";`,
   variants: ["basic", "fullscreen", "dismissible", "non-dismissible"],
   props: [
@@ -218,12 +219,13 @@ export const dialogMeta: M3ComponentMeta = {
       "Present critical information that interrupts the current flow.",
       "Use fullscreen for immersive creation or editing tasks.",
     ],
-    anatomy: ["Scrim (50% over page)", "Surface (surface-container-highest, rounded-3xl, elevation 3)", "Optional icon (primary)", "Headline (headline-small)", "Body (body-medium, on-surface-variant)", "Action row"],
-    states: ["Entering (scale 0.9 → 1 with expressive spring)", "Open (body scroll locked)", "Exiting"],
+    anatomy: ["Scrim (32% over page)", "Surface (surface-container-high, 28dp corners, elevation 3, min 280dp / max 560dp wide, 24dp padding)", "Optional icon (24dp primary, centered above the headline; the headline center-aligns with it, start-aligns without)", "Headline (headline-small)", "Body (body-medium, on-surface-variant, wired via aria-describedby)", "Action row (text buttons, right-aligned, 8dp gap, 24dp above / 24dp sides+below)"],
+    states: ["Entering (scale 0.9 → 1 with expressive spring)", "Open (32% scrim, body scroll locked, focus trapped)", "Dismiss (Escape / scrim tap when dismissible; focus returns to the trigger)", "Exiting"],
     dos: [
       "Keep dialogs focused on one decision",
       "Order actions: dismissive (text) left, confirmatory (filled) right",
       "Use non-dismissible mode only when a choice is truly required",
+      "Give the dialog a headline so aria-labelledby announces it",
     ],
     donts: [
       "Don't open dialogs from dialogs",
@@ -260,7 +262,7 @@ export const snackbarMeta: M3ComponentMeta = {
   props: [
     { name: "open", type: `boolean`, description: "Controls visibility." },
     { name: "message", type: `string`, description: "The brief confirmation text." },
-    { name: "icon", type: `string`, description: "Leading Material Symbol name." },
+    { name: "icon", type: `string`, description: "Leading Material Symbol name (extension — the base M3 anatomy is text + action + close only)." },
     { name: "actionLabel", type: `string`, description: "Trailing text action label, e.g. \"Undo\"." },
     { name: "onAction", type: `() => void`, description: "Action press handler." },
     { name: "onClose", type: `() => void`, description: "Dismiss handler (auto-dismiss + close icon)." },
@@ -272,7 +274,7 @@ export const snackbarMeta: M3ComponentMeta = {
       "Surface transient, low-priority status that doesn't require a response.",
       "Pair with a text action to let users reverse the change.",
     ],
-    anatomy: ["Inverse-surface container (elevation 3)", "Optional leading icon", "Message (body-medium)", "Text action (inverse-primary, label-large)", "Optional close icon"],
+    anatomy: ["Inverse-surface container (4dp corners, elevation 3, min 344px / max 672px per the official web spec)", "Optional leading icon (extension)", "Message (body-medium)", "Text action (inverse-primary, label-large)", "Close control (18px icon on a 36px target)"],
     states: ["Entering (spring up from bottom)", "Visible (4s auto-dismiss)", "Exiting (spring down)"],
     dos: [
       "Keep messages to one or two short sentences",
@@ -309,7 +311,7 @@ export const navigationDrawerMeta: M3ComponentMeta = {
     { name: "items", type: `NavItem[]`, description: "Destinations: value, label, optional icon, optional trailing badge." },
     { name: "value", type: `string`, description: "Controlled selected destination value." },
     { name: "onChange", type: `(v: string) => void`, description: "Called with the newly selected value." },
-    { name: "variant", type: `'modal' | 'standard'`, default: `'modal'`, description: "Modal overlays with a scrim; standard docks statically (280dp)." },
+    { name: "variant", type: `'modal' | 'standard'`, default: `'modal'`, description: "Modal overlays with a 32% scrim; standard docks statically. Official container width is 360dp for both." },
     { name: "open", type: `boolean`, description: "Controls the modal drawer. Omit for uncontrolled (starts closed)." },
     { name: "onClose", type: `() => void`, description: "Fired on scrim click or Escape." },
     { name: "header", type: `ReactNode`, description: "Headline area above the destination list." },
@@ -322,8 +324,8 @@ export const navigationDrawerMeta: M3ComponentMeta = {
       "Use a standard drawer on medium/large screens where navigation is always reachable.",
       "Group 5–10 destinations; overflow into a 'More' item rather than scrolling.",
     ],
-    anatomy: ["Container (320dp modal panel / 280dp standard, rounded)", "Scrim (modal only)", "Destination rows (56dp pill, icon + label + optional badge)", "Optional header and footer slots"],
-    states: ["Active (secondary-container pill)", "Inactive (on-surface label)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)"],
+    anatomy: ["Container (360dp wide, surface-container-low, 16dp trailing corners)", "Scrim (modal only, 32%)", "Destination rows (56dp full-width pill, 24dp icon + label + optional badge)", "Optional header (label-large headline) and footer slots"],
+    states: ["Active (secondary-container pill, on-secondary-container label)", "Inactive (on-surface-variant icon + label)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)", "Modal open (focus trapped, Escape/scrim/select closes, focus returned on close)"],
     dos: [
       "Show the user's current location with the active pill",
       "Use icons consistently across destinations",
@@ -359,12 +361,13 @@ export const listMeta: M3ComponentMeta = {
   importLine: `import { List, ListItem } from "@/components/m3";`,
   variants: ["single-line", "two-line", "three-line"],
   props: [
-    { name: "dividers", type: `boolean`, default: `false`, description: "Renders thin outline-variant dividers between rows." },
+    { name: "dividers", type: `boolean`, default: `false`, description: "Full-width outline-variant dividers between rows; the official list divider inset (16dp start / 24dp end) is available via <Divider inset=\"start\" />." },
     { name: "className", type: `string`, description: "Extra classes for the ul container." },
     { name: "children", type: `React.ReactNode`, description: "ListItem rows." },
     { name: "headline", type: `React.ReactNode`, description: "ListItem primary text. Required." },
-    { name: "supporting", type: `React.ReactNode`, description: "ListItem secondary text; grows the row to 72px." },
+    { name: "supporting", type: `React.ReactNode`, description: "ListItem secondary text; grows the row to 72dp." },
     { name: "overline", type: `string`, description: "ListItem small text above the headline." },
+    { name: "lines", type: `1 | 2 | 3`, description: "Official line count: 56dp / 72dp / 88dp rows. Defaults to 2 when supporting/overline is set; 3 wraps supporting to two lines and top-aligns content." },
     { name: "leading", type: `React.ReactNode`, description: "ListItem 40px-wide leading slot: icon or avatar." },
     { name: "trailing", type: `React.ReactNode`, description: "ListItem trailing text (md-label-small)." },
     { name: "trailingIcon", type: `string`, description: "ListItem trailing Material Symbol name." },
@@ -378,8 +381,8 @@ export const listMeta: M3ComponentMeta = {
       "Use list items with supporting text when each row needs context.",
       "Use a leading icon or avatar when items are identifiable at a glance.",
     ],
-    anatomy: ["Row container (min 56px, 72px with supporting text)", "Leading slot (40px wide, icon/avatar)", "Text block (overline, headline, supporting)", "Trailing slot (metadata text or icon)"],
-    states: ["Enabled", "Hover (8% state layer)", "Focus (3px ring)", "Pressed (ripple + 98% scale)", "Selected (secondary-container background)", "Disabled (38% opacity)"],
+    anatomy: ["Row container (56dp one-line, 72dp two-line, 88dp three-line; 16dp left / 24dp right padding; 12dp leading-icon top padding on three-line)", "Leading slot (40px wide, icon/avatar)", "Text block (overline, headline, supporting)", "Trailing slot (metadata text or icon)"],
+    states: ["Enabled", "Hover (8% state layer)", "Focus (3px ring)", "Pressed (ripple + 98% scale)", "Selected (secondary-container background)", "Disabled (38% opacity)", "Keyboard (rows are buttons: Enter/Space activate; 56dp rows give ≥48dp touch targets)"],
     dos: [
       "Keep list items visually identical in structure for scannability",
       "Use dividers only when rows are dense or multi-line",
@@ -415,6 +418,7 @@ export const cardMeta: M3ComponentMeta = {
   variants: ["elevated", "filled", "outlined"],
   props: [
     { name: "variant", type: `'elevated' | 'filled' | 'outlined'`, default: `'elevated'`, description: "Visual treatment: shadowed, tonal, or stroked." },
+    { name: "shape", type: `'medium' | 'extraLarge'`, default: `'medium'`, description: "Corner shape: official 12dp medium, or M3E extra-large 28dp for hero cards." },
     { name: "interactive", type: `boolean`, description: "Press shape morph, hover elevation, state layer, ripple and Enter/Space keyboard activation. Defaults to true when onClick is set." },
     { name: "onClick", type: `(e: MouseEvent<HTMLDivElement>) => void`, description: "Click handler; makes the card focusable with role button." },
     { name: "className", type: `string`, description: "Extra classes for the card container (width, padding)." },
@@ -427,8 +431,8 @@ export const cardMeta: M3ComponentMeta = {
       "Use filled cards when a tonal container fits the surrounding color scheme.",
       "Use outlined cards for lightweight, medium-emphasis grouping with many cards on screen.",
     ],
-    anatomy: ["Container (rounded 20px surface, M3E largeIncreased shape)", "State layer + ripple (interactive cards)", "Optional supporting visual, headline, supporting text", "Optional actions row"],
-    states: ["Rest (elevation 1 for elevated)", "Hover (elevation 2, 8% state layer)", "Focus (3px focus ring)", "Pressed (97% scale, expressive spring)", "Disabled (38% opacity via content styling)"],
+    anatomy: ["Container (12dp medium corners; M3E allows 28dp extra-large for hero cards; 16dp left/right padding; outlined = surface + 1dp outline-variant stroke)", "State layer + ripple (interactive cards)", "Optional supporting visual, headline, supporting text", "Optional actions row"],
+    states: ["Rest (elevation 1 for elevated)", "Hover (elevation 2 + 8% state layer)", "Focus (3px focus ring)", "Pressed (10% state layer, shape morph medium→small + 97% scale, expressive spring)", "Disabled (38% opacity via content styling)"],
     dos: [
       "Keep card padding generous (16–24px) and content scannable",
       "Use one interactive region per card; nest buttons carefully or make the whole card tappable",
@@ -464,8 +468,8 @@ export const segmentedButtonMeta: M3ComponentMeta = {
     { name: "type", type: `'single' | 'multiple'`, default: `'single'`, description: "Single emits a string; multiple emits a string array." },
     { name: "value", type: `string | string[]`, description: "Controlled value — string for single, string[] for multiple." },
     { name: "onValueChange", type: `(value: string | string[]) => void`, description: "Called with the next value; deselecting in single mode emits ''." },
-    { name: "size", type: `'sm' | 'md'`, default: `'md'`, description: "Height: 40 / 56 px." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Disables every segment, dims to 38% opacity." },
+    { name: "size", type: `'sm' | 'md'`, default: `'sm'`, description: "Height: 40px (the official spec height); 'md' 56px is an opt-in M3E expressive scale-up." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Disables every segment: outline drops to 12%, content to on-surface 38%." },
   ],
   guidelines: {
     whenToUse: [
@@ -474,7 +478,7 @@ export const segmentedButtonMeta: M3ComponentMeta = {
       "Use type='multiple' for independent on/off filters, like day/time filters in a date picker.",
     ],
     anatomy: ["Connected pill outline (border-m3-outline)", "Equal-width segments (40/56px tall)", "1px dividers between segments", "Secondary-container selected fill", "Leading check icon on selection"],
-    states: ["Unselected (on-surface label)", "Selected (secondary-container + check)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (97% scale spring)", "Disabled (38% opacity)"],
+    states: ["Unselected (on-surface label)", "Selected (secondary-container + check)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (97% scale spring)", "Disabled (outline 12%, content on-surface 38%, selected fill on-surface 12%)"],
     dos: [
       "Keep segments to 2–5, with equal-width content",
       "Use short labels, optionally paired with an icon",
@@ -532,8 +536,8 @@ export const sliderMeta: M3ComponentMeta = {
       "Use discrete + ticks when users should sense the exact stops.",
       "Pair with a numeric readout when precision matters.",
     ],
-    anatomy: ["16px thick track (primary active / surface-container-highest inactive)", "4×44px tall handle (widens to 6px when engaged)", "Optional value bubble", "Optional tick dots"],
-    states: ["Enabled", "Hover (handle widens, bubble appears)", "Drag (pointer captured)", "Focused (3px focus ring, arrows adjust)", "Disabled (38% opacity)"],
+    anatomy: ["16px thick track (primary active / surface-container-highest inactive)", "4×44px tall handle (widens to 6px when engaged) inside a 48dp hit row", "4dp on-surface stop-indicator dots on the inactive track (one per step when discrete)", "Optional value bubble"],
+    states: ["Enabled", "Hover (handle widens, bubble appears)", "Drag (pointer captured)", "Focused (3px ring; arrows ±step, PageUp/PageDown ±10 steps, Home/End)", "Disabled (38% opacity)"],
     dos: [
       "Keep ranges small enough to scan; factor big ranges into steps",
       "Show the value label while dragging for feedback",
@@ -591,7 +595,7 @@ export const textFieldMeta: M3ComponentMeta = {
       "Use helperText for hints and error only for validation failures.",
     ],
     anatomy: ["Container (outlined stroke or filled surface + indicator)", "Floating label", "Input text", "Optional leading/trailing icon", "Helper or error text"],
-    states: ["Enabled", "Hover (state layer)", "Focused (2px primary stroke / primary indicator, label floats)", "Error (error color + error icon)", "Disabled (38% opacity)"],
+    states: ["Enabled", "Hover (outline shifts to on-surface / filled indicator darkens)", "Focused (2px primary stroke / primary indicator, label floats)", "Error (error color + error icon)", "Disabled (38% content, 12% outline border or 4% filled container)"],
     dos: [
       "Always provide a label — placeholders alone disappear while typing",
       "Use the matching type/inputMode so users get the right keyboard",
@@ -640,7 +644,7 @@ export const autocompleteMeta: M3ComponentMeta = {
       "Use instead of a select when users may want to type to filter.",
       "Keep the option set under ~100 items for instant filtering.",
     ],
-    anatomy: ["Outlined text field", "Trailing drop-down toggle", "Dropdown menu (surface-container, elevation-2)", "Option rows with selected check"],
+    anatomy: ["Outlined text field (4dp corners)", "Trailing drop-down toggle", "Dropdown menu (surface-container, elevation-2, 4dp corners)", "Option rows with selected check (keyboard highlight scrolls into view)"],
     states: ["Enabled", "Focused (primary stroke, menu open)", "Highlighted option (8% state layer)", "Selected option (check icon)", "Disabled (38% opacity)"],
     dos: [
       "Match options case-insensitively while filtering",
@@ -677,6 +681,8 @@ export const navigationRailMeta: M3ComponentMeta = {
     { name: "value", type: `string`, description: "Controlled selected destination value." },
     { name: "onChange", type: `(v: string) => void`, description: "Called with the newly selected value." },
     { name: "header", type: `ReactNode`, description: "Slot above the items — typically a FAB." },
+    { name: "menuIcon", type: `string`, default: `'menu'`, description: "Material Symbol for the optional leading menu icon (official rail anatomy item)." },
+    { name: "onMenuClick", type: `() => void`, description: "Renders the leading menu icon and handles its press (e.g. expand into a drawer)." },
     { name: "foldingLine", type: `boolean`, default: `false`, description: "Draws a hinge divider along the leading edge for foldables." },
   ],
   guidelines: {
@@ -685,7 +691,7 @@ export const navigationRailMeta: M3ComponentMeta = {
       "Use a navigation bar on compact screens and a drawer on expanded screens.",
       "Put a FAB in the header slot when the screen's primary action is available everywhere.",
     ],
-    anatomy: ["80dp surface-container-low rail", "Optional header slot (FAB)", "Destination (icon capsule 56×32 + label)", "Active tonal capsule (shared-layout transition)"],
+    anatomy: ["80dp surface-container-low rail", "Optional leading menu icon", "Optional header slot (FAB)", "Destination (24dp icon in a 56×32dp capsule + label-medium label)", "Active tonal capsule (shared-layout transition)"],
     states: ["Active (secondary-container capsule, filled icon)", "Inactive (on-surface-variant)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)"],
     dos: [
       "Only show labels when they add meaning — capsules alone work for familiar destinations",
@@ -736,7 +742,7 @@ export const chipMeta: M3ComponentMeta = {
       "Use assist and suggestion chips for contextual quick actions.",
     ],
     anatomy: ["Rounded-full container", "Optional leading icon / animated check", "Label (label-large)", "Optional trailing icon or cancel affordance"],
-    states: ["Enabled", "Hover (8% state layer)", "Pressed (96% scale)", "Selected (secondary-container + check)", "Elevated (elevation-1)", "Disabled (38% opacity)"],
+    states: ["Enabled", "Hover (8% state layer)", "Focus (3px primary ring)", "Pressed (96% scale)", "Selected (secondary-container + check)", "Elevated (elevation-1, hover elevation-2)", "Disabled (38% opacity)"],
     dos: [
       "Keep chip labels to one or two words",
       "Let filter chips toggle independently",
@@ -780,7 +786,7 @@ export const bannerMeta: M3ComponentMeta = {
       "Offer follow-up actions the user can take now, like Retry or Update.",
       "Keep visible until resolved — unlike snackbars, banners persist.",
     ],
-    anatomy: ["Container (surface-container-low, rounded-lg)", "Leading icon (on-surface-variant)", "Message (body-medium)", "Action row above an outline-variant divider", "Optional close icon"],
+    anatomy: ["Container (surface-container-low, square corners — shape none per the M3 banner spec)", "Leading icon (on-surface-variant, 24dp)", "Message (body-medium)", "Action row (52px) end-aligned above an outline-variant divider with 40dp text buttons", "Optional close icon"],
     states: ["Expanded", "Collapsing (height spring)", "Dismissed"],
     dos: [
       "Use one banner per screen so the message stays prominent",
@@ -827,7 +833,7 @@ export const checkboxMeta: M3ComponentMeta = {
       "Use a single checkbox to opt in or out of one condition.",
     ],
     anatomy: ["48px touch target", "18px rounded box (2px border)", "Animated checkmark / indeterminate dash", "Optional label (body-large)"],
-    states: ["Enabled", "Hover (state layer)", "Pressed (box squashes on the expressive spring)", "Checked (primary fill + drawn check)", "Indeterminate (dash)", "Error", "Disabled (38% opacity)"],
+    states: ["Enabled", "Hover (state layer)", "Focus (3px primary ring)", "Pressed (box squashes on the expressive spring)", "Checked (primary fill + drawn check)", "Indeterminate (dash)", "Error", "Disabled (38% opacity)"],
     dos: [
       "Keep labels positive ('Send me updates') so checking means agreeing",
       "Use the indeterminate state to summarize child checkboxes",
@@ -862,7 +868,7 @@ export const fabMeta: M3ComponentMeta = {
     { name: "icon", type: `string`, description: "Material Symbols ligature name, e.g. 'add'." },
     { name: "lowered", type: `boolean`, default: `false`, description: "Uses elevation 1 instead of 3 (for FABs flanking dialogs or extended FABs)." },
     { name: "aria-label", type: `string`, description: "Strongly recommended — the icon alone has no text alternative." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction, dims to 38% opacity." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction: container drops to on-surface 12%, icon to 38%, elevation to 0." },
     { name: "onClick", type: `() => void`, description: "Handler fired when the FAB is activated." },
   ],
   guidelines: {
@@ -871,8 +877,8 @@ export const fabMeta: M3ComponentMeta = {
       "Use the surface color when the FAB needs to blend with a colorful layout, or tertiary for a contrasting accent.",
       "Use lowered when the FAB shares a screen with a dialog or another extended FAB.",
     ],
-    anatomy: ["Rounded (16px) tonal container", "Elevation shadow (level 3, or 1 when lowered)", "Material Symbol icon (24–48px)", "State layer + ripple"],
-    states: ["Enabled (elevation 3)", "Hover (elevation 4, 103% scale)", "Focus (3px focus ring)", "Pressed (94% scale spring)", "Disabled (38% opacity, elevation kept)"],
+    anatomy: ["Rounded tonal container (16dp corners; 28dp on large/extra-large)", "Elevation shadow (level 3, or 1 when lowered)", "Material Symbol icon (24–48px)", "State layer + ripple", "48dp minimum touch target on the 40dp small FAB"],
+    states: ["Enabled (elevation 3)", "Hover (elevation 4, 103% scale)", "Focus (3px focus ring)", "Pressed (94% scale spring, elevation 4)", "Disabled (on-surface 12% container / 38% icon, no elevation)"],
     dos: [
       "Show at most one FAB per screen (or per section of very long screens)",
       "Position the FAB in the bottom-right corner for scannability",
@@ -896,14 +902,14 @@ export const tabsMeta: M3ComponentMeta = {
   name: "Tabs",
   category: "navigation",
   description:
-    "Tabs organize content across different screens, data sets, and other interactions. The primary style pairs icons with labels and a spring-animated underline; the M3 Expressive secondary style slides a tonal pill between destinations.",
+    "Tabs organize content across different screens, data sets, and other interactions. Primary tabs are 64dp icon+label columns with a spring-animated 3dp underline; the M3 Expressive secondary style slides a tonal pill between 48dp destinations. Scroll arrows appear when tabs overflow.",
   importLine: `import { Tabs } from "@/components/m3";`,
   variants: ["primary", "secondary"],
   props: [
     { name: "items", type: `NavItem[]`, description: "Tab definitions: value, label, optional Material Symbol icon and badge." },
     { name: "value", type: `string`, description: "Controlled selected tab value." },
     { name: "onChange", type: `(v: string) => void`, description: "Called with the newly selected value." },
-    { name: "variant", type: `'primary' | 'secondary'`, default: `'primary'`, description: "Primary shows icon-over-label columns with a 3px underline; secondary shows expressive tonal pills." },
+    { name: "variant", type: `'primary' | 'secondary'`, default: `'primary'`, description: "Primary shows icon-over-label columns (64dp) with a 3dp underline; secondary shows expressive tonal pills (48dp)." },
     { name: "fullWidth", type: `boolean`, default: `false`, description: "Stretch to container width and distribute tabs equally; overflow scrolls horizontally." },
   ],
   guidelines: {
@@ -912,8 +918,8 @@ export const tabsMeta: M3ComponentMeta = {
       "Use at the top of a screen for in-context navigation, not for app-level destinations.",
       "Use the secondary variant for a lighter, more expressive in-page filter row.",
     ],
-    anatomy: ["Tab row container (64dp, bottom divider on primary)", "Tab (icon + label, state layer + ripple)", "Active indicator (shared-layout underline or pill)"],
-    states: ["Selected (primary color / tonal pill)", "Unselected (on-surface-variant)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)"],
+    anatomy: ["Tab row container (64dp primary / 48dp secondary, bottom divider on primary)", "Tab (24dp icon + label-large label, state layer + ripple, 96dp min width)", "Active indicator (shared-layout 3dp underline or tonal pill)", "Scroll arrows (appear while tabs overflow in that direction)"],
+    states: ["Selected (primary color / tonal pill, filled icon)", "Unselected (on-surface-variant)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)", "Keyboard (roving tabindex; ArrowLeft/Right, Home/End move and activate)"],
     dos: [
       "Keep tab labels short — a single word is ideal",
       "Order tabs by importance or logical reading order",
@@ -949,8 +955,8 @@ export const loadingIndicatorMeta: M3ComponentMeta = {
   importLine: `import { LoadingIndicator } from "@/components/m3";`,
   variants: ["primary", "secondary", "tertiary", "error"],
   props: [
-    { name: "size", type: `number`, default: `56`, description: "Square container size in px." },
-    { name: "active", type: `boolean`, default: `true`, description: "false pauses the shape morph and arc spin." },
+    { name: "size", type: `number`, default: `48`, description: "Square container size in px (official 48dp container)." },
+    { name: "active", type: `boolean`, default: `true`, description: "false pauses the morph + spin and rests at a circle at 38% opacity." },
     { name: "color", type: `'primary' | 'secondary' | 'tertiary' | 'error'`, default: `'primary'`, description: "Container color; arcs use the matching on-container role." },
   ],
   guidelines: {
@@ -959,10 +965,10 @@ export const loadingIndicatorMeta: M3ComponentMeta = {
       "Use the Expressive morphing style to reinforce brand personality during waits.",
       "Use `active={false}` to freeze the animation in paused or completed states.",
     ],
-    anatomy: ["Shape-morphing container (color-container role)", "Outer dashed arc (on-container role)", "Inner dashed arc, counter-rotating"],
-    states: ["Active (morph + spin)", "Paused (active=false, rests at circle shape)"],
+    anatomy: ["Shape-morphing container (color-container role), rotating one full turn every ~4.7s (official 4666ms) with 650ms morph steps", "Outer dashed arc (on-container role)", "Inner dashed arc, counter-rotating"],
+    states: ["Active (continuous rotation + shape morph)", "Paused (active=false — static circle at 38% opacity; also used for reduced-motion users)"],
     dos: [
-      "Size it generously (56px+) — this indicator is meant to be seen",
+      "Size it generously (48px+) — this indicator is meant to be seen",
       "Keep surrounding text calm and brief while it runs",
       "Match the container color to the page's tonal palette",
     ],
@@ -973,8 +979,8 @@ export const loadingIndicatorMeta: M3ComponentMeta = {
     ],
   },
   m3e: true,
-  exampleCode: `<LoadingIndicator size={56} />
-<LoadingIndicator size={80} color="tertiary" />
+  exampleCode: `<LoadingIndicator size={48} />
+<LoadingIndicator size={72} color="tertiary" />
 <LoadingIndicator active={false} color="secondary" />`,
   related: ["circular-progress", "linear-progress"],
   demoName: "LoadingIndicatorDemo",
@@ -985,7 +991,7 @@ export const menuMeta: M3ComponentMeta = {
   name: "Menu",
   category: "navigation",
   description:
-    "Menus display a list of choices on a temporary surface, anchored to a trigger. Items support icons, keyboard shortcuts, section labels, dividers and destructive styling; the panel springs open from its top origin.",
+    "Menus display a list of choices on a temporary surface, anchored to a trigger. Items support icons, keyboard shortcuts, section labels, dividers and destructive styling; the panel springs open from its top origin. Arrow keys move between items; Escape or Tab closes and returns focus to the trigger.",
   importLine: `import { Menu } from "@/components/m3";`,
   variants: ["bottom-start", "bottom-end", "with icons", "with shortcuts", "with sections"],
   props: [
@@ -1001,8 +1007,8 @@ export const menuMeta: M3ComponentMeta = {
       "Use for context actions on an item (edit, duplicate, delete).",
       "Group related commands with labels and dividers.",
     ],
-    anatomy: ["Container (surface-container, elevation 2, 4dp corners)", "Menu items (48dp, state layer + ripple)", "Leading icon (20dp)", "Shortcut hint (trailing)", "Section labels and dividers"],
-    states: ["Enabled (on-surface)", "Disabled (38% opacity)", "Destructive (error color)", "Hover (8% state layer)", "Focus (3px focus ring)"],
+    anatomy: ["Container (surface-container, elevation 2, 4dp corners, 8dp vertical padding)", "Menu items (48dp, state layer + ripple)", "Leading icon (24dp, 12dp gutter)", "Shortcut hint (trailing)", "Section labels and dividers"],
+    states: ["Enabled (on-surface)", "Disabled (38% opacity)", "Destructive (error color)", "Hover (8% state layer)", "Focus (3px focus ring)", "Keyboard (ArrowUp/Down, Home/End move focus; Escape/Tab close and restore trigger focus; trigger exposes aria-haspopup/aria-expanded)"],
     dos: [
       "Keep menus to 5–10 items; nest rarely and never more than one level",
       "Show keyboard shortcuts to teach power-user paths",
@@ -1036,6 +1042,7 @@ export const bottomAppBarMeta: M3ComponentMeta = {
   importLine: `import { BottomAppBar } from "@/components/m3";`,
   variants: ["actions only", "with center-docked FAB", "with trailing icons"],
   props: [
+    { name: "navigationIcon", type: `{ icon: string; label?: string; onClick?: () => void }`, description: "Optional leading navigation icon (official anatomy item; typically the hamburger menu)." },
     { name: "actions", type: `{ icon: string; label?: string; onClick?: () => void }[]`, description: "Leading icon actions." },
     { name: "trailingIcons", type: `string[]`, description: "Trailing Material Symbol icon names." },
     { name: "fab", type: `{ icon: string; onClick?: () => void }`, description: "Center-docked FAB that notches the bar." },
@@ -1047,7 +1054,7 @@ export const bottomAppBarMeta: M3ComponentMeta = {
       "Use when the screen benefits from a persistent primary action reachable by thumb.",
       "Prefer a navigation bar when destinations — not actions — are the priority.",
     ],
-    anatomy: ["80dp surface-container bar", "Leading action icons", "Optional center-docked notched FAB", "Trailing action icons"],
+    anatomy: ["80dp surface-container bar (tonal elevation only — M3 draws no shadow)", "Navigation icon (optional, leading, 48dp target)", "Leading action icons", "Optional center-docked notched FAB", "Trailing action icons"],
     states: ["Rest (surface-container, FAB elevation 3)", "FAB pressed (shape morph 16→28 + 95% scale)", "Icon hover (8% state layer)", "Focus (3px focus ring)"],
     dos: [
       "Keep 2–4 actions total so the FAB stays the visual anchor",
@@ -1082,7 +1089,7 @@ export const extendedFabMeta: M3ComponentMeta = {
     { name: "icon", type: `string`, description: "Leading Material Symbols ligature name." },
     { name: "label", type: `string`, description: "Short action label, e.g. 'Compose'." },
     { name: "lowered", type: `boolean`, default: `false`, description: "Uses elevation 1 instead of 3." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction, dims to 38% opacity." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction: container drops to on-surface 12%, content to 38%, elevation to 0." },
     { name: "onClick", type: `() => void`, description: "Handler fired when the FAB is activated." },
   ],
   guidelines: {
@@ -1091,8 +1098,8 @@ export const extendedFabMeta: M3ComponentMeta = {
       "Use it for the most common action on screens with room for a wider element, like 'Start tour' or 'New event'.",
       "Prefer an icon-only FAB on compact screens; swap to extended on tablets and desktop.",
     ],
-    anatomy: ["Rounded (16px) tonal container", "Elevation shadow (level 3, or 1 when lowered)", "24px Material Symbol icon", "Label text (label-large, 600 weight)", "State layer + ripple"],
-    states: ["Enabled (elevation 3)", "Hover (elevation 4, 103% scale)", "Focus (3px focus ring)", "Pressed (94% scale spring)", "Disabled (38% opacity)"],
+    anatomy: ["Rounded (16dp corners) tonal container", "Elevation shadow (level 3, or 1 when lowered)", "24px Material Symbol icon (8dp gap to label, 20dp side padding)", "Label text (label-large 14px; rendered 600 here vs the official 500 — recorded global deviation)", "State layer + ripple"],
+    states: ["Enabled (elevation 3)", "Hover (elevation 4, 103% scale)", "Focus (3px focus ring)", "Pressed (94% scale spring, elevation 4)", "Disabled (on-surface 12% container / 38% content, no elevation)"],
     dos: [
       "Keep the label to one or two words",
       "Use the same color role as the screen's FAB if both appear in a flow",
@@ -1124,6 +1131,7 @@ export const circularProgressMeta: M3ComponentMeta = {
     { name: "size", type: `number`, default: `48`, description: "Outer diameter in px." },
     { name: "thickness", type: `number`, default: `4`, description: "Indicator stroke width in px." },
     { name: "color", type: `'primary' | 'secondary' | 'tertiary' | 'error'`, default: `'primary'`, description: "Active indicator color role." },
+    { name: "ariaLabel", type: `string`, default: `'Loading'`, description: "Accessible name for the progressbar role." },
   ],
   guidelines: {
     whenToUse: [
@@ -1131,8 +1139,8 @@ export const circularProgressMeta: M3ComponentMeta = {
       "Use determinate when a measurable task (e.g. file upload) has clear completion.",
       "Use indeterminate when the wait length is unknown.",
     ],
-    anatomy: ["Circular track (surface-container-highest)", "Active indicator arc (color role, round caps)", "Stop indicator dot (determinate only)"],
-    states: ["Determinate (spring-animated arc)", "Indeterminate (sweeping arc with ~270° gap)"],
+    anatomy: ["Circular track (surface-container-highest)", "Active indicator arc (color role, round caps)", "Stop indicator: 4px dot fixed at 12 o'clock behind a 4px gap (determinate only, official TrackActiveSpace)"],
+    states: ["Determinate (spring-animated arc, stops 4px short of the dot)", "Indeterminate (arc grows to ~270° and contracts while the ring rotates)"],
     dos: [
       "Match indicator size to its context (small inline spinners in buttons)",
       "Keep at least 4px clearance so round caps don't clip",
@@ -1161,11 +1169,11 @@ export const badgeMeta: M3ComponentMeta = {
   variants: ["error", "primary", "tertiary", "dot"],
   props: [
     { name: "value", type: `number | string`, description: "Count or short label to show. Numbers above `max` collapse to \"{max}+\"." },
-    { name: "showDot", type: `boolean`, default: `false`, description: "Show a 6px dot instead of a value, when a count is not helpful." },
+    { name: "showDot", type: `boolean`, default: `false`, description: "Show a 6px dot instead of a value, when a count is not helpful (decorative, aria-hidden)." },
     { name: "children", type: `React.ReactNode`, description: "Anchor element the badge pins to its top-right corner." },
     { name: "color", type: `'error' | 'primary' | 'tertiary'`, default: `'error'`, description: "Badge color role." },
     { name: "max", type: `number`, default: `99`, description: "Maximum count before showing \"99+\"." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Dims the badge and blocks interaction." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Dims the badge to 38% and blocks interaction." },
   ],
   guidelines: {
     whenToUse: [
@@ -1173,8 +1181,8 @@ export const badgeMeta: M3ComponentMeta = {
       "Use a small dot when the exact count is irrelevant but attention is needed.",
       "Anchor badges to the top-right of icons and avatars.",
     ],
-    anatomy: ["Anchor element (icon, avatar, tab)", "Badge container (16px pill or 6px dot)", "Value text (label-small) or dot fill"],
-    states: ["Default", "Updated (value change pops with the bouncy spring)", "Disabled (40% opacity)"],
+    anatomy: ["Anchor element (icon, avatar, tab)", "Badge container (16px min-width pill with full corners, or 6px dot) pinned top-right — text badge overhangs 4px right / 2px top, dot sits flush in the corner", "Value text (label-small) or dot fill"],
+    states: ["Default", "Updated (value change pops with the bouncy spring)", "Disabled (38% opacity)"],
     dos: [
       "Use large badges with counts for email, chat, and cart-style surfaces",
       "Switch to a dot once counts exceed what users can act on",
@@ -1221,7 +1229,7 @@ export const searchBarMeta: M3ComponentMeta = {
       "Use trailing icons for contextual actions like voice search or filters.",
       "Use the large size when search is the primary task of the screen.",
     ],
-    anatomy: ["Rounded-full container", "Leading search icon", "Query input (body-large)", "Optional trailing icon buttons"],
+    anatomy: ["Rounded-full container", "Leading search icon", "Query input (body-large)", "Optional trailing icon buttons (24dp icons, ≥48dp targets)"],
     states: ["Enabled", "Focused (elevation-2 + highest surface)", "Hover (state layer)", "Disabled (38% opacity)"],
     dos: [
       "Keep the placeholder short — the query area is the label",
@@ -1267,8 +1275,8 @@ export const splitButtonMeta: M3ComponentMeta = {
       "Use it in toolbars where several related commands must share one slot.",
       "Use the outlined variant when the split button sits next to filled buttons of higher emphasis.",
     ],
-    anatomy: ["Joined pill container (overflow-clipped)", "Primary action segment (state layer + ripple)", "1px divider (20% current color)", "40px arrow segment (arrow_drop_down)", "Dropdown menu (surface-container, elevation 2)"],
-    states: ["Enabled", "Hover (8% state layer per segment)", "Focus (3px focus ring)", "Pressed (96% scale on the pill)", "Menu open (arrow rotated, fade/scale menu)", "Disabled (38% opacity)"],
+    anatomy: ["Joined pill container", "Primary action segment (state layer + ripple)", "1px divider (20% current color)", "40px arrow segment (arrow_drop_down)", "Dropdown menu (surface-container, elevation 2, 4dp corners, 48dp items)"],
+    states: ["Enabled", "Hover (8% state layer per segment)", "Focus (3px focus ring)", "Pressed (96% scale on the pill)", "Menu open (arrow rotated, fade/scale menu, Arrow/Home/End navigation)", "Disabled (on-surface 12% container / 38% content)"],
     dos: [
       "Keep the primary action and menu items closely related",
       "Close the menu after a choice is made",
@@ -1313,7 +1321,7 @@ export const switchMeta: M3ComponentMeta = {
       "Use instead of a checkbox when the change applies instantly.",
     ],
     anatomy: ["52×32 rounded-full track", "Thumb (16px off, 24px on, 28px pressed)", "Optional check glyph on the on-thumb"],
-    states: ["Off (outline track, outline thumb)", "On (primary track, on-primary thumb + check)", "Pressed (thumb squashes to 28px)", "Disabled (38% opacity)"],
+    states: ["Off (outline track, outline thumb at 4dp inset)", "On (primary track, on-primary thumb + check)", "Focus (3px primary ring)", "Pressed (thumb squashes to 28px)", "Disabled (38% opacity)"],
     dos: [
       "Label the setting, not the state — 'Wi-Fi', not 'On'",
       "Apply the change immediately; don't require a save step",
@@ -1338,13 +1346,13 @@ export const timePickerMeta: M3ComponentMeta = {
   name: "Time Picker",
   category: "selection",
   description:
-    "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, and AM/PM toggles meridiem.",
+    "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. Simplified compact implementation — the official 12-number dial stays in both meridiem modes and only 5-minute marks are labelled.",
   importLine: `import { TimePicker } from "@/components/m3";`,
   variants: ["12-hour", "24-hour-readout"],
   props: [
     { name: "value", type: `{ hour: number; minute: number }`, description: "Selected time (hour 0–23, minute 0–59). Defaults to 10:30 when uncontrolled." },
     { name: "onChange", type: `(t: { hour: number; minute: number }) => void`, description: "Fires on any dial, readout or meridiem change." },
-    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0–23 and hides AM/PM. The dial stays a 12-number ring; picking hours preserves the current half-day." },
+    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0–23 and hides AM/PM. The dial stays a 12-number ring; picking hours preserves the current half-day. Hour→minute auto-advance applies in both modes." },
     { name: "fullWidth", type: `boolean`, default: `false`, description: "Stretch to the container width." },
     { name: "className", type: `string`, description: "Extra classes for the container." },
   ],
@@ -1354,8 +1362,8 @@ export const timePickerMeta: M3ComponentMeta = {
       "Use with a date picker for scheduling flows.",
       "Use the 24h readout for locales or domains that require it.",
     ],
-    anatomy: ["Container (28px corners, surface-container-highest)", "Readout (display-small, tabular) + AM/PM column", "Dial (256px circle, surface-container-high, elevation 1)", "12 number positions (radius 104px)", "Primary selection pill, clock hand and center dot"],
-    states: ["Hour editing", "Minute editing (marks = n×5)", "Selected number (36px primary pill, spring scale)", "AM / PM selected (primary-container pill)", "Auto-switch (hour → minute after 600ms in 12h mode)"],
+    anatomy: ["Container (28px corners, surface-container-high, elevation 3, 24dp padding)", "Readout: two 96×80dp time-selector segments (8dp corner-small, display-large; active on primary-container, inactive on surface-container-highest/on-surface) + 52×80dp vertical period selector with 1dp outline (active option on tertiary-container)", "Dial (256dp circle, surface-container-highest, elevation 1)", "12 number positions (radius 104px, 48px hit areas)", "48dp primary selection handle, 2dp track and 8dp center dot"],
+    states: ["Hour editing", "Minute editing (marks = n×5)", "Selected number (48dp primary handle, spring scale)", "AM / PM selected (tertiary-container pill inside the outlined column)", "Active readout segment (primary-container, 8dp corners)", "Auto-switch (hour → minute after 600ms, both meridiem modes)", "Keyboard (Tab to dial/readout/AM-PM; Enter picks; ↑/→ +1 · ↓/← −1 on dial; arrows move meridiem)"],
     dos: [
       "Show the current selection in the readout while editing the other segment",
       "Keep the hand and pill in sync with the selected value",
@@ -1363,7 +1371,7 @@ export const timePickerMeta: M3ComponentMeta = {
     ],
     donts: [
       "Don't hide the AM/PM state when the readout shows 12-hour values",
-      "Don't make the dial smaller than 256px — numbers need 40px hit areas",
+      "Don't make the dial smaller than 256px — numbers need 48px hit areas",
       "Don't use the time picker for durations",
     ],
   },
@@ -1389,6 +1397,7 @@ export const radioMeta: M3ComponentMeta = {
     { name: "onChange", type: `() => void`, description: "Called when the radio is clicked." },
     { name: "label", type: `string`, description: "Label rendered beside the circle." },
     { name: "disabled", type: `boolean`, default: `false`, description: "Disables the control (38% opacity)." },
+    { name: "error", type: `boolean`, default: `false`, description: "Applies the error color to the ring and inner dot." },
   ],
   guidelines: {
     whenToUse: [
@@ -1399,7 +1408,7 @@ export const radioMeta: M3ComponentMeta = {
     anatomy: ["48px touch target", "20px ring (2px border)", "Inner dot (springs in when selected)", "Optional label (body-large)"],
     states: ["Enabled", "Hover (state layer)", "Pressed (95% scale)", "Selected (primary ring + dot)", "Disabled (38% opacity)"],
     dos: [
-      "Group related radios together with a heading",
+      "Group related Radios in a RadioGroup so arrow keys move and select within the set",
       "Keep option labels short and parallel",
       "Order options logically (frequency, size, risk…)",
     ],
@@ -1438,7 +1447,7 @@ export const toolbarMeta: M3ComponentMeta = {
       "Use floating for immersive editors and media viewers; dockable for tool palettes that pin during work.",
       "Pick a container color that complements the content without hiding it.",
     ],
-    anatomy: ["Pill container (rounded-full, elevation 2) or docked bar (elevation 1)", "48dp icon buttons with state layer", "Active item tint pill + filled icon"],
+    anatomy: ["Pill container (rounded-full, 56dp tall, elevation 2) or docked bar (square, elevation 1)", "48dp icon buttons with state layer", "Active item on-container 12% tint pill + filled icon"],
     states: ["Rest (container color, elevation)", "Active item (on-container 12% pill, filled icon)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple, expressive scale)"],
     dos: [
       "Group actions the user needs for the current selection",
@@ -1482,7 +1491,7 @@ export const iconButtonMeta: M3ComponentMeta = {
     { name: "selected", type: `boolean`, description: "Controlled selected state; omit to let the button manage its own state." },
     { name: "onSelectedChange", type: `(selected: boolean) => void`, description: "Called with the next selected state when toggled." },
     { name: "aria-label", type: `string`, description: "Required for accessibility — the icon alone has no text alternative." },
-    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction, dims to 38% opacity." },
+    { name: "disabled", type: `boolean`, default: `false`, description: "Disables interaction: container drops to on-surface 12% (filled/tonal), icon to 38%." },
   ],
   guidelines: {
     whenToUse: [
@@ -1491,8 +1500,8 @@ export const iconButtonMeta: M3ComponentMeta = {
       "Use toggleable for on/off state actions such as favorite, bookmark, mute, or pin.",
       "Use standard inside app bars and toolbars where several actions sit side by side.",
     ],
-    anatomy: ["Circular container (state layer + ripple)", "Material Symbol icon (filled when selected)", "Optional toggle selection container (primary-container)"],
-    states: ["Enabled", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (96% scale spring)", "Selected (primary-container + filled icon)", "Disabled (38% opacity)"],
+    anatomy: ["Circular container (state layer + ripple)", "Material Symbol icon (filled when selected)", "48dp minimum touch target (invisible ::before extension below 48dp containers)"],
+    states: ["Enabled", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (96% scale spring)", "Selected (primary icon per spec for standard/outlined + filled glyph; filled/tonal containers unchanged)", "Disabled (on-surface 12% container / 38% icon)"],
     dos: [
       "Always provide an aria-label or tooltip — the icon is the only label",
       "Pick icons with a single, well-understood meaning",
@@ -1523,7 +1532,7 @@ export const tooltipMeta: M3ComponentMeta = {
   name: "Tooltip",
   category: "communication",
   description:
-    "Tooltips display informative text when users hover over, focus on, or tap an element — a compact plain pill or a rich card with title and action.",
+    "Tooltips display informative text when users hover over, focus on, or long-press an element — a compact plain label or a rich card with title and action.",
   importLine: `import { Tooltip } from "@/components/m3";`,
   variants: ["plain", "rich"],
   props: [
@@ -1541,11 +1550,11 @@ export const tooltipMeta: M3ComponentMeta = {
       "Show helpful context on hover without taking permanent space.",
       "Use rich tooltips for icon actions needing explanation plus a learn-more link.",
     ],
-    anatomy: ["Trigger element", "Container (inverse surface pill / highest container card)", "Plain: text (body-small)", "Rich: title (title-small) + body (body-medium) + action"],
-    states: ["Hidden", "Entering (fade + scale after 400ms delay)", "Visible (hover/focus-within)", "Exiting"],
+    anatomy: ["Trigger element (linked via aria-describedby)", "Plain: inverse-surface label, 4dp corners, 4/8px padding, 200px max, 8dp caret, body-small", "Rich: surface-container card, 12dp corners, outline border, level-2 elevation, title-small + body-medium (on-surface-variant) + action"],
+    states: ["Hidden", "Entering (fade + scale after a 500ms show delay)", "Visible (hover / focus-within / touch long-press)", "Exiting (600ms hide delay)"],
     dos: [
       "Keep plain tooltips to a single short phrase",
-      "Trigger on both hover and keyboard focus",
+      "Trigger on hover, keyboard focus, and touch long-press",
       "Prefer placement=top; flip to bottom near the viewport edge",
     ],
     donts: [
@@ -1585,8 +1594,8 @@ export const fabMenuMeta: M3ComponentMeta = {
       "Use it when screen space is too tight for separate extended FABs or buttons.",
       "Prefer it for creation flows: attach a photo, record audio, add a file.",
     ],
-    anatomy: ["Main small FAB (40px, rotating icon)", "Action FABs (32px, primary-container)", "Inverse-surface label chips", "Staggered spring entrance"],
-    states: ["Closed (single FAB)", "Open (icon rotated 45°, actions visible)", "Action hover/press (state layer + 96% scale)", "Main FAB hover/press (103% / 94% expressive spring)"],
+    anatomy: ["Main small FAB (40px, rotating icon, 48dp touch target)", "Action FABs (32px, primary-container, 48dp touch target)", "Inverse-surface label chips", "Staggered spring entrance (50ms = durations.short1 token)", "Dismisses on Escape / outside press"],
+    states: ["Closed (single FAB)", "Open (icon rotated 45°, actions visible)", "Action hover/press (state layer + 96% scale)", "Main FAB hover/press (103% / 94% expressive spring)", "Dismissed (Escape or outside pointerdown)"],
     dos: [
       "Keep each action's label short and noun-like ('Camera', 'Gallery')",
       "Limit the menu to 2–5 actions so the cascade stays scannable",
@@ -1630,7 +1639,7 @@ export const navigationBarMeta: M3ComponentMeta = {
       "Use with 3 to 5 destinations of equal importance.",
       "Combine with a navigation rail or drawer on larger breakpoints.",
     ],
-    anatomy: ["80dp surface-container bar", "Destination (icon capsule + label, state layer + ripple)", "Active tonal pill (shared-layout transition)", "Optional badge on the icon"],
+    anatomy: ["80dp surface-container bar", "Destination (24dp icon in a 64×32dp capsule + label-medium label, state layer + ripple)", "Active tonal pill (64×32dp, shared-layout transition)", "Optional badge on the icon"],
     states: ["Active (secondary-container pill, filled icon, on-surface label)", "Inactive (on-surface-variant)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)"],
     dos: [
       "Keep destination labels short and descriptive",
@@ -1662,7 +1671,7 @@ export const topAppBarMeta: M3ComponentMeta = {
   name: "Top app bar",
   category: "navigation",
   description:
-    "Top app bars display information and actions at the top of a screen. Small and center-aligned are fixed 64dp rows; medium (112dp) and large (152dp) are flexible — on scroll the bar gains surface elevation while the headline collapses into the top row with a spring.",
+    "Top app bars display information and actions at the top of a screen. Small and center-aligned are fixed 64dp rows; medium (112dp) and large (152dp) are flexible — on scroll the bar gains a surface-container color fill (M3 replaces the M2 shadow with tonal color) while the headline collapses into the top row with a spring.",
   importLine: `import { TopAppBar } from "@/components/m3";`,
   m3e: true,
   variants: ["small", "center", "medium", "large"],
@@ -1680,8 +1689,8 @@ export const topAppBarMeta: M3ComponentMeta = {
       "Use center-aligned for primary pages without back navigation.",
       "Use medium/large for hierarchical pages with long titles that reward scroll collapse.",
     ],
-    anatomy: ["Bar container (elevated surface on scroll)", "Leading navigation icon (optional back)", "Title (collapses for flexible variants)", "Trailing action icons"],
-    states: ["Rest (transparent over content)", "Scrolled (surface-container + elevation 2)", "Flexible collapsed (64dp, title in top row)", "Hover/focus on icons (state layer, focus ring)"],
+    anatomy: ["Bar container (surface-container fill on scroll — M3 uses tonal color, not a shadow)", "Leading navigation icon (44dp hit target)", "Title (collapses for flexible variants)", "Trailing action icons"],
+    states: ["Rest (surface)", "Scrolled (surface-container color fill; no shadow in M3)", "Flexible collapsed (64dp, title in top row)", "Hover/focus on icons (state layer, focus ring)"],
     dos: [
       "Match variant to hierarchy: large for top-level, small for detail screens",
       "Limit actions to the most important 2–3; overflow the rest into a menu",
@@ -1711,16 +1720,17 @@ export const bottomSheetMeta: M3ComponentMeta = {
   name: "Bottom Sheet",
   category: "containment",
   description:
-    "Bottom sheets are modal surfaces anchored to the bottom of the screen that present supplementary content, with a drag handle for pull-to-dismiss.",
+    "Bottom sheets are surfaces anchored to the bottom of the screen that present supplementary content with a drag handle for pull-to-dismiss; the modal variant overlays a 32% scrim, the standard variant renders inline without one.",
   importLine: `import { BottomSheet } from "@/components/m3";`,
-  variants: ["modal"],
+  variants: ["modal", "standard"],
   props: [
-    { name: "open", type: `boolean`, description: "Controls visibility (animated with AnimatePresence)." },
-    { name: "onClose", type: `() => void`, description: "Called on scrim click, Escape, or drag-down past 120px." },
+    { name: "open", type: `boolean`, description: "Controls modal visibility (animated with AnimatePresence)." },
+    { name: "onClose", type: `() => void`, description: "Called on scrim click, Escape, or drag-down past 120px (or a fast downward fling)." },
+    { name: "variant", type: `'modal' | 'standard'`, default: `'modal'`, description: "Overlay with scrim + focus trap, or persistent inline panel without one." },
     { name: "title", type: `string`, description: "Sheet heading (md-title-large)." },
     { name: "children", type: `React.ReactNode`, description: "Scrollable sheet content." },
     { name: "footer", type: `React.ReactNode`, description: "Pinned footer row above a divider." },
-    { name: "maxHeight", type: `string`, default: `'85vh'`, description: "Maximum sheet height." },
+    { name: "maxHeight", type: `string`, default: `'calc(100dvh - 72px)'`, description: "Maximum sheet height (official 72dp top margin)." },
     { name: "className", type: `string`, description: "Extra classes for the sheet panel." },
   ],
   guidelines: {
@@ -1729,8 +1739,8 @@ export const bottomSheetMeta: M3ComponentMeta = {
       "Use for pickers and option lists on mobile-first layouts.",
       "Use the footer for a primary confirmation action.",
     ],
-    anatomy: ["Scrim (50% over the page)", "Sheet container (28px top corners, surface-container-low)", "Drag handle", "Title (title-large)", "Scrollable content", "Optional footer"],
-    states: ["Hidden", "Enter (spring y 100% → 0)", "Open (body scroll locked)", "Dragging (bottom elastic 0.6)", "Dismissed (drag > 120px, scrim tap, Escape)"],
+    anatomy: ["Scrim (32% black, modal only)", "Sheet container (28px top corners, surface-container-low, elevation 1, full width up to 640dp)", "Drag handle (32×4dp on-surface-variant, 22dp from the top)", "Title (title-large)", "Scrollable content", "Optional footer"],
+    states: ["Hidden", "Enter (spring y 100% → 0)", "Open (32% scrim, body scroll locked, focus moves into the sheet and is trapped; restored to the trigger on close)", "Dragging (bottom elastic 0.6)", "Dismissed (drag > 120px or velocity > 500, scrim tap, Escape)"],
     dos: [
       "Keep sheet content short and task-focused",
       "Always provide an onClose handler",
@@ -1773,8 +1783,8 @@ export const buttonMeta: M3ComponentMeta = {
       "Use outlined or text for low-emphasis tertiary actions like 'Learn more'.",
       "Use elevated when the button needs separation from a patterned background.",
     ],
-    anatomy: ["Container (shape-morphing pill)", "State layer", "Label text (label-large, 600 weight)", "Optional leading/trailing icon"],
-    states: ["Enabled", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (shape morph + 96% scale)", "Disabled (38% opacity)"],
+    anatomy: ["Container (shape-morphing pill)", "State layer", "Label text (label-large 14px; rendered 600 here vs the official 500 — recorded global deviation)", "Optional leading/trailing icon"],
+    states: ["Enabled", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (shape morph pill→20dp + 96% scale)", "Disabled (on-surface 12% container / 38% content, no elevation)"],
     dos: [
       "Use one filled button per view region to signal the primary action",
       "Order buttons by emphasis: filled → tonal → outlined → text (rightmost = least emphasis)",
@@ -1816,7 +1826,7 @@ export const linearProgressMeta: M3ComponentMeta = {
       "Use determinate when progress is measurable; indeterminate otherwise.",
       "Use the Expressive wavy variant to add brand personality to casual, playful moments.",
     ],
-    anatomy: ["Track (surface-container-highest)", "Active indicator (color role)", "Stop indicator (4px trailing dot, determinate)", "Optional label + percentage"],
+    anatomy: ["Track (surface-container-highest, 4dp, visible in flat and wavy variants)", "Active indicator (color role)", "Stop indicator: 4px dot after a 4px gap at the track end (determinate)", "Optional label + percentage"],
     states: ["Determinate (spring-animated fill)", "Indeterminate (two sweeping bars / sliding wave)"],
     dos: [
       "Keep indicators in the same position across screens so layout doesn't jump",

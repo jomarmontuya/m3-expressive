@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs } from "@/lib/m3/tokens";
+import { springs, durations, easings } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 
@@ -85,12 +85,16 @@ export function Toolbar({
     return (
       <div className={cn("w-full", className)}>
         <div
-          style={!docked && !fullWidth ? { width } : undefined}
+          style={{
+            width: !docked && !fullWidth ? width : undefined,
+            transitionDuration: `${durations.medium2}ms`,
+            transitionTimingFunction: easings.standard,
+          }}
           className={cn(
-            "flex h-16 items-center gap-1 transition-all duration-300",
+            "flex h-14 items-center gap-1 transition-all",
             docked
-              ? "w-full rounded-none px-4 m3-elevation-1"
-              : cn("mx-auto rounded-full px-3 m3-elevation-2", fullWidth ? "w-full" : "justify-center"),
+              ? "w-full rounded-none px-3 m3-elevation-1"
+              : cn("mx-auto rounded-full px-2 m3-elevation-2", fullWidth ? "w-full" : "justify-center"),
             c.container
           )}
         >
@@ -105,9 +109,13 @@ export function Toolbar({
       initial={{ opacity: 0, x: fullWidth ? 0 : "-50%", y: position === "bottom" ? 12 : -12, scale: 0.96 }}
       animate={{ opacity: 1, x: fullWidth ? 0 : "-50%", y: 0, scale: 1 }}
       transition={spring(springs.expressiveEffects)}
-      style={fullWidth ? { width: "calc(100% - 2rem)" } : { width }}
+      style={
+        fullWidth
+          ? { width: "calc(100% - 2rem)" }
+          : { width, transitionDuration: `${durations.medium2}ms`, transitionTimingFunction: easings.standard }
+      }
       className={cn(
-        "m3-elevation-2 absolute flex items-center justify-center gap-1 rounded-full px-3 py-2",
+        "m3-elevation-2 absolute flex items-center justify-center gap-1 rounded-full px-2 py-1",
         position === "bottom" ? "bottom-4" : "top-4",
         fullWidth ? "left-4" : "left-1/2",
         c.container,

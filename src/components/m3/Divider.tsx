@@ -7,9 +7,14 @@ export type DividerColor = "outline" | "outline-variant";
 export type DividerOrientation = "horizontal" | "vertical";
 
 export interface DividerProps {
-  /** 16px side inset. Default "none". */
+  /**
+   * Inset. Horizontal "start" uses the official M3 list divider insets:
+   * 16dp left / 24dp right (M3 lists specs). "middle" = 16dp equal indents
+   * (M3 divider guideline: inset dividers are equally indented by default);
+   * "end" is a library extension. Default "none" (full-bleed).
+   */
   inset?: DividerInset;
-  /** Stroke thickness in px. Default 1. */
+  /** Stroke thickness in px. Default 1 (official 1dp). */
   thickness?: number;
   color?: DividerColor;
   orientation?: DividerOrientation;
@@ -18,7 +23,10 @@ export interface DividerProps {
 
 const horizontalInsets: Record<DividerInset, string> = {
   none: "",
-  start: "ml-4",
+  // Official M3 list divider insets (lists specs): 16dp left / 24dp right
+  // (the 72dp start inset is the legacy M2 value, superseded by these)
+  start: "ml-4 mr-6",
+  // M3 divider guideline: inset dividers are equally indented (16dp)
   middle: "mx-4",
   end: "mr-4",
 };
@@ -31,8 +39,8 @@ const verticalInsets: Record<DividerInset, string> = {
 };
 
 /**
- * M3 Divider — a thin line that groups content in lists and layouts.
- * Supports start/middle/end 16px insets and a vertical orientation.
+ * M3 Divider — a 1dp line that groups content in lists and layouts.
+ * Supports start/middle/end insets and a vertical orientation.
  */
 export function Divider({
   inset = "none",

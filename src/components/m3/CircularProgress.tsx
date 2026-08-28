@@ -20,20 +20,24 @@ export interface CircularProgressProps {
   /** Indicator stroke width in px. Default 4. */
   thickness?: number;
   color?: CircularProgressColor;
+  /** Accessible name announced by screen readers. Default "Loading". */
+  ariaLabel?: string;
   className?: string;
 }
 
 /**
  * M3 Circular progress indicator.
- * Determinate: a round-capped arc grows with a spring toward a small trailing
- * stop indicator dot. Indeterminate: the M3 signature arc with a ~270° gap
- * sweeps and rotates around the track.
+ * Determinate: a round-capped arc grows with a spring, stopping a 4px gap
+ * before the fixed 4px stop indicator dot at 12 o'clock (official M3E track
+ * gap + stop dot). Indeterminate: the M3 arc grows to ~270° and contracts
+ * while the ring rotates.
  */
 export function CircularProgress({
   value,
   size = 48,
   thickness = 4,
   color = "primary",
+  ariaLabel = "Loading",
   className,
 }: CircularProgressProps) {
   const determinate = typeof value === "number";
@@ -42,12 +46,13 @@ export function CircularProgress({
   const cx = size / 2;
   const r = (size - thickness) / 2 - 1; // headroom for round caps + stop dot
   const c = 2 * Math.PI * r;
-  const offset = (1 - v / 100) * c;
-  const angle = (v / 100) * 2 * Math.PI;
-  const dotR = Math.max(thickness / 2 + 1.5, 2.5);
-  const dotX = cx + r * Math.sin(angle);
-  const dotY = cx - r * Math.cos(angle);
-  const arc = c * 0.18;
+  // Official M3E: 4px gap between arc head and the 4px stop dot (TrackActiveSpace).
+  const gap = 4;
+  const maxArc = c - gap - thickness; // stop dot diameter == stroke thickness
+  const arcLen = (v / 100) * maxArc;
+  const offset = c - arcLen;
+  const dotR = thickness / 2;
+  const arc = 0.15; // indeterminate rest arc (normalized; grows to 0.75 = 270°)
   const spin = (durations.long2 * 3) / 1000;
 
   const track = (
@@ -65,6 +70,7 @@ export function CircularProgress({
     return (
       <motion.svg
         role="progressbar"
+        aria-label={ariaLabel}
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
@@ -81,9 +87,9 @@ export function CircularProgress({
           stroke={stroke}
           strokeWidth={thickness}
           strokeLinecap="round"
-          strokeDasharray={`${arc} ${c - arc}`}
+          pathLength={1}
           transform={`rotate(-90 ${cx} ${cx})`}
-          animate={{ strokeDashoffset: [0, -c] }}
+          animate={{ strokeDasharray: [`${arc} ${1 - arc}`, "0.75 0.25", `${arc} ${1 - arc}`] }}
           transition={{ duration: spin, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.svg>
@@ -96,6 +102,7 @@ export function CircularProgress({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(v)}
+      aria-label={ariaLabel}
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
@@ -116,7 +123,8 @@ export function CircularProgress({
         animate={{ strokeDashoffset: offset }}
         transition={asTransition(springs.defaultSpatial)}
       />
-      <circle cx={dotX} cy={dotY} r={dotR} fill={stroke} />
+      {/* Fixed stop indicator dot at the track end (12 o'clock) */}
+      <circle cx={cx} cy={cx - r} r={dotR} fill={stroke} />
     </motion.svg>
   );
 }

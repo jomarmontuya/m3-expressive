@@ -103,7 +103,7 @@ export function LinearProgress({
       aria-valuemin={determinate ? 0 : undefined}
       aria-valuemax={determinate ? 100 : undefined}
       aria-valuenow={determinate ? Math.round(v) : undefined}
-      aria-label={label}
+      aria-label={label ?? "Loading"}
       className={cn("flex flex-col gap-1", fullWidth && "w-full", className)}
     >
       {(label || determinate) && (
@@ -117,6 +117,8 @@ export function LinearProgress({
 
       {wavey ? (
         <div className="relative h-5 overflow-hidden rounded-full">
+          {/* Official M3E wavy indicator keeps the flat 4dp track visible */}
+          <span className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-m3-surface-container-highest" />
           {determinate ? (
             <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${v}%` }}>
               <PulsingWave stroke={stroke} slideDuration={slide} />

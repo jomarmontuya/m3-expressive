@@ -40,10 +40,31 @@ const ENDPOINTS = [
   },
   {
     method: "GET",
+    path: "/api/registry?themes=true",
+    desc: "Curated theme index (4 M3 color schemes); add &theme=ocean for full light+dark schemes.",
+  },
+  {
+    method: "GET",
     path: "/llms.txt",
     desc: "Plain-text handbook following the llms.txt convention — paste into any LLM context window.",
   },
 ];
+
+const MCP_TOOLS = [
+  ["list_components", "All 39 components with ids, categories, variants, import lines"],
+  ["search_components", "Full-text search across descriptions, guidance and props"],
+  ["get_component", "Complete structured knowledge for one component"],
+  ["get_component_api", "Typed props reference (name / type / default / description)"],
+  ["get_component_examples", "Recommended, ready-to-paste JSX usage"],
+  ["get_component_guidelines", "When to use, anatomy, states, dos and don'ts"],
+  ["get_component_states", "Interaction states + variants + state-layer opacities"],
+  ["get_component_source", "The actual .tsx implementation for deep questions"],
+  ["list_themes", "The 4 curated M3 color schemes"],
+  ["get_theme", "Full light + dark color-role schemes (hex per role)"],
+  ["get_design_tokens", "Every token: colors, springs, easings, durations, shapes, elevation, type"],
+  ["get_motion_guidance", "M3E motion system rules + all motion tokens"],
+  ["get_accessibility_guidance", "Touch targets, focus, keyboard contracts, ARIA patterns"],
+] as const;
 
 export function AgentView() {
   return (
@@ -100,6 +121,57 @@ export function AgentView() {
         </div>
       </section>
 
+      {/* MCP server */}
+      <section className="mt-10">
+        <h2 className="md-headline-small font-medium">MCP server</h2>
+        <p className="mt-2 max-w-3xl md-body-medium text-m3-on-surface-variant">
+          MCP-capable agents (Claude Code, Cursor, Windsurf, Zed…) get the whole library as
+          structured tool calls over stdio — no repo reading required.
+        </p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <Card variant="filled" className="p-5">
+            <div className="flex items-center gap-2 md-title-medium">
+              <MaterialSymbol icon="cable" fill className="text-m3-primary" />
+              Connect (stdio)
+            </div>
+            <div className="mt-3">
+              <CodeBlock
+                code={`// .mcp.json — repo root
+{
+  "mcpServers": {
+    "m3-expressive": {
+      "command": "bun",
+      "args": ["run", "--cwd",
+        "/ABS/PATH/mini-services/mcp-server",
+        "start"]
+    }
+  }
+}`}
+              />
+            </div>
+            <p className="mt-3 md-body-small text-m3-on-surface-variant">
+              13 tools · full instructions in <code className="font-mono">mini-services/mcp-server/README.md</code>
+            </p>
+          </Card>
+          <Card variant="outlined" className="p-0">
+            <div className="max-h-72 overflow-y-auto m3-scroll p-5">
+              <div className="flex items-center gap-2 md-title-medium">
+                <MaterialSymbol icon="construction" fill className="text-m3-primary" />
+                Tool surface
+              </div>
+              <ul className="mt-3 space-y-2">
+                {MCP_TOOLS.map(([name, desc]) => (
+                  <li key={name} className="flex flex-col gap-0.5">
+                    <code className="font-mono text-[12px] font-semibold text-m3-primary">{name}</code>
+                    <span className="md-body-small text-m3-on-surface-variant">{desc}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* agent prompt snippet */}
       <section className="mt-10">
         <h2 className="md-headline-small font-medium">Drop this into your agent&apos;s system prompt</h2>
@@ -107,17 +179,19 @@ export function AgentView() {
           <CodeBlock
             code={`You build UIs with the "m3-expressive-react" library (Material 3 Expressive).
 
-1. Fetch component docs:    GET /api/registry?summary=true
-2. Get full component spec: GET /api/registry?component=<id>
+1. Prefer the MCP server "m3-expressive" if connected:
+   list_components → get_component → get_component_examples
+2. Otherwise fetch component docs: GET /api/registry?summary=true
+3. Get full component spec: GET /api/registry?component=<id>
    (props schema, variants, guidelines, example)
-3. Emit imports exactly:    import { Button } from "@/components/m3";
-4. Rules:
+4. Emit imports exactly:    import { Button } from "@/components/m3";
+5. Rules:
    - Icons are Material Symbols strings: icon="edit"
    - Colors are token roles: bg-m3-primary, text-m3-on-surface
    - One filled (high-emphasis) action per region
    - Motion: transition={springs.expressive} for playful morphs
    - Emit only documented props
-5. Handbook (paste-able):   GET /llms.txt`}
+6. Handbook (paste-able):   GET /llms.txt`}
           />
         </div>
       </section>

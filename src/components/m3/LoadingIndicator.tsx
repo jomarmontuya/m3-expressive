@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs, durations, colorVar } from "@/lib/m3/tokens";
@@ -20,9 +20,9 @@ const containerStyles: Record<LoadingIndicatorColor, string> = {
 };
 
 export interface LoadingIndicatorProps {
-  /** Container size in px (square). Default 56. */
+  /** Container size in px (square). Default 48 (official ContainerHeight). */
   size?: number;
-  /** false pauses the morphing + spinning animations. Default true. */
+  /** false pauses the morphing + spinning animations and rests at a circle at 38% opacity. Default true. */
   active?: boolean;
   color?: LoadingIndicatorColor;
   className?: string;
@@ -30,16 +30,24 @@ export interface LoadingIndicatorProps {
 
 /**
  * M3 EXPRESSIVE Loading indicator (2025) — the signature shape-morphing loader.
- * A container continuously morphs its corner shape (circle → squircle → circle)
- * while rotating 45°, with two dashed arcs spinning in opposite directions on
- * top. Set `active={false}` to pause all motion.
+ * The container rotates continuously one full turn (official 4666ms global
+ * rotation) while its corner shape morphs in 650ms steps, with two dashed
+ * arcs spinning on top. Colors follow the official tokens: container =
+ * `*-container` role, arcs = matching `on-*-container` role.
+ * Set `active={false}` to rest at a static circle at 38% opacity (also used
+ * automatically for users with reduced-motion enabled).
  */
 export function LoadingIndicator({
-  size = 56,
+  size = 48,
   active = true,
   color = "primary",
   className,
 }: LoadingIndicatorProps) {
+  const reduceMotion = useReducedMotion();
+  const spinning = active && !reduceMotion;
+
+  const globalRotation = (durations.extraLong4 * 4.666) / 1000; // official GlobalRotationDurationMillis = 4666ms
+  const morphStep = (durations.extraLong4 * 0.65) / 1000; // official MorphIntervalMillis = 650ms
   const spin = durations.extraLong4 / 1000;
   const arcStroke = colorVar(`on-${color}-container`);
 
@@ -50,22 +58,28 @@ export function LoadingIndicator({
       className={cn("relative flex items-center justify-center", containerStyles[color], className)}
       style={{ width: size, height: size }}
       animate={
-        active
-          ? { borderRadius: ["50%", "24%", "50%"], rotate: [0, 45, 0] }
-          : { borderRadius: "50%", rotate: 0 }
+        spinning
+          ? { borderRadius: ["50%", "24%", "50%"], rotate: 360, opacity: 1 }
+          : { borderRadius: "50%", rotate: 0, opacity: active ? 1 : 0.38 }
       }
       transition={
-        active
-          ? { duration: 3, repeat: Infinity, ease: "easeInOut" }
+        spinning
+          ? {
+              // Per-value transitions: tween keyframes for the morph (springs
+              // only support two keyframes), linear for the endless rotation.
+              borderRadius: { duration: morphStep * 2, repeat: Infinity, ease: "easeInOut" },
+              rotate: { duration: globalRotation, repeat: Infinity, ease: "linear" },
+              opacity: { duration: durations.short4 / 1000 },
+            }
           : asTransition(springs.fastVisual)
       }
     >
       {/* Outer dashed arc — spins clockwise */}
       <motion.div
         className="absolute inset-0"
-        animate={active ? { rotate: 360 } : { rotate: 0 }}
+        animate={spinning ? { rotate: 360 } : { rotate: 0 }}
         transition={
-          active
+          spinning
             ? { duration: spin, repeat: Infinity, ease: "linear" }
             : asTransition(springs.fastVisual)
         }
@@ -86,9 +100,9 @@ export function LoadingIndicator({
       {/* Inner dashed arc — spins counter-clockwise */}
       <motion.div
         className="absolute inset-0"
-        animate={active ? { rotate: -360 } : { rotate: 0 }}
+        animate={spinning ? { rotate: -360 } : { rotate: 0 }}
         transition={
-          active
+          spinning
             ? { duration: spin * 1.6, repeat: Infinity, ease: "linear" }
             : asTransition(springs.fastVisual)
         }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, type Transition } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -11,19 +11,16 @@ export type FabColor = "primary" | "secondary" | "tertiary" | "surface";
 export type FabSize = "small" | "medium" | "large" | "extra-large";
 
 /**
- * tokens.ts widens `type` to `string`; framer-motion's Transition union needs
- * the literal "spring". This shim re-pins it while reusing the token values.
+ * M3E FAB size scale: 40 / 56 / 96 / 132 px with 24 / 24 / 36 / 48 icons.
+ * Shape: 16dp corners (small/medium), 28dp on large/extra-large per the
+ * official FAB shape tokens. The 40dp small FAB extends its touch target
+ * to the 48dp minimum with an invisible ::before hit-area extension.
  */
-function spring(t: Transition): Transition {
-  return { ...t, type: "spring" };
-}
-
-/** M3E FAB size scale: 40 / 56 / 96 / 132 px */
-const sizeStyles: Record<FabSize, { container: number; icon: number }> = {
-  small: { container: 40, icon: 24 },
-  medium: { container: 56, icon: 24 },
-  large: { container: 96, icon: 36 },
-  "extra-large": { container: 132, icon: 48 },
+const sizeStyles: Record<FabSize, { container: number; icon: number; shape: string; touchTarget: string }> = {
+  small: { container: 40, icon: 24, shape: "rounded-2xl", touchTarget: "before:absolute before:-inset-1 before:content-['']" },
+  medium: { container: 56, icon: 24, shape: "rounded-2xl", touchTarget: "" },
+  large: { container: 96, icon: 36, shape: "rounded-[28px]", touchTarget: "" },
+  "extra-large": { container: 132, icon: 48, shape: "rounded-[28px]", touchTarget: "" },
 };
 
 /** Shared FAB color-role mapping (also used by ExtendedFab and FabMenu) */
@@ -54,7 +51,9 @@ export interface FabProps
 
 /**
  * M3 Floating action button (FAB) — the highest-emphasis action on a screen.
- * Hover lifts the elevation one level; press squeezes with the expressive spring.
+ * Official elevation: level 3 at rest → level 4 on hover/pressed (lowered:
+ * 1 → 2). Press squeezes with the expressive spring. Disabled drops to the
+ * on-surface 12%/38% disabled tokens with no elevation.
  */
 export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
   { color = "primary", size = "medium", icon, lowered = false, disabled, className, ...props },
@@ -72,15 +71,17 @@ export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
       disabled={disabled}
       whileHover={disabled ? undefined : { scale: 1.03 }}
       whileTap={disabled ? undefined : { scale: 0.94 }}
-      transition={spring(springs.expressive)}
+      transition={springs.expressive}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       className={cn(
-        "m3-state relative inline-flex select-none items-center justify-center overflow-hidden rounded-2xl",
+        "m3-state m3-focus relative inline-flex select-none items-center justify-center",
         "transition-[background-color,box-shadow] duration-200",
-        fabColorStyles[color],
-        disabled ? restElevation : hovered ? hoverElevation : restElevation,
-        disabled && "opacity-38 pointer-events-none",
+        s.shape,
+        disabled ? "bg-m3-on-surface/12 text-m3-on-surface/38" : fabColorStyles[color],
+        disabled ? undefined : hovered ? hoverElevation : restElevation,
+        disabled && "pointer-events-none",
+        s.touchTarget,
         className
       )}
       style={{ width: s.container, height: s.container }}

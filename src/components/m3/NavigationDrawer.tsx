@@ -24,7 +24,7 @@ export interface NavigationDrawerProps {
   items: NavItem[];
   value: string;
   onChange: (v: string) => void;
-  /** modal slides over content with a scrim; standard is a static inline panel */
+  /** modal slides over a scrim; standard is a static inline panel — both 360dp wide per the M3 spec */
   variant?: "modal" | "standard";
   /** Controls the modal drawer (standard is always visible). Uncontrolled defaults to closed. */
   open?: boolean;
@@ -40,9 +40,11 @@ export interface NavigationDrawerProps {
 
 /**
  * M3 Navigation Drawer — side navigation for destinations.
- * Modal variant slides in from the left over a scrim (Esc / scrim click to
- * dismiss); standard variant is a static 280dp panel. The active destination
- * is a full-width tonal pill that springs between items (layoutId).
+ * Official container: 360dp wide, surface-container-low, 16dp trailing
+ * corners; 56dp full-width pill items (active = secondary-container).
+ * The modal variant slides in from the left over a 32% scrim, traps focus,
+ * and closes on Escape / scrim click / destination select (focus returned on
+ * close). The standard variant is a static inline panel.
  */
 export function NavigationDrawer({
   items,
@@ -67,13 +69,49 @@ export function NavigationDrawer({
     onClose?.();
   }, [isControlled, onClose]);
 
+  /* Modal focus management: focus the panel on open, trap Tab, restore focus on close. */
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+
   React.useEffect(() => {
     if (!showModal) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.focus({ preventScroll: true });
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      const inside = !!active && panel.contains(active);
+      if (e.shiftKey && (active === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      restoreFocusRef.current?.focus?.();
+    };
   }, [showModal, handleClose]);
 
   const body = (
@@ -87,7 +125,11 @@ export function NavigationDrawer({
               <button
                 type="button"
                 aria-current={active ? "page" : undefined}
-                onClick={() => onChange(item.value)}
+                onClick={() => {
+                  onChange(item.value);
+                  // Modal drawers dismiss after the user picks a destination.
+                  if (variant === "modal") handleClose();
+                }}
                 className="m3-state relative flex h-14 w-full items-center rounded-full px-4"
               >
                 <Ripple />
@@ -106,7 +148,12 @@ export function NavigationDrawer({
                     className={cn("relative", active ? "text-m3-on-secondary-container" : "text-m3-on-surface-variant")}
                   />
                 )}
-                <span className={cn("md-label-large relative ml-3", active ? "text-m3-on-secondary-container" : "text-m3-on-surface")}>
+                <span
+                  className={cn(
+                    "md-label-large relative ml-3",
+                    active ? "text-m3-on-secondary-container" : "text-m3-on-surface-variant"
+                  )}
+                >
                   {item.label}
                 </span>
                 {item.badge !== undefined && (
@@ -128,7 +175,7 @@ export function NavigationDrawer({
       <nav
         aria-label="Navigation drawer"
         className={cn(
-          "m3-scroll flex w-[280px] shrink-0 flex-col overflow-y-auto rounded-3xl border border-m3-outline-variant bg-m3-surface-container-low p-3",
+          "m3-scroll flex w-[360px] shrink-0 flex-col overflow-y-auto rounded-2xl bg-m3-surface-container-low p-3",
           fullHeight && "h-full",
           className
         )}
@@ -143,7 +190,7 @@ export function NavigationDrawer({
       {showModal && (
         <div key="m3-drawer" className="fixed inset-0 z-[75]" role="dialog" aria-modal="true" aria-label="Navigation drawer">
           <motion.div
-            className="absolute inset-0 bg-m3-scrim/50"
+            className="absolute inset-0 bg-m3-scrim/32"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -151,8 +198,10 @@ export function NavigationDrawer({
             onClick={handleClose}
           />
           <motion.nav
+            ref={panelRef}
+            tabIndex={-1}
             aria-label="Navigation drawer"
-            className="m3-scroll absolute left-0 top-0 flex h-full w-[320px] flex-col overflow-y-auto rounded-r-3xl bg-m3-surface-container-low p-3"
+            className="m3-scroll absolute left-0 top-0 flex h-full w-[360px] flex-col overflow-y-auto rounded-r-2xl bg-m3-surface-container-low p-3 focus:outline-none"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}

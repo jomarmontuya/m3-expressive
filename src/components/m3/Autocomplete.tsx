@@ -100,10 +100,12 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
       {label && <div className="mb-1 px-1 md-body-small text-m3-on-surface-variant">{label}</div>}
       <div
         className={cn(
-          "m3-state relative flex h-14 items-center rounded-xl border transition-[border-color,box-shadow] duration-150",
+          "m3-state relative flex h-14 items-center rounded-m3-xs border transition-[border-color,box-shadow] duration-150",
           open && !disabled
             ? "border-m3-primary shadow-[inset_0_0_0_1px_var(--md-primary)]"
-            : "border-m3-outline"
+            : disabled
+              ? "border-m3-outline/12"
+              : "border-m3-outline hover:border-m3-on-surface"
         )}
       >
         <input
@@ -111,6 +113,7 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
           type="text"
           role="combobox"
           aria-expanded={open}
+          aria-haspopup="listbox"
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={open && highlighted >= 0 ? `${listId}-${highlighted}` : undefined}
@@ -156,7 +159,7 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
             exit={{ opacity: 0, scale: 0.96, y: -4 }}
             transition={springs.fastSpatial}
             style={{ transformOrigin: "top center" }}
-            className="m3-scroll m3-elevation-2 absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-lg bg-m3-surface-container py-2"
+            className="m3-scroll m3-elevation-2 absolute z-10 mt-1 max-h-72 w-full overflow-y-auto rounded-m3-xs bg-m3-surface-container py-2"
           >
             {filtered.map((option, i) => {
               const isSelected = option === value;
@@ -165,6 +168,9 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
                 <li
                   key={option}
                   id={`${listId}-${i}`}
+                  ref={(el) => {
+                    if (isHighlighted && el) el.scrollIntoView({ block: "nearest" });
+                  }}
                   role="option"
                   aria-selected={isSelected}
                   onMouseEnter={() => setHighlighted(i)}
@@ -189,7 +195,7 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={springs.fastSpatial}
-            className="m3-elevation-2 absolute z-10 mt-1 w-full rounded-lg bg-m3-surface-container px-4 py-3 md-body-medium text-m3-on-surface-variant"
+            className="m3-elevation-2 absolute z-10 mt-1 w-full rounded-m3-xs bg-m3-surface-container px-4 py-3 md-body-medium text-m3-on-surface-variant"
           >
             No matches
           </motion.div>

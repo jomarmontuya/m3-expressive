@@ -46,7 +46,7 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(funct
       whileTap={disabled ? undefined : { scale: 0.95 }}
       transition={springs.fastVisual}
       className={cn(
-        "m3-state relative inline-flex items-center overflow-hidden rounded-full outline-none",
+        "m3-state m3-focus relative inline-flex items-center overflow-hidden rounded-full outline-none",
         error ? "text-m3-error" : isFilled ? "text-m3-primary" : "text-m3-on-surface-variant",
         disabled && "pointer-events-none opacity-38",
         className

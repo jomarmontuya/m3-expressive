@@ -53,6 +53,9 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
 ) {
   const [focused, setFocused] = React.useState(false);
 
+  /** Trailing icon buttons get the official ≥48dp touch target (32dp on the compact size). */
+  const trailingHit = size === "sm" ? "h-8 w-8" : "h-12 w-12";
+
   return (
     <div className={cn("relative inline-flex", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className)}>
       <div
@@ -68,6 +71,8 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
         <input
           ref={ref}
           type="text"
+          role="searchbox"
+          aria-label={placeholder}
           value={value}
           onChange={onChange}
           disabled={disabled}
@@ -77,7 +82,10 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
           }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="h-full min-w-0 flex-1 bg-transparent px-3 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
+          className={cn(
+            "h-full min-w-0 flex-1 bg-transparent pl-4 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large",
+            trailingIcons.length > 0 ? "pr-1" : "pr-4"
+          )}
           {...props}
         />
         {trailingIcons.map((icon) => (
@@ -88,13 +96,16 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
             tabIndex={disabled ? -1 : 0}
             whileTap={disabled ? undefined : { scale: 0.9 }}
             transition={springs.fastVisual}
-            className="m3-state relative mr-1.5 grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface"
+            className={cn(
+              "m3-state relative mr-1 grid shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface",
+              trailingHit
+            )}
           >
             <Ripple disabled={disabled} />
-            <MaterialSymbol icon={icon} size={22} />
+            <MaterialSymbol icon={icon} size={24} />
           </motion.button>
         ))}
-        {trailingIcons.length > 0 && <span className="mr-2.5" />}
+        {trailingIcons.length > 0 && <span className="mr-3" />}
       </div>
     </div>
   );

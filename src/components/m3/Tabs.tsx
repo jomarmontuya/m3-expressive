@@ -24,7 +24,7 @@ export interface TabsProps {
   items: NavItem[];
   value: string;
   onChange: (v: string) => void;
-  /** primary = icon+label columns with a sliding underline; secondary = expressive tonal pill row */
+  /** primary = 64dp icon+label columns with a sliding 3dp underline; secondary = 48dp expressive tonal pill row */
   variant?: "primary" | "secondary";
   /** Stretch to the container width and distribute tabs equally */
   fullWidth?: boolean;
@@ -33,9 +33,12 @@ export interface TabsProps {
 
 /**
  * M3 Tabs — organize content across different screens, data sets and interactions.
- * The active indicator is a shared-layout element that springs between tabs
- * (layoutId) — underline for primary, tonal pill for secondary.
- * Horizontally scrollable when tabs overflow.
+ * Primary tabs are the official 64dp icon+label columns with a 3dp active
+ * indicator (shared-layout underline); secondary tabs are the 48dp Expressive
+ * tonal pill row. Horizontally scrollable when tabs overflow — per spec,
+ * leading/trailing scroll arrows appear while content overflows in that
+ * direction. Roving tabindex with ArrowLeft/Right/Home/End (automatic
+ * activation) follows the WAI-ARIA tabs pattern.
  */
 export function Tabs({
   items,
@@ -50,41 +53,91 @@ export function Tabs({
   const uid = React.useId();
   const indicatorId = `m3-tab-indicator-${uid}`;
   const pillId = `m3-tab-pill-${uid}`;
+  const isPrimary = variant === "primary";
 
-  return (
+  /* --- Scrollable-tabs arrows (M3: show while overflowing in that direction) --- */
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollStart, setCanScrollStart] = React.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React.useState(false);
+
+  const updateOverflow = React.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanScrollStart(el.scrollLeft > 4);
+    setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  React.useEffect(() => {
+    updateOverflow();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateOverflow, { passive: true });
+    const ro = new ResizeObserver(updateOverflow);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateOverflow);
+      ro.disconnect();
+    };
+  }, [updateOverflow, items.length]);
+
+  const scrollTabs = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.75, 120), behavior: "smooth" });
+  };
+
+  /* --- Keyboard: roving tabindex + automatic activation (WAI-ARIA tabs) --- */
+  const tabRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  const onTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let next: number | null = null;
+    if (e.key === "ArrowRight") next = (index + 1) % items.length;
+    else if (e.key === "ArrowLeft") next = (index - 1 + items.length) % items.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = items.length - 1;
+    if (next === null) return;
+    e.preventDefault();
+    tabRefs.current[next]?.focus();
+    onChange(items[next].value);
+  };
+
+  const tablist = (
     <div
+      ref={scrollerRef}
       role="tablist"
       className={cn(
-        "m3-scroll flex h-16 items-stretch overflow-x-auto",
-        variant === "primary" && "border-b border-m3-outline-variant",
-        fullWidth ? "w-full" : "w-fit max-w-full",
-        className
+        "m3-scroll flex flex-1 items-stretch overflow-x-auto",
+        isPrimary ? "h-16 border-b border-m3-outline-variant" : "h-12"
       )}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const active = item.value === value;
         const textColor = active
-          ? variant === "primary"
+          ? isPrimary
             ? "text-m3-primary"
             : "text-m3-on-secondary-container"
           : "text-m3-on-surface-variant";
         return (
           <button
             key={item.value}
+            ref={(el) => {
+              tabRefs.current[index] = el;
+            }}
             type="button"
             role="tab"
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
+            onKeyDown={(e) => onTabKeyDown(e, index)}
             onClick={() => onChange(item.value)}
             className={cn(
               "m3-state relative flex shrink-0 items-center justify-center",
-              variant === "primary" ? "flex-col gap-1 pb-2 pt-3" : "gap-2 px-4",
+              isPrimary ? "flex-col gap-1 pb-2 pt-3" : "gap-2 px-4",
               "min-w-[96px]",
               fullWidth && "flex-1",
               textColor
             )}
           >
             <Ripple />
-            {variant === "primary"
+            {isPrimary
               ? active && (
                   <motion.div
                     layoutId={indicatorId}
@@ -114,10 +167,44 @@ export function Tabs({
                 {item.badge}
               </span>
             )}
-            <span className="relative md-title-small">{item.label}</span>
+            <span className="relative md-label-large">{item.label}</span>
           </button>
         );
       })}
+    </div>
+  );
+
+  return (
+    <div
+      className={cn(
+        "flex items-stretch",
+        fullWidth ? "w-full" : "w-fit max-w-full",
+        className
+      )}
+    >
+      {canScrollStart && (
+        <button
+          type="button"
+          aria-label="Scroll tabs backward"
+          onClick={() => scrollTabs(-1)}
+          className="m3-state relative flex h-12 w-12 shrink-0 items-center justify-center self-center text-m3-on-surface-variant"
+        >
+          <Ripple />
+          <MaterialSymbol icon="chevron_left" size={24} />
+        </button>
+      )}
+      {tablist}
+      {canScrollEnd && (
+        <button
+          type="button"
+          aria-label="Scroll tabs forward"
+          onClick={() => scrollTabs(1)}
+          className="m3-state relative flex h-12 w-12 shrink-0 items-center justify-center self-center text-m3-on-surface-variant"
+        >
+          <Ripple />
+          <MaterialSymbol icon="chevron_right" size={24} />
+        </button>
+      )}
     </div>
   );
 }

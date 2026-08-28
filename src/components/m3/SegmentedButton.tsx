@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence, type Transition } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -26,18 +26,14 @@ export interface SegmentedButtonProps extends React.HTMLAttributes<HTMLDivElemen
   disabled?: boolean;
 }
 
+/**
+ * Official M3 segmented button height is 40dp ("sm", the default). "md" (56dp)
+ * is an opt-in M3E expressive scale-up, not the spec height.
+ */
 const sizeStyles: Record<SegmentedButtonSize, { height: number; icon: number }> = {
   sm: { height: 40, icon: 18 },
   md: { height: 56, icon: 20 },
 };
-
-/**
- * tokens.ts widens `type` to `string`; framer-motion's Transition union needs
- * the literal "spring". This shim re-pins it while reusing the token values.
- */
-function spring(t: Transition): Transition {
-  return { ...t, type: "spring" };
-}
 
 /**
  * M3 Segmented buttons — connected segments inside one pill outline for
@@ -46,7 +42,7 @@ function spring(t: Transition): Transition {
  */
 export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonProps>(
   function SegmentedButton(
-    { options, type = "single", value, onValueChange, size = "md", disabled = false, className, ...props },
+    { options, type = "single", value, onValueChange, size = "sm", disabled = false, className, ...props },
     ref
   ) {
     const [internalValue, setInternalValue] = React.useState<string[]>([]);
@@ -79,8 +75,8 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
         ref={ref}
         role="group"
         className={cn(
-          "inline-flex select-none overflow-hidden rounded-full border border-m3-outline",
-          disabled && "opacity-38 pointer-events-none",
+          "inline-flex select-none rounded-full border",
+          disabled ? "border-m3-on-surface/12" : "border-m3-outline",
           className
         )}
         style={{ height: s.height }}
@@ -97,14 +93,20 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
               aria-pressed={isSelected}
               onClick={() => select(option.value)}
               whileTap={disabled ? undefined : { scale: 0.97 }}
-              transition={spring(springs.fastVisual)}
+              transition={springs.fastVisual}
               className={cn(
-                "m3-state relative flex h-full flex-1 items-center justify-center gap-2 px-4",
+                "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 px-4",
                 "md-label-large transition-colors duration-150",
-                i > 0 && "border-l border-m3-outline",
-                isSelected
-                  ? "bg-m3-secondary-container text-m3-on-secondary-container"
-                  : "bg-transparent text-m3-on-surface"
+                i > 0 && (disabled ? "border-l border-m3-on-surface/12" : "border-l border-m3-outline"),
+                i === 0 && "rounded-l-full",
+                i === options.length - 1 && "rounded-r-full",
+                disabled
+                  ? isSelected
+                    ? "bg-m3-on-surface/12 text-m3-on-surface/38"
+                    : "bg-transparent text-m3-on-surface/38"
+                  : isSelected
+                    ? "bg-m3-secondary-container text-m3-on-secondary-container"
+                    : "bg-transparent text-m3-on-surface"
               )}
             >
               <Ripple disabled={disabled} />
@@ -115,7 +117,7 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: s.icon, opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
-                    transition={spring(springs.fastSpatial)}
+                    transition={springs.fastSpatial}
                     className="inline-flex items-center justify-center overflow-hidden"
                   >
                     <MaterialSymbol icon="check" size={s.icon} />

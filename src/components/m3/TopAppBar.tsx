@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs } from "@/lib/m3/tokens";
+import { springs, durations, easings } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 
@@ -46,8 +46,8 @@ function AppBarIconButton({ icon, label, onClick }: { icon: string; label?: stri
       aria-label={label ?? icon}
       title={label}
       onClick={onClick}
-      className="m3-state relative flex h-10 w-10 items-center justify-center rounded-full text-m3-on-surface-variant"
-    >
+      className="m3-state relative flex h-11 w-11 items-center justify-center rounded-full text-m3-on-surface-variant"
+  >
       <Ripple />
       <MaterialSymbol icon={icon} size={24} />
     </button>
@@ -84,7 +84,9 @@ export function TopAppBar({
     return () => target.removeEventListener("scroll", onScroll);
   }, [scrollTargetRef, threshold]);
 
-  const barState = scrolled ? "bg-m3-surface-container m3-elevation-2" : "bg-transparent";
+  // M3 on-scroll behavior: a surface-container color fill separates the bar
+  // from content. No shadow — the elevation shadow is the old M2 treatment.
+  const barState = scrolled ? "bg-m3-surface-container" : "bg-m3-surface";
   const actionsRow = (
     <div className="ml-auto flex items-center gap-1">
       {actions.map((action, i) => (
@@ -96,8 +98,9 @@ export function TopAppBar({
   if (!isFlexible) {
     return (
       <header
+        style={{ transitionDuration: `${durations.medium2}ms`, transitionTimingFunction: easings.standard }}
         className={cn(
-          "sticky top-0 z-40 transition-[background-color,box-shadow] duration-300",
+          "sticky top-0 z-40 transition-[background-color]",
           barState,
           fullWidth && "w-full",
           className
@@ -121,11 +124,16 @@ export function TopAppBar({
 
   return (
     <motion.header
-      animate={{ height: collapsed ? 64 : heights[variant] }}
-      transition={spring(springs.defaultSpatial)}
+      animate={{
+        height: collapsed ? 64 : heights[variant],
+        backgroundColor: scrolled ? "var(--md-surface-container)" : "var(--md-surface)",
+      }}
+      transition={{
+        height: spring(springs.defaultSpatial),
+        backgroundColor: { duration: durations.medium2 / 1000, ease: [0.2, 0, 0, 1] },
+      }}
       className={cn(
-        "sticky top-0 z-40 overflow-hidden transition-[background-color,box-shadow] duration-300",
-        barState,
+        "sticky top-0 z-40 overflow-hidden",
         fullWidth && "w-full",
         className
       )}
@@ -157,7 +165,7 @@ export function TopAppBar({
             transition={spring(springs.defaultSpatial)}
             className="absolute inset-x-4 bottom-1"
           >
-            <span className={cn("block truncate", variant === "large" ? "md-headline-medium" : "md-headline-small")}>
+            <span className={cn("block truncate", variant === "large" ? "md-headline-large" : "md-headline-small")}>
               {title}
             </span>
           </motion.div>

@@ -30,7 +30,13 @@ export default function RootLayout({
         <link rel="stylesheet" href="/fonts/fonts.css" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('m3-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
+            __html: `try{
+var c=localStorage.getItem('m3-color-theme');
+if(c&&c!=='baseline'){document.documentElement.setAttribute('data-theme',c)}
+var m=localStorage.getItem('m3-mode');
+var d=m==='dark'||((!m||m==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+if(d){document.documentElement.classList.add('dark')}
+}catch(e){}`,
           }}
         />
       </head>

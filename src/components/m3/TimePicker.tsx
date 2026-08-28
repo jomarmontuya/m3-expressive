@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs, type M3Spring } from "@/lib/m3/tokens";
+import { springs } from "@/lib/m3/tokens";
 
 export interface TimePickerValue {
   /** 0–23 */
@@ -22,9 +21,6 @@ const DIAL_POSITIONS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
-
-/** tokens.ts widens `type` to `string`; framer-motion needs the "spring" literal. */
-const spring = (s: M3Spring): Transition => ({ ...s, type: "spring" });
 
 /** Position of a clock number n (1..12) on the dial via trig */
 function dialPosition(n: number): { x: number; y: number } {
@@ -47,10 +43,17 @@ export interface TimePickerProps {
 }
 
 /**
- * M3 clock-face Time Picker — a display readout over an analog dial.
- * Clicking the readout switches between hour and minute editing; hour
- * numbers sit on a 12-number ring (AM/PM preserved), minute marks map
- * to n×5. The primary selection pill and clock hand animate with springs.
+ * M3 clock-face Time Picker — official dial geometry (androidx material3
+ * TimePickerTokens): 256dp clock face on surface-container-highest, 48dp
+ * primary selection handle with 8dp center dot and 2dp track. The picker
+ * container is surface-container-high at elevation level 3. The digital
+ * readout uses the official 96×80dp time-selector segments (8dp corners,
+ * display-large labels; active segment on primary-container, inactive on
+ * surface-container-highest) and the vertical 52×80dp period selector has
+ * a 1dp outline with the active option on tertiary-container. Hour numbers
+ * sit on a 12-number ring (AM/PM preserved), minute marks map to n×5 with
+ * 48px hit areas; arrows on the dial increment/decrement hour/minute and
+ * picking an hour auto-advances to minute editing after 600ms.
  */
 export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(function TimePicker(
   { value, onChange, use24h = false, fullWidth = false, className },
@@ -60,6 +63,8 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
   const time = value ?? internal;
   const [mode, setMode] = React.useState<"hour" | "minute">("hour");
   const switchTimer = React.useRef<number | null>(null);
+  const amRef = React.useRef<HTMLButtonElement | null>(null);
+  const pmRef = React.useRef<HTMLButtonElement | null>(null);
 
   React.useEffect(() => {
     return () => {
@@ -79,16 +84,44 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
 
   const angle = mode === "hour" ? hour12 * 30 : time.minute * 6;
 
+  const scheduleModeSwitch = () => {
+    if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
+    switchTimer.current = window.setTimeout(() => setMode("minute"), HOUR_AUTO_SWITCH_MS);
+  };
+
+  /** Pick a ring number as the hour; preserves the current half-day */
+  const setHourOnDial = (n: number) => {
+    const base = n % 12;
+    update({ hour: isPM ? base + 12 : base });
+    // Official flow: selecting an hour auto-advances to minute editing
+    scheduleModeSwitch();
+  };
+
+  /** Pick a ring number as a minute (n×5) */
+  const setMinuteOnDial = (n: number) => {
+    update({ minute: (n * 5) % 60 });
+  };
+
   const handleNumberClick = (n: number) => {
+    if (mode === "hour") setHourOnDial(n);
+    else setMinuteOnDial(n);
+  };
+
+  /** Keyboard dial operation: ↑/→ increments, ↓/← decrements (hour ±1 on the ring, minute ±1) */
+  const handleDialKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const dir =
+      e.key === "ArrowUp" || e.key === "ArrowRight"
+        ? 1
+        : e.key === "ArrowDown" || e.key === "ArrowLeft"
+          ? -1
+          : 0;
+    if (dir === 0) return;
+    e.preventDefault();
     if (mode === "hour") {
-      const base = n % 12;
-      update({ hour: isPM ? base + 12 : base });
-      if (!use24h) {
-        if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
-        switchTimer.current = window.setTimeout(() => setMode("minute"), HOUR_AUTO_SWITCH_MS);
-      }
+      const next = hour12 + dir;
+      setHourOnDial(next < 1 ? 12 : next > 12 ? 1 : next);
     } else {
-      update({ minute: (n * 5) % 60 });
+      update({ minute: (time.minute + dir + 60) % 60 });
     }
   };
 
@@ -96,79 +129,104 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
     update({ hour: m === "AM" ? time.hour % 12 : (time.hour % 12) + 12 });
   };
 
+  /** Arrow keys move the meridiem selection (radio-group pattern) */
+  const handleMeridiemKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, m: "AM" | "PM") => {
+    const toAM = e.key === "ArrowUp" || e.key === "ArrowLeft";
+    const toPM = e.key === "ArrowDown" || e.key === "ArrowRight";
+    if (!toAM && !toPM) return;
+    e.preventDefault();
+    const target = toAM ? "AM" : "PM";
+    handleMeridiem(target);
+    (toAM ? amRef : pmRef).current?.focus();
+  };
+
   const theta = (angle * Math.PI) / 180;
   const selX = DIAL_CENTER + DIAL_RADIUS * Math.sin(theta);
   const selY = DIAL_CENTER - DIAL_RADIUS * Math.cos(theta);
+
+  const readoutSegment = (label: string, target: "hour" | "minute") => (
+    <button
+      type="button"
+      onClick={() => setMode(target)}
+      aria-pressed={mode === target}
+      aria-label={`${target === "hour" ? "Hour" : "Minute"} ${label}`}
+      className={cn(
+        // Official: 96×80dp time-selector segment, corner-small (8dp) shape;
+        // active on primary-container, inactive on surface-container-highest
+        "m3-state m3-focus flex h-20 w-24 shrink-0 cursor-pointer items-center justify-center rounded-[8px] outline-none transition-colors",
+        mode === target
+          ? "bg-m3-primary-container text-m3-on-primary-container"
+          : "bg-m3-surface-container-highest text-m3-on-surface"
+      )}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div
       ref={ref}
       className={cn(
-        "rounded-[28px] bg-m3-surface-container-highest p-6",
+        // Official: container surface-container-high at elevation level 3
+        "rounded-[28px] bg-m3-surface-container-high p-6 m3-elevation-3",
         fullWidth ? "w-full" : "w-[328px]",
         className
       )}
     >
-      {/* Readout row */}
-      <div className="mb-4 flex items-center justify-center gap-4">
-        <div className="flex items-baseline md-display-small tabular-nums">
-          <button
-            type="button"
-            onClick={() => setMode("hour")}
-            className={cn(
-              "m3-state cursor-pointer rounded-lg px-1 outline-none transition-colors",
-              mode === "hour" ? "text-m3-primary" : "text-m3-on-surface-variant/60"
-            )}
-          >
-            {hourLabel}
-          </button>
-          <span className="text-m3-on-surface-variant/60">:</span>
-          <button
-            type="button"
-            onClick={() => setMode("minute")}
-            className={cn(
-              "m3-state cursor-pointer rounded-lg px-1 outline-none transition-colors",
-              mode === "minute" ? "text-m3-primary" : "text-m3-on-surface-variant/60"
-            )}
-          >
-            {pad2(time.minute)}
-          </button>
+      {/* Readout row: 96×80dp time-selector segments + 52×80dp vertical period selector */}
+      <div className="mb-4 flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center md-display-large tabular-nums">
+          {readoutSegment(hourLabel, "hour")}
+          <span aria-hidden="true" className="text-m3-on-surface">
+            :
+          </span>
+          {readoutSegment(pad2(time.minute), "minute")}
         </div>
         {!use24h && (
-          <div className="flex flex-col items-center gap-1">
-            {(["AM", "PM"] as const).map((m) => {
+          <div
+            role="radiogroup"
+            aria-label="Meridiem"
+            className="flex h-20 w-[52px] shrink-0 flex-col items-stretch rounded-full border border-m3-outline"
+          >
+            {(["AM", "PM"] as const).map((m, i) => {
               const isCurrent = (m === "AM") === !isPM;
               return (
-                <button
-                  type="button"
-                  key={m}
-                  onClick={() => handleMeridiem(m)}
-                  className={cn(
-                    "m3-state md-title-medium cursor-pointer rounded-full px-2 py-0.5 outline-none transition-colors",
-                    isCurrent
-                      ? "bg-m3-primary-container text-m3-on-primary-container"
-                      : "text-m3-on-surface-variant/60"
-                  )}
-                >
-                  {m}
-                </button>
+                <React.Fragment key={m}>
+                  {i === 1 && <span aria-hidden="true" className="h-px w-full shrink-0 bg-m3-outline" />}
+                  <button
+                    type="button"
+                    ref={m === "AM" ? amRef : pmRef}
+                    role="radio"
+                    aria-checked={isCurrent}
+                    onClick={() => handleMeridiem(m)}
+                    onKeyDown={(e) => handleMeridiemKeyDown(e, m)}
+                    className={cn(
+                      "m3-state m3-focus md-title-medium flex min-h-0 flex-1 cursor-pointer items-center justify-center rounded-full outline-none transition-colors",
+                      isCurrent
+                        ? "bg-m3-tertiary-container text-m3-on-tertiary-container"
+                        : "text-m3-on-surface-variant"
+                    )}
+                  >
+                    {m}
+                  </button>
+                </React.Fragment>
               );
             })}
           </div>
         )}
       </div>
 
-      {/* Clock dial */}
-      <div className="m3-elevation-1 relative mx-auto h-[256px] w-[256px] select-none rounded-full bg-m3-surface-container-high">
-        {/* Selection pill (36px circle on the active number) */}
+      {/* Clock dial — official 256dp face on surface-container-highest, 48dp selector handle, 8dp center, 2dp track */}
+      <div className="m3-elevation-1 relative mx-auto h-[256px] w-[256px] select-none rounded-full bg-m3-surface-container-highest">
+        {/* Selection handle (48dp circle on the active number) */}
         <motion.span
-          className="absolute z-10 flex h-9 w-9 items-center justify-center rounded-full bg-m3-primary"
-          style={{ left: selX - 18, top: selY - 18 }}
+          className="absolute z-10 flex h-12 w-12 items-center justify-center rounded-full bg-m3-primary"
+          style={{ left: selX - 24, top: selY - 24 }}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={spring(springs.expressiveEffects)}
+          transition={springs.expressiveEffects}
         />
-        {/* Clock hand */}
+        {/* Selector track (2dp hand) */}
         <motion.div
           className="pointer-events-none absolute z-0 rounded-full bg-m3-primary"
           style={{
@@ -179,11 +237,11 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
             transformOrigin: "bottom center",
           }}
           animate={{ rotate: angle }}
-          transition={spring(springs.defaultVisual)}
+          transition={springs.defaultVisual}
         />
-        {/* Center dot */}
-        <span className="absolute left-1/2 top-1/2 z-30 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" />
-        {/* Hour / minute numbers */}
+        {/* Selector center (8dp) */}
+        <span className="absolute left-1/2 top-1/2 z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" />
+        {/* Hour / minute numbers (48px hit areas; adjacent centers ≈ 54px apart) */}
         {DIAL_POSITIONS.map((n) => {
           const { x, y } = dialPosition(n);
           const label = mode === "hour" ? String(n) : pad2((n * 5) % 60);
@@ -193,14 +251,16 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
             <button
               type="button"
               key={n}
+              aria-label={mode === "hour" ? `${n} hours` : `${(n * 5) % 60} minutes`}
               onClick={() => handleNumberClick(n)}
-              style={{ left: x - 16, top: y - 16 }}
-              className="m3-state m3-focus absolute z-20 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full outline-none"
+              onKeyDown={handleDialKeyDown}
+              style={{ left: x - 24, top: y - 24 }}
+              className="m3-state m3-focus absolute z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full outline-none"
             >
               <span
                 className={cn(
                   isActive ? "text-m3-on-primary" : "text-m3-on-surface",
-                  mode === "hour" ? "md-body-large" : "md-body-medium"
+                  "md-body-large"
                 )}
               >
                 {label}

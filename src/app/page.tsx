@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, MotionConfig } from "framer-motion";
 import { Sidebar, parseHash, routeToHash, type Route } from "@/components/showcase/Sidebar";
 import { HomeView } from "@/components/showcase/HomeView";
 import { FoundationsView } from "@/components/showcase/FoundationsView";
@@ -11,6 +11,7 @@ import { NavigationDrawer } from "@/components/m3/NavigationDrawer";
 import { IconButton } from "@/components/m3/IconButton";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { useM3Theme } from "@/hooks/use-m3-theme";
+import { ThemeSwitcher } from "@/components/showcase/ThemeSwitcher";
 import { springs } from "@/lib/m3/tokens";
 
 const DRAWER_ITEMS = [
@@ -28,7 +29,7 @@ const DRAWER_ITEMS = [
 export default function M3ExpressiveDocs() {
   const [route, setRoute] = React.useState<Route>({ kind: "home" });
   const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const { theme, toggle } = useM3Theme();
+  const { isDark, toggle } = useM3Theme();
   const firstRender = React.useRef(true);
 
   // hash-based routing
@@ -56,6 +57,7 @@ export default function M3ExpressiveDocs() {
     route.kind === "home" ? "home" : route.kind === "foundations" ? "foundations" : route.kind === "agents" ? "agents" : "";
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="flex min-h-screen flex-col bg-m3-surface">
       {/* ============ TOP APP BAR ============ */}
       <header className="sticky top-0 z-40 border-b border-m3-outline-variant/60 bg-m3-surface/85 backdrop-blur-lg">
@@ -100,12 +102,13 @@ export default function M3ExpressiveDocs() {
               Agent API
             </button>
             <IconButton
-              icon={theme === "dark" ? "light_mode" : "dark_mode"}
+              icon={isDark ? "light_mode" : "dark_mode"}
               variant="tonal"
-              selected={theme === "dark"}
-              aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              selected={isDark}
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
               onClick={toggle}
             />
+            <ThemeSwitcher />
           </div>
         </div>
       </header>
@@ -192,5 +195,6 @@ export default function M3ExpressiveDocs() {
         }
       />
     </div>
+    </MotionConfig>
   );
 }

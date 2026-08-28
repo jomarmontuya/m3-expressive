@@ -79,10 +79,10 @@ export function LoadingIndicatorDemo() {
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
       <LoadingIndicator size={40} active={active} />
-      <LoadingIndicator size={56} active={active} />
-      <LoadingIndicator size={80} color="secondary" active={active} />
+      <LoadingIndicator size={48} active={active} />
+      <LoadingIndicator size={72} color="secondary" active={active} />
       <LoadingIndicator size={56} color="tertiary" active={active} />
-      <LoadingIndicator size={56} color="error" active={active} />
+      <LoadingIndicator size={48} color="error" active={active} />
       <Button
         variant="tonal"
         icon={active ? "pause" : "play_arrow"}
@@ -110,6 +110,8 @@ export function SnackbarDemo() {
         message="File sent"
         onClose={() => setSimpleOpen(false)}
       />
+      {/* Official M3: only one snackbar at a time — stack the demo pair so
+          both are legible when open simultaneously. */}
       <Snackbar
         open={actionOpen}
         message="Photo archived"
@@ -117,6 +119,7 @@ export function SnackbarDemo() {
         actionLabel="Undo"
         onAction={() => setActionOpen(false)}
         onClose={() => setActionOpen(false)}
+        className="bottom-24"
       />
     </div>
   );

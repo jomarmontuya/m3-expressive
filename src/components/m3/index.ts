@@ -28,7 +28,7 @@ export { TextField, textFieldMeta, type TextFieldProps } from "./TextField";
 export { SearchBar, searchBarMeta, type SearchBarProps } from "./SearchBar";
 export { Autocomplete, autocompleteMeta, type AutocompleteProps } from "./Autocomplete";
 export { Checkbox, checkboxMeta, type CheckboxProps } from "./Checkbox";
-export { Radio, radioMeta, type RadioProps } from "./Radio";
+export { Radio, RadioGroup, radioMeta, type RadioProps, type RadioGroupProps } from "./Radio";
 export { Switch, switchMeta, type SwitchProps } from "./Switch";
 export { Slider, sliderMeta, type SliderProps } from "./Slider";
 export { Chip, chipMeta, type ChipProps } from "./Chip";
@@ -51,3 +51,6 @@ export { Ripple, type RippleProps } from "./Ripple";
 export { springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale, elevations, colorRoles, colorVar, type M3Spring, type PaletteColor } from "@/lib/m3/tokens";
 export { m3Registry, getComponent, searchComponents, getComponentsByCategory } from "@/lib/m3/registry";
 export * from "@/lib/m3/types";
+
+/* Curated themes */
+export { m3Themes, getTheme, themeIds, defaultThemeId, schemeToCssVars, type M3ThemeDef, type M3ColorScheme } from "@/lib/m3/themes";

@@ -133,9 +133,9 @@ export const typeScale = {
   bodyLarge: { fontSize: 16, lineHeight: 24, letterSpacing: 0.5, weight: 400 },
   bodyMedium: { fontSize: 14, lineHeight: 20, letterSpacing: 0.25, weight: 400 },
   bodySmall: { fontSize: 12, lineHeight: 16, letterSpacing: 0.4, weight: 400 },
-  labelLarge: { fontSize: 14, lineHeight: 20, letterSpacing: 0.1, weight: 600 },
-  labelMedium: { fontSize: 12, lineHeight: 16, letterSpacing: 0.5, weight: 600 },
-  labelSmall: { fontSize: 11, lineHeight: 16, letterSpacing: 0.5, weight: 600 },
+  labelLarge: { fontSize: 14, lineHeight: 20, letterSpacing: 0.1, weight: 500 },
+  labelMedium: { fontSize: 12, lineHeight: 16, letterSpacing: 0.5, weight: 500 },
+  labelSmall: { fontSize: 11, lineHeight: 16, letterSpacing: 0.5, weight: 500 },
 } as const;
 
 /* ------------------------------------------------------------------ */

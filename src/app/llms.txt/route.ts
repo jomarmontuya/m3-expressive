@@ -20,7 +20,8 @@ export async function GET() {
   lines.push("- Icons: Material Symbols ligature names as strings (`icon=\"edit\"`).");
   lines.push("- Colors: always token roles (`bg-m3-primary`, `text-m3-on-surface-variant`, `bg-m3-surface-container-high`, `border-m3-outline-variant`) — never raw hex.");
   lines.push("- Motion: springs from `@/lib/m3/tokens` (`springs.expressive` is the signature bouncy M3E spring).");
-  lines.push("- Machine-readable docs: `GET /api/registry`, one component: `GET /api/registry?component=<id>`, tokens: `GET /api/registry?tokens=true`, agent manifest: `GET /api/agent`.");
+  lines.push("- Machine-readable docs: `GET /api/registry`, one component: `GET /api/registry?component=<id>`, tokens: `GET /api/registry?tokens=true`, themes: `GET /api/registry?themes=true`, agent manifest: `GET /api/agent`.");
+  lines.push("- MCP server (preferred for MCP-capable agents): stdio server at `mini-services/mcp-server` exposing list_components, get_component, get_component_api, get_component_examples, get_component_guidelines, get_component_states, get_component_source, search_components, list_themes, get_theme, get_design_tokens, get_motion_guidance, get_accessibility_guidance. Config: `{\"command\":\"bun\",\"args\":[\"run\",\"--cwd\",\"<abs>/mini-services/mcp-server\",\"start\"]}`. Full instructions: `mini-services/mcp-server/README.md`.");
   lines.push("- Emit only props documented in the registry; all components accept `className` and native element props.");
   lines.push("");
   for (const cat of r.categories) {

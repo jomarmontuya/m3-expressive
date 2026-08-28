@@ -9,13 +9,13 @@ import { springs as springsTokens } from "@/lib/m3/tokens";
 /** Token springs retyped as framer-motion Transitions (`type` widens to string). */
 const springs = springsTokens as { [K in keyof typeof springsTokens]: Transition };
 
-export interface SliderProps {
+export interface SliderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
   value: number;
   onChange: (value: number) => void;
   min?: number;
   max?: number;
   step?: number;
-  /** Shows tick dots under the track */
+  /** Shows tick dots at each step on the inactive track */
   discrete?: boolean;
   /** Shows the value bubble while hovering or dragging */
   showValueLabel?: boolean;
@@ -26,9 +26,11 @@ export interface SliderProps {
 
 /**
  * M3 Expressive slider — a thick 16px track with the signature tall thin
- * handle (4×44px) that widens while engaged. Pointer-driven with full
- * keyboard support (arrows, Home/End) and an optional value bubble +
- * discrete tick dots.
+ * handle (4×44dp) that widens to 6dp while engaged, and 4dp on-surface stop
+ * indicator dots (one at the track end; one per step when `discrete`).
+ * Pointer-driven with full keyboard support (arrows ±step, PageUp/PageDown
+ * ±10 steps, Home/End) and an optional value bubble. The interactive row is
+ * 48dp tall to satisfy the touch-target guideline.
  */
 export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Slider(
   {
@@ -42,6 +44,7 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
     disabled = false,
     fullWidth = false,
     className,
+    ...rest
   },
   ref
 ) {
@@ -84,6 +87,7 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
+    const page = Math.max(safeStep, (max - min) / 10);
     let next: number;
     switch (e.key) {
       case "ArrowRight":
@@ -93,6 +97,12 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
       case "ArrowLeft":
       case "ArrowDown":
         next = snap(value - safeStep);
+        break;
+      case "PageUp":
+        next = snap(value + page);
+        break;
+      case "PageDown":
+        next = snap(value - page);
         break;
       case "Home":
         next = min;
@@ -123,6 +133,7 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
+        aria-orientation="horizontal"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
@@ -133,24 +144,50 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
           endDrag();
         }}
         onKeyDown={onKeyDown}
-        className="m3-focus relative flex h-6 w-full cursor-pointer touch-none items-center rounded-full outline-none"
+        {...rest}
+        className="m3-focus relative flex h-12 w-full cursor-pointer touch-none items-center rounded-full outline-none"
       >
-        <div className="flex h-4 w-full overflow-hidden rounded-full">
-          <div className="h-full bg-m3-primary" style={{ width: `${fraction * 100}%` }} />
-          <div className="h-full flex-1 bg-m3-surface-container-highest" />
+        <div className="relative h-4 w-full">
+          <div className="absolute inset-0 flex overflow-hidden rounded-full">
+            <div className="h-full bg-m3-primary" style={{ width: `${fraction * 100}%` }} />
+            <div className="h-full flex-1 bg-m3-surface-container-highest" />
+          </div>
+          {/* M3E stop indicators — 4dp on-surface dots on the inactive track */}
+          {discrete && tickCount > 1 ? (
+            <div className="pointer-events-none absolute inset-x-[6px] inset-y-0" aria-hidden="true">
+              {Array.from({ length: tickCount }, (_, i) => {
+                const f = i / (tickCount - 1);
+                if (f <= fraction) return null;
+                return (
+                  <span
+                    key={i}
+                    className="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-on-surface"
+                    style={{ left: `${f * 100}%` }}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="pointer-events-none absolute inset-y-0 right-[6px] flex items-center" aria-hidden="true">
+              <span
+                className="h-1 w-1 rounded-full bg-m3-on-surface transition-opacity duration-150"
+                style={{ opacity: fraction >= 1 ? 0 : 1 }}
+              />
+            </div>
+          )}
+          {/* M3E tall thin handle */}
+          <span
+            className="pointer-events-none absolute top-1/2"
+            style={{ left: `${fraction * 100}%`, transform: "translate(-50%, -50%)" }}
+          >
+            <motion.span
+              className="block rounded-full bg-m3-primary"
+              initial={false}
+              animate={{ width: handleWidth, height: 44 }}
+              transition={springs.fastVisual}
+            />
+          </span>
         </div>
-        {/* M3E tall thin handle */}
-        <span
-          className="pointer-events-none absolute top-1/2"
-          style={{ left: `${fraction * 100}%`, transform: "translate(-50%, -50%)" }}
-        >
-          <motion.span
-            className="block rounded-full bg-m3-primary"
-            initial={false}
-            animate={{ width: handleWidth, height: 44 }}
-            transition={springs.fastVisual}
-          />
-        </span>
         <AnimatePresence>
           {showValueLabel && engaged && (
             <motion.span
@@ -167,13 +204,6 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
           )}
         </AnimatePresence>
       </div>
-      {discrete && tickCount > 1 && (
-        <div className="mt-1 flex w-full items-center justify-between px-[2px]" aria-hidden="true">
-          {Array.from({ length: tickCount }, (_, i) => (
-            <span key={i} className="h-1 w-1 rounded-full bg-m3-on-surface-variant" />
-          ))}
-        </div>
-      )}
     </div>
   );
 });
