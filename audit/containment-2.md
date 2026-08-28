@@ -158,6 +158,25 @@ official sources disagreed, the official source won (both cases noted below).
    labels); no drag-around-the-dial gesture; readout row uses an 8dp (gap-2-level)
    gap to fit 96+96+colon+52 inside the compact 328dp panel.
 
+   **Resolved (round 5, task 5-c):** the 24h "single-ring" limitation is closed —
+   `use24h` now renders the official double-ring clock face, implemented per the
+   Material source of truth (fetched this round): material-components-android
+   `TimePickerClockPresenter.HOUR_CLOCK_24_VALUES` = "00","1"…"11","12"…"23" with
+   `RadialViewGroup` LEVEL_1 = outer / LEVEL_2 = inner at `LEVEL_RADIUS_RATIO = .66f`,
+   and androidx-compose `TimePicker.moveSelector` (inner tap ⇒ hour < 12) +
+   `OuterCircleToSizeRatio = 101.dp` / `InnerCircleToSizeRatio = 69.dp`. Shipped
+   layout: **outer ring 00–11 (00 at the 12 o'clock position, 06 at the bottom,
+   radius 101px, md-label-large, on-surface-variant)** and **inner ring 12–23
+   (12 at the top, 18 at the bottom, radius 69px, md-body-large, on-surface)**;
+   the 48dp primary handle + 2dp track spring between rings (handle on the inner
+   ring for hours 12–23, matching androidx `selectorPos`), with a small
+   cross-ring dot at the same clock position on the opposite ring; aria-labels
+   "H:00" (e.g. "0:00", "23:00"); arrow keys step the full 0–23 range with wrap.
+   12h mode and the minute ring remain byte-identical. (Note: an earlier tasking
+   sketch placed 13–23 on the outer ring with 00 at the bottom; the official
+   sources above put 00–11 outer / 12–23 inner — implemented per source.)
+   Still open: 60-tick minute ring, drag gesture.
+
 ## Demo sections (containment-demos.tsx)
 
 BottomSheetDemo / SideSheetDemo / DatePickerDemo / TimePickerDemo audited, left

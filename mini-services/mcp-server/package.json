@@ -1,11 +1,12 @@
 {
   "name": "m3-expressive-mcp",
   "version": "1.0.0",
-  "description": "MCP server exposing the Material 3 Expressive React component library to AI coding agents",
+  "description": "MCP server exposing the Material 3 Expressive React component library to AI coding agents (stdio + streamable HTTP)",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot index.ts",
-    "start": "bun index.ts"
+    "dev": "MCP_TRANSPORT=http bun --hot index.ts",
+    "start": "bun index.ts",
+    "start:http": "MCP_TRANSPORT=http bun index.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

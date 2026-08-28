@@ -3,10 +3,16 @@
  * Material 3 Expressive — MCP Server
  * ===================================
  * Exposes the m3-expressive-react component library to AI coding agents
- * via the Model Context Protocol (stdio transport).
+ * via the Model Context Protocol, over TWO transports:
  *
- * Run:
- *   cd mini-services/mcp-server && bun install && bun start
+ *   1. stdio (default)            — `bun start` / `bun index.ts`
+ *      Spawned BY the MCP client (Claude Code, Cursor, …). mcp.json config
+ *      in the README stays valid.
+ *
+ *   2. streamable HTTP (stateless)— `bun run dev` / `bun index.ts --http`
+ *      Long-running daemon on port 3210 (override with PORT env). Browser
+ *      clients and remote agents POST JSON-RPC to /mcp; CORS is open so the
+ *      showcase can connect cross-origin through the gateway.
  *
  * Connect (Claude Code / any MCP-capable client) — mcp.json:
  *   {
@@ -25,10 +31,12 @@
  *   generate_theme · get_design_tokens
  */
 import { readFileSync } from "node:fs";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
 import {
@@ -37,7 +45,7 @@ import {
   badgeMeta, linearProgressMeta, circularProgressMeta, loadingIndicatorMeta,
   snackbarMeta, tooltipMeta, bannerMeta, dialogMeta, dividerMeta,
   cardMeta, listMeta, bottomSheetMeta, sideSheetMeta,
-  textFieldMeta, searchBarMeta, autocompleteMeta,
+  textFieldMeta, searchBarMeta, searchViewMeta, autocompleteMeta,
   checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
   tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
   topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
@@ -67,7 +75,7 @@ const FILES: Record<string, string> = {
   snackbar: "Snackbar", tooltip: "Tooltip", banner: "Banner",
   dialog: "Dialog", divider: "Divider",
   card: "Card", list: "List", "bottom-sheet": "BottomSheet", "side-sheet": "SideSheet",
-  "text-field": "TextField", "search-bar": "SearchBar", autocomplete: "Autocomplete",
+  "text-field": "TextField", "search-bar": "SearchBar", "search-view": "SearchView", autocomplete: "Autocomplete",
   checkbox: "Checkbox", radio: "Radio", switch: "Switch", slider: "Slider", chip: "Chip",
   tabs: "Tabs", "navigation-bar": "NavigationBar", "navigation-drawer": "NavigationDrawer",
   "navigation-rail": "NavigationRail", "top-app-bar": "TopAppBar",
@@ -81,7 +89,7 @@ const METAS: M3ComponentMeta[] = [
   badgeMeta, linearProgressMeta, circularProgressMeta, loadingIndicatorMeta,
   snackbarMeta, tooltipMeta, bannerMeta, dialogMeta, dividerMeta,
   cardMeta, listMeta, bottomSheetMeta, sideSheetMeta,
-  textFieldMeta, searchBarMeta, autocompleteMeta,
+  textFieldMeta, searchBarMeta, searchViewMeta, autocompleteMeta,
   checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
   tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
   topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
@@ -117,313 +125,483 @@ function search(query: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Server                                                              */
+/* Server factory                                                      */
 /* ------------------------------------------------------------------ */
-const server = new McpServer({
-  name: "m3-expressive",
-  version: "1.0.0",
-});
-
 const text = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 
-/* ---- discovery ---- */
-server.registerTool(
-  "list_components",
-  {
-    title: "List components",
-    description:
-      "List every component in the Material 3 Expressive React library with id, name, category, variants, M3E flag, source path and import line. Start here.",
-    inputSchema: { category: z.string().optional().describe("Filter by category: actions | communication | containment | selection | textinput | navigation | feedback") },
-  },
-  ({ category }) => {
-    let list = METAS.map(summary);
-    if (category) {
-      if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
-        return { content: [{ type: "text" as const, text: `Unknown category "${category}". Valid: ${CATEGORIES.join(", ")}` }], isError: true };
-      }
-      list = list.filter((c) => c.category === category);
-    }
-    return text({
-      library: "m3-expressive-react",
-      version: "1.0.0",
-      spec: "https://m3.material.io",
-      totalCount: list.length,
-      components: list,
-    });
-  }
-);
+/**
+ * Build a fully-configured McpServer (14 tools).
+ *
+ * Called ONCE in stdio mode and once per request in stateless HTTP mode —
+ * the SDK requires a fresh transport (and therefore a fresh server
+ * connection) per request when `sessionIdGenerator: undefined`.
+ */
+function buildServer(): McpServer {
+  const server = new McpServer({
+    name: "m3-expressive",
+    version: "1.0.0",
+  });
 
-server.registerTool(
-  "search_components",
-  {
-    title: "Search components",
-    description: "Full-text search across ids, names, descriptions, variants, when-to-use guidance and props. Empty query lists all.",
-    inputSchema: { query: z.string().describe("Space-separated keywords, e.g. 'floating label error'") },
-  },
-  ({ query }) => {
-    const results = search(query ?? "");
-    return text({ query: query ?? "", count: results.length, results });
-  }
-);
-
-server.registerTool(
-  "get_component",
-  {
-    title: "Get component",
-    description: "Full structured knowledge for one component: description, variants, props, guidelines (when to use / anatomy / states / dos / don'ts), example code, related components, M3E flag.",
-    inputSchema: { id: z.string().describe("Component id from list_components, e.g. 'button'") },
-  },
-  ({ id }) => {
-    const m = find(id);
-    return m ? text(m) : notFound(id);
-  }
-);
-
-server.registerTool(
-  "get_component_api",
-  {
-    title: "Get component API",
-    description: "Typed props reference for one component: name, type, default, description — plus the import line.",
-    inputSchema: { id: z.string() },
-  },
-  ({ id }) => {
-    const m = find(id);
-    if (!m) return notFound(id);
-    return text({ id: m.id, import: m.importLine, props: m.props });
-  }
-);
-
-server.registerTool(
-  "get_component_examples",
-  {
-    title: "Get component examples",
-    description: "Recommended, ready-to-paste JSX usage examples for one component (the exact code Material guidance recommends).",
-    inputSchema: { id: z.string() },
-  },
-  ({ id }) => {
-    const m = find(id);
-    if (!m) return notFound(id);
-    return text({
-      id: m.id,
-      import: m.importLine,
-      tokens: `import { springs, shapes } from "@/lib/m3/tokens";`,
-      examples: [{ title: "Recommended usage", code: m.exampleCode }],
-      related: m.related,
-    });
-  }
-);
-
-server.registerTool(
-  "get_component_guidelines",
-  {
-    title: "Get component guidelines",
-    description: "Official Material Design 3 usage guidance for one component: when to use, when NOT to use, anatomy, states, do/don't list.",
-    inputSchema: { id: z.string() },
-  },
-  ({ id }) => {
-    const m = find(id);
-    if (!m) return notFound(id);
-    return text({
-      id: m.id,
-      materialReference: "https://m3.material.io/components",
-      guidelines: m.guidelines,
-    });
-  }
-);
-
-server.registerTool(
-  "get_component_states",
-  {
-    title: "Get component states",
-    description: "Available interaction states (hover/focus/pressed/selected/disabled/loading/error…) and variants for one component.",
-    inputSchema: { id: z.string() },
-  },
-  ({ id }) => {
-    const m = find(id);
-    if (!m) return notFound(id);
-    return text({
-      id: m.id,
-      variants: m.variants,
-      states: m.guidelines?.states ?? [],
-      stateLayerOpacities: stateOpacities,
-      focusRing: "3px primary outline on :focus-visible (.m3-focus helper)",
-      touchTarget: "48dp minimum (48×48) for all interactive elements",
-    });
-  }
-);
-
-server.registerTool(
-  "get_component_source",
-  {
-    title: "Get component source",
-    description: "Read the actual TypeScript/JSX implementation file for one component (for deep behavioral questions the metadata does not cover).",
-    inputSchema: { id: z.string() },
-  },
-  ({ id }) => {
-    const m = find(id);
-    if (!m) return notFound(id);
-    const rel = `src/components/m3/${FILES[m.id]}.tsx`;
-    try {
-      const source = readFileSync(join(LIBRARY_ROOT, rel), "utf8");
-      return text({ id: m.id, path: rel, lines: source.split("\n").length, source });
-    } catch (e) {
-      return { content: [{ type: "text" as const, text: `Source for "${id}" not readable at ${rel}: ${e}` }], isError: true };
-    }
-  }
-);
-
-/* ---- theming + tokens ---- */
-server.registerTool(
-  "list_themes",
-  {
-    title: "List themes",
-    description: "Curated Material 3 color schemes shipped with the library (each with full light + dark M3 color role sets).",
-    inputSchema: {},
-  },
-  () =>
-    text({
-      default: defaultThemeId,
-      count: m3Themes.length,
-      themes: m3Themes.map((t) => ({ id: t.id, label: t.label, seed: t.seed, description: t.description, swatch: t.swatch })),
-      usage:
-        "Apply with <html data-theme='<id'> and the .dark class for dark mode; see useM3Theme() in src/hooks/use-m3-theme.ts.",
-    })
-);
-
-server.registerTool(
-  "get_theme",
-  {
-    title: "Get theme",
-    description: "Complete color scheme for one curated theme: every M3 color role in both light and dark modes (hex values).",
-    inputSchema: { id: z.string().describe("Theme id from list_themes, e.g. 'ocean'") },
-  },
-  ({ id }) => {
-    const t = getTheme(id);
-    if (!t) {
-      return { content: [{ type: "text" as const, text: `Unknown theme "${id}". Valid: ${m3Themes.map((x) => x.id).join(", ")}` }], isError: true };
-    }
-    return text(t);
-  }
-);
-
-server.registerTool(
-  "generate_theme",
-  {
-    title: "Generate theme",
-    description:
-      "Generate a complete Material 3 color scheme (light + dark, every color role as hex) from any seed color using Google's official Dynamic Color engine — the algorithm behind Material Theme Builder. 7 palette styles (variants) and 3 contrast levels. Returns the role maps plus ready-to-use CSS custom-property blocks for --md-* tokens.",
-    inputSchema: {
-      seed: z.string().describe("Seed color as hex — 3 or 6 digits, '#' optional (e.g. '#6750A4' or '0B57D0')"),
-      variant: z
-        .enum(["tonal-spot", "vibrant", "expressive", "content", "fidelity", "rainbow", "fruit-salad"])
-        .optional()
-        .describe("Palette style (default 'tonal-spot' — the Android 12+ default)"),
-      contrast: z
-        .number()
-        .min(0)
-        .max(1)
-        .optional()
-        .describe("Contrast level: 0 standard, 0.5 medium, 1 high (default 0)"),
+  /* ---- discovery ---- */
+  server.registerTool(
+    "list_components",
+    {
+      title: "List components",
+      description:
+        "List every component in the Material 3 Expressive React library with id, name, category, variants, M3E flag, source path and import line. Start here.",
+      inputSchema: { category: z.string().optional().describe("Filter by category: actions | communication | containment | selection | textinput | navigation | feedback") },
     },
-  },
-  ({ seed, variant, contrast }) => {
-    const v = variant ?? "tonal-spot";
-    const c = contrast ?? 0;
-    try {
-      const result = generateScheme(seed, v, c);
+    ({ category }) => {
+      let list = METAS.map(summary);
+      if (category) {
+        if (!CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
+          return { content: [{ type: "text" as const, text: `Unknown category "${category}". Valid: ${CATEGORIES.join(", ")}` }], isError: true };
+        }
+        list = list.filter((c) => c.category === category);
+      }
       return text({
-        seed,
-        variant: v,
-        contrast: c,
-        light: result.light,
-        dark: result.dark,
-        css: schemeToCssVars(result),
-        usage:
-          "Apply the css blocks as :root[data-theme='<id>'] and [data-theme='<id>'].dark — components consume --md-* roles only. See list_themes for examples.",
+        library: "m3-expressive-react",
+        version: "1.0.0",
+        spec: "https://m3.material.io",
+        totalCount: list.length,
+        components: list,
       });
+    }
+  );
+
+  server.registerTool(
+    "search_components",
+    {
+      title: "Search components",
+      description: "Full-text search across ids, names, descriptions, variants, when-to-use guidance and props. Empty query lists all.",
+      inputSchema: { query: z.string().describe("Space-separated keywords, e.g. 'floating label error'") },
+    },
+    ({ query }) => {
+      const results = search(query ?? "");
+      return text({ query: query ?? "", count: results.length, results });
+    }
+  );
+
+  server.registerTool(
+    "get_component",
+    {
+      title: "Get component",
+      description: "Full structured knowledge for one component: description, variants, props, guidelines (when to use / anatomy / states / dos / don'ts), example code, related components, M3E flag.",
+      inputSchema: { id: z.string().describe("Component id from list_components, e.g. 'button'") },
+    },
+    ({ id }) => {
+      const m = find(id);
+      return m ? text(m) : notFound(id);
+    }
+  );
+
+  server.registerTool(
+    "get_component_api",
+    {
+      title: "Get component API",
+      description: "Typed props reference for one component: name, type, default, description — plus the import line.",
+      inputSchema: { id: z.string() },
+    },
+    ({ id }) => {
+      const m = find(id);
+      if (!m) return notFound(id);
+      return text({ id: m.id, import: m.importLine, props: m.props });
+    }
+  );
+
+  server.registerTool(
+    "get_component_examples",
+    {
+      title: "Get component examples",
+      description: "Recommended, ready-to-paste JSX usage examples for one component (the exact code Material guidance recommends).",
+      inputSchema: { id: z.string() },
+    },
+    ({ id }) => {
+      const m = find(id);
+      if (!m) return notFound(id);
+      return text({
+        id: m.id,
+        import: m.importLine,
+        tokens: `import { springs, shapes } from "@/lib/m3/tokens";`,
+        examples: [{ title: "Recommended usage", code: m.exampleCode }],
+        related: m.related,
+      });
+    }
+  );
+
+  server.registerTool(
+    "get_component_guidelines",
+    {
+      title: "Get component guidelines",
+      description: "Official Material Design 3 usage guidance for one component: when to use, when NOT to use, anatomy, states, do/don't list.",
+      inputSchema: { id: z.string() },
+    },
+    ({ id }) => {
+      const m = find(id);
+      if (!m) return notFound(id);
+      return text({
+        id: m.id,
+        materialReference: "https://m3.material.io/components",
+        guidelines: m.guidelines,
+      });
+    }
+  );
+
+  server.registerTool(
+    "get_component_states",
+    {
+      title: "Get component states",
+      description: "Available interaction states (hover/focus/pressed/selected/disabled/loading/error…) and variants for one component.",
+      inputSchema: { id: z.string() },
+    },
+    ({ id }) => {
+      const m = find(id);
+      if (!m) return notFound(id);
+      return text({
+        id: m.id,
+        variants: m.variants,
+        states: m.guidelines?.states ?? [],
+        stateLayerOpacities: stateOpacities,
+        focusRing: "3px primary outline on :focus-visible (.m3-focus helper)",
+        touchTarget: "48dp minimum (48×48) for all interactive elements",
+      });
+    }
+  );
+
+  server.registerTool(
+    "get_component_source",
+    {
+      title: "Get component source",
+      description: "Read the actual TypeScript/JSX implementation file for one component (for deep behavioral questions the metadata does not cover).",
+      inputSchema: { id: z.string() },
+    },
+    ({ id }) => {
+      const m = find(id);
+      if (!m) return notFound(id);
+      const rel = `src/components/m3/${FILES[m.id]}.tsx`;
+      try {
+        const source = readFileSync(join(LIBRARY_ROOT, rel), "utf8");
+        return text({ id: m.id, path: rel, lines: source.split("\n").length, source });
+      } catch (e) {
+        return { content: [{ type: "text" as const, text: `Source for "${id}" not readable at ${rel}: ${e}` }], isError: true };
+      }
+    }
+  );
+
+  /* ---- theming + tokens ---- */
+  server.registerTool(
+    "list_themes",
+    {
+      title: "List themes",
+      description: "Curated Material 3 color schemes shipped with the library (each with full light + dark M3 color role sets).",
+      inputSchema: {},
+    },
+    () =>
+      text({
+        default: defaultThemeId,
+        count: m3Themes.length,
+        themes: m3Themes.map((t) => ({ id: t.id, label: t.label, seed: t.seed, description: t.description, swatch: t.swatch })),
+        usage:
+          "Apply with <html data-theme='<id'> and the .dark class for dark mode; see useM3Theme() in src/hooks/use-m3-theme.ts.",
+      })
+  );
+
+  server.registerTool(
+    "get_theme",
+    {
+      title: "Get theme",
+      description: "Complete color scheme for one curated theme: every M3 color role in both light and dark modes (hex values).",
+      inputSchema: { id: z.string().describe("Theme id from list_themes, e.g. 'ocean'") },
+    },
+    ({ id }) => {
+      const t = getTheme(id);
+      if (!t) {
+        return { content: [{ type: "text" as const, text: `Unknown theme "${id}". Valid: ${m3Themes.map((x) => x.id).join(", ")}` }], isError: true };
+      }
+      return text(t);
+    }
+  );
+
+  server.registerTool(
+    "generate_theme",
+    {
+      title: "Generate theme",
+      description:
+        "Generate a complete Material 3 color scheme (light + dark, every color role as hex) from any seed color using Google's official Dynamic Color engine — the algorithm behind Material Theme Builder. 7 palette styles (variants) and 3 contrast levels. Returns the role maps plus ready-to-use CSS custom-property blocks for --md-* tokens.",
+      inputSchema: {
+        seed: z.string().describe("Seed color as hex — 3 or 6 digits, '#' optional (e.g. '#6750A4' or '0B57D0')"),
+        variant: z
+          .enum(["tonal-spot", "vibrant", "expressive", "content", "fidelity", "rainbow", "fruit-salad"])
+          .optional()
+          .describe("Palette style (default 'tonal-spot' — the Android 12+ default)"),
+        contrast: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe("Contrast level: 0 standard, 0.5 medium, 1 high (default 0)"),
+      },
+    },
+    ({ seed, variant, contrast }) => {
+      const v = variant ?? "tonal-spot";
+      const c = contrast ?? 0;
+      try {
+        const result = generateScheme(seed, v, c);
+        return text({
+          seed,
+          variant: v,
+          contrast: c,
+          light: result.light,
+          dark: result.dark,
+          css: schemeToCssVars(result),
+          usage:
+            "Apply the css blocks as :root[data-theme='<id>'] and [data-theme='<id>'].dark — components consume --md-* roles only. See list_themes for examples.",
+        });
+      } catch (e) {
+        return { content: [{ type: "text" as const, text: `Could not generate scheme: ${e}` }], isError: true };
+      }
+    }
+  );
+
+  server.registerTool(
+    "get_design_tokens",
+    {
+      title: "Get design tokens",
+      description:
+        "Every design token in the system: 24 semantic color roles (+CSS variable names), motion springs/easings/durations, shape scale, elevation levels, typography scale, state-layer opacities. Components consume ONLY these tokens.",
+      inputSchema: {},
+    },
+    () =>
+      text({
+        colorRoles: colorRoles.map((r) => ({ ...r, cssVar: `var(--md-${r.token})`, tailwind: `bg-m3-${r.token} / text-m3-${r.token}` })),
+        motion: { springs, easings, durations },
+        shapes: { scale: shapes, morphs: shapeMorph },
+        elevations,
+        typography: { font: "Roboto Flex (variable)", scale: typeScale, cssClasses: "md-display-large … md-label-small" },
+        stateLayers: stateOpacities,
+        icons: "Material Symbols Rounded (variable): FILL/wght/GRAD/opsz axes",
+        reducedMotion: "Honored globally via MotionConfig reducedMotion='user' + CSS prefers-reduced-motion",
+        theming: {
+          themes: m3Themes.map((t) => t.id),
+          application: "CSS custom properties --md-* scoped by html[data-theme] and .dark; components read semantic tokens only",
+        },
+      })
+  );
+
+  /* ---- guidance ---- */
+  server.registerTool(
+    "get_motion_guidance",
+    {
+      title: "Get motion guidance",
+      description: "Material 3 Expressive motion system: spring physics tokens, easing curves, duration tokens, shape morphing, state transitions and reduced-motion rules.",
+      inputSchema: {},
+    },
+    () =>
+      text({
+        philosophy: "Expressive motion is physics-based: use springs for interactivity, tweens with token easings for decorative loops. Never hardcode durations or curves.",
+        springs,
+        easings,
+        durations,
+        rules: [
+          "State layers: hover 8% / focus 10% / pressed 10% / dragged 16% (stateOpacities)",
+          "Shape morphs (M3E): pressed controls morph corner radius (shapeMorph pairs) with springs.expressiveEffects",
+          "Enter/exit: container transforms + shared-layout indicators use springs.expressive / defaultSpatial",
+          "Small visual feedback (scale, icon pops): springs.fastVisual",
+          "Loops (indeterminate progress, loaders): linear or standard easing with token durations",
+          "prefers-reduced-motion: MotionConfig reducedMotion='user' at the app root + CSS media query kills CSS animations",
+        ],
+      })
+  );
+
+  server.registerTool(
+    "get_accessibility_guidance",
+    {
+      title: "Get accessibility guidance",
+      description: "Cross-component accessibility rules enforced by the library: touch targets, focus rings, keyboard contracts, ARIA patterns.",
+      inputSchema: {},
+    },
+    () =>
+      text({
+        touchTargets: "48×48dp minimum; visual sizes may be smaller but hit areas expand (see get_component_states per component)",
+        focus: ":focus-visible 3px primary outline (m3-focus), never removed",
+        keyboard: {
+          buttons: "Enter keydown activates, Space on keyup (native button)",
+          selection: "Checkbox/Switch = Space; Radio groups = arrow keys with wrap (use RadioGroup)",
+          menus: "ArrowUp/Down navigate, Home/End jump, Escape closes and restores trigger focus, Tab closes",
+          tabs: "Roving tabindex, ArrowLeft/Right/Home/End activate",
+          dialogs: "Focus trap, Escape dismisses (dismissible only), focus returns to trigger",
+          sliders: "Arrows ±1 step, PageUp/PageDown ±10, Home/End bounds",
+          datePicker: "role=grid with roving tabindex and arrow-key day navigation",
+        },
+        aria: "Combobox/listbox, radiogroup, slider valuemin/max/now, progressbar, dialog labelledby/describedby, live regions for snackbars",
+        colorContrast: "All color pairs come from M3 scheme roles, which guarantee WCAG AA contrast per official tonal pairs",
+      })
+  );
+
+  return server;
+}
+
+/* ------------------------------------------------------------------ */
+/* Transport selection                                                 */
+/* ------------------------------------------------------------------ */
+/** stdio is the default; HTTP via MCP_TRANSPORT=http (the `dev` script) or `--http`. */
+const HTTP_REQUESTED =
+  process.env.MCP_TRANSPORT === "http" || process.argv.includes("--http");
+
+if (!HTTP_REQUESTED) {
+  /* ---------------- stdio (default — MCP clients spawn this) --------------- */
+  await buildServer().connect(new StdioServerTransport());
+  console.error(
+    `[m3-expressive-mcp] connected on stdio — ${METAS.length} components, ${m3Themes.length} themes, full token system`
+  );
+} else {
+  /* ---------------- streamable HTTP (stateless) ---------------------------- */
+  const PORT = Number(process.env.PORT) || 3210;
+
+  const CORS_HEADERS: Record<string, string> = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "content-type, accept, authorization, mcp-session-id, mcp-protocol-version, last-event-id",
+    "Access-Control-Expose-Headers": "mcp-session-id, mcp-protocol-version",
+    "Access-Control-Max-Age": "86400",
+  };
+
+  const applyCors = (res: ServerResponse) => {
+    for (const [k, v] of Object.entries(CORS_HEADERS)) res.setHeader(k, v);
+  };
+
+  const sendJson = (res: ServerResponse, status: number, body: unknown) => {
+    res.statusCode = status;
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify(body));
+  };
+
+  const readBody = (req: IncomingMessage) =>
+    new Promise<string>((resolveBody, rejectBody) => {
+      const chunks: Buffer[] = [];
+      req.on("data", (c: Buffer) => chunks.push(c));
+      req.on("end", () => resolveBody(Buffer.concat(chunks).toString("utf8")));
+      req.on("error", rejectBody);
+    });
+
+  /**
+   * POST /mcp — JSON-RPC over streamable HTTP.
+   *
+   * Stateless mode (`sessionIdGenerator: undefined`): the SDK requires a
+   * fresh transport + server per request, so there is no Mcp-Session-Id and
+   * every POST is independent. `enableJsonResponse: true` answers plain
+   * application/json (no SSE stream) — ideal for curl and browser gateways.
+   */
+  async function handleMcpPost(req: IncomingMessage, res: ServerResponse) {
+    applyCors(res);
+
+    // Lenient header normalization so plain curl / browser fetch() work:
+    // the MCP spec requires Accept: application/json, text/event-stream.
+    const h = req.headers;
+    const accept = new Set(
+      String(h.accept ?? "").split(",").map((s) => s.trim()).filter(Boolean)
+    );
+    accept.add("application/json");
+    accept.add("text/event-stream");
+    h.accept = [...accept].join(", ");
+    if (!h["content-type"]) h["content-type"] = "application/json";
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await readBody(req));
+    } catch {
+      return sendJson(res, 400, {
+        jsonrpc: "2.0", error: { code: -32700, message: "Parse error" }, id: null,
+      });
+    }
+
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // stateless — no Mcp-Session-Id issued
+      enableJsonResponse: true,      // plain JSON responses (no SSE streams)
+    });
+    const server = buildServer();
+
+    // Release per-request state once the response connection closes.
+    res.on("close", () => {
+      void transport.close();
+      void server.close();
+    });
+
+    try {
+      await server.connect(transport);
+      await transport.handleRequest(req, res, parsed);
     } catch (e) {
-      return { content: [{ type: "text" as const, text: `Could not generate scheme: ${e}` }], isError: true };
+      if (!res.headersSent) {
+        sendJson(res, 500, {
+          jsonrpc: "2.0", error: { code: -32603, message: `Internal error: ${e}` }, id: null,
+        });
+      }
     }
   }
-);
 
-server.registerTool(
-  "get_design_tokens",
-  {
-    title: "Get design tokens",
-    description:
-      "Every design token in the system: 24 semantic color roles (+CSS variable names), motion springs/easings/durations, shape scale, elevation levels, typography scale, state-layer opacities. Components consume ONLY these tokens.",
-    inputSchema: {},
-  },
-  () =>
-    text({
-      colorRoles: colorRoles.map((r) => ({ ...r, cssVar: `var(--md-${r.token})`, tailwind: `bg-m3-${r.token} / text-m3-${r.token}` })),
-      motion: { springs, easings, durations },
-      shapes: { scale: shapes, morphs: shapeMorph },
-      elevations,
-      typography: { font: "Roboto Flex (variable)", scale: typeScale, cssClasses: "md-display-large … md-label-small" },
-      stateLayers: stateOpacities,
-      icons: "Material Symbols Rounded (variable): FILL/wght/GRAD/opsz axes",
-      reducedMotion: "Honored globally via MotionConfig reducedMotion='user' + CSS prefers-reduced-motion",
-      theming: {
-        themes: m3Themes.map((t) => t.id),
-        application: "CSS custom properties --md-* scoped by html[data-theme] and .dark; components read semantic tokens only",
-      },
-    })
-);
+  const httpServer = createServer(async (req, res) => {
+    const url = new URL(req.url ?? "/", "http://localhost");
 
-/* ---- guidance ---- */
-server.registerTool(
-  "get_motion_guidance",
-  {
-    title: "Get motion guidance",
-    description: "Material 3 Expressive motion system: spring physics tokens, easing curves, duration tokens, shape morphing, state transitions and reduced-motion rules.",
-    inputSchema: {},
-  },
-  () =>
-    text({
-      philosophy: "Expressive motion is physics-based: use springs for interactivity, tweens with token easings for decorative loops. Never hardcode durations or curves.",
-      springs,
-      easings,
-      durations,
-      rules: [
-        "State layers: hover 8% / focus 10% / pressed 10% / dragged 16% (stateOpacities)",
-        "Shape morphs (M3E): pressed controls morph corner radius (shapeMorph pairs) with springs.expressiveEffects",
-        "Enter/exit: container transforms + shared-layout indicators use springs.expressive / defaultSpatial",
-        "Small visual feedback (scale, icon pops): springs.fastVisual",
-        "Loops (indeterminate progress, loaders): linear or standard easing with token durations",
-        "prefers-reduced-motion: MotionConfig reducedMotion='user' at the app root + CSS media query kills CSS animations",
-      ],
-    })
-);
+    try {
+      if (url.pathname === "/") {
+        applyCors(res);
+        return sendJson(res, 200, {
+          service: "m3-expressive-mcp",
+          transport: "streamable-http",
+          version: "1.0.0",
+          tools: 14,
+          components: METAS.length,
+          protocol: "MCP streamable HTTP (stateless — no Mcp-Session-Id)",
+          endpoints: { health: "GET /", mcp: "POST /mcp" },
+          status: "ok",
+        });
+      }
 
-server.registerTool(
-  "get_accessibility_guidance",
-  {
-    title: "Get accessibility guidance",
-    description: "Cross-component accessibility rules enforced by the library: touch targets, focus rings, keyboard contracts, ARIA patterns.",
-    inputSchema: {},
-  },
-  () =>
-    text({
-      touchTargets: "48×48dp minimum; visual sizes may be smaller but hit areas expand (see get_component_states per component)",
-      focus: ":focus-visible 3px primary outline (m3-focus), never removed",
-      keyboard: {
-        buttons: "Enter keydown activates, Space on keyup (native button)",
-        selection: "Checkbox/Switch = Space; Radio groups = arrow keys with wrap (use RadioGroup)",
-        menus: "ArrowUp/Down navigate, Home/End jump, Escape closes and restores trigger focus, Tab closes",
-        tabs: "Roving tabindex, ArrowLeft/Right/Home/End activate",
-        dialogs: "Focus trap, Escape dismisses (dismissible only), focus returns to trigger",
-        sliders: "Arrows ±1 step, PageUp/PageDown ±10, Home/End bounds",
-        datePicker: "role=grid with roving tabindex and arrow-key day navigation",
-      },
-      aria: "Combobox/listbox, radiogroup, slider valuemin/max/now, progressbar, dialog labelledby/describedby, live regions for snackbars",
-      colorContrast: "All color pairs come from M3 scheme roles, which guarantee WCAG AA contrast per official tonal pairs",
-    })
-);
+      if (url.pathname === "/mcp") {
+        switch (req.method) {
+          case "OPTIONS":
+            applyCors(res);
+            res.statusCode = 204;
+            return res.end();
+          case "POST":
+            return await handleMcpPost(req, res);
+          case "GET":
+            // Stateless mode has no server-initiated SSE stream → 405 per spec.
+            applyCors(res);
+            res.setHeader("Allow", "POST, OPTIONS");
+            return sendJson(res, 405, {
+              jsonrpc: "2.0",
+              error: { code: -32000, message: "Method not allowed. GET /mcp (SSE) is not supported in stateless mode; use POST." },
+              id: null,
+            });
+          case "DELETE":
+            applyCors(res);
+            res.statusCode = 204;
+            return res.end();
+          default:
+            applyCors(res);
+            res.setHeader("Allow", "POST, GET, DELETE, OPTIONS");
+            return sendJson(res, 405, {
+              jsonrpc: "2.0", error: { code: -32000, message: "Method not allowed." }, id: null,
+            });
+        }
+      }
 
-/* ------------------------------------------------------------------ */
-/* Transport                                                           */
-/* ------------------------------------------------------------------ */
-await server.connect(new StdioServerTransport());
-console.error("[m3-expressive-mcp] connected on stdio — 39 components, 4 themes, full token system");
+      sendJson(res, 404, { error: "Not found. Use GET / (health) or POST /mcp (JSON-RPC)." });
+    } catch (e) {
+      if (!res.headersSent) sendJson(res, 500, { error: `${e}` });
+      else res.end();
+    }
+  });
+
+  // Survive `bun --hot` auto-restarts: drop the previous listener, if any.
+  const hot = globalThis as { __m3McpHttpServer?: typeof httpServer };
+  hot.__m3McpHttpServer?.close();
+
+  httpServer.listen(PORT, () => {
+    console.error(
+      `[m3-expressive-mcp] streamable-http listening on http://localhost:${PORT}/mcp — stateless, 14 tools, CORS open (health: GET /)`
+    );
+  });
+  hot.__m3McpHttpServer = httpServer;
+}

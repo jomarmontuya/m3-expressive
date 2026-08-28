@@ -64,6 +64,11 @@ export async function GET() {
       categories: m3Registry.categories,
       componentCount: m3Registry.totalCount,
       m3eComponents: m3Registry.components.filter((c) => c.m3e).map((c) => c.id),
+      mcpHttp: {
+        url: "/mcp?XTransformPort=3210",
+        transport: "streamable-http",
+        note: "Streamable HTTP transport (stateless, no Mcp-Session-Id; CORS open). Absolute origin when running locally: http://localhost:3210/mcp — start the daemon with `cd mini-services/mcp-server && bun run dev`; the XTransformPort query param routes /mcp through the :3000 gateway to port 3210. Same 14 tools as the stdio server; protocolVersion 2025-03-26; health probe: GET http://localhost:3210/.",
+      },
       mcpServer: {
         name: "m3-expressive",
         transport: "stdio",

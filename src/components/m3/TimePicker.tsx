@@ -16,18 +16,30 @@ const DIAL_CENTER = 128;
 const DIAL_RADIUS = 104;
 const HOUR_AUTO_SWITCH_MS = 600;
 
+// Official 24h double-ring geometry (androidx material3 TimePicker tokens):
+// on the 256dp face the outer number circle sits 101dp from center
+// (OuterCircleToSizeRatio = 101.dp/ClockDialContainerSize) and the inner circle
+// 69dp (InnerCircleToSizeRatio = 69.dp/ClockDialContainerSize). The outer ring
+// carries hours 00–11 (00 at the 12 o'clock position, 06 at the bottom) and the
+// inner ring hours 12–23 (12 at the top, 18 at the bottom); tapping inside the
+// inner circle selects the PM half (androidx moveSelector: dist < max ⇒ hour < 12).
+const OUTER_24H_RADIUS = 101;
+const INNER_24H_RADIUS = 69;
+const OUTER_RING_HOURS = Array.from({ length: 12 }, (_, i) => i); // 00–11
+const INNER_RING_HOURS = Array.from({ length: 12 }, (_, i) => i + 12); // 12–23
+
 const DIAL_POSITIONS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-/** Position of a clock number n (1..12) on the dial via trig */
-function dialPosition(n: number): { x: number; y: number } {
+/** Position of a clock number n (1..12) on the dial via trig (12 = top) */
+function dialPosition(n: number, radius: number = DIAL_RADIUS): { x: number; y: number } {
   const theta = (n * 30 * Math.PI) / 180;
   return {
-    x: DIAL_CENTER + DIAL_RADIUS * Math.sin(theta),
-    y: DIAL_CENTER - DIAL_RADIUS * Math.cos(theta),
+    x: DIAL_CENTER + radius * Math.sin(theta),
+    y: DIAL_CENTER - radius * Math.cos(theta),
   };
 }
 
@@ -35,7 +47,10 @@ export interface TimePickerProps {
   /** Selected time (24h fields: hour 0–23, minute 0–59) */
   value?: TimePickerValue;
   onChange?: (t: TimePickerValue) => void;
-  /** 24-hour readout. The dial keeps the 12-number ring; the AM/PM state is preserved when picking hours. */
+  /**
+   * 24-hour format: the readout shows 0–23 and the dial switches to the
+   * official double-ring clock face — outer ring 00–11, inner ring 12–23.
+   */
   use24h?: boolean;
   /** Stretch to the container width */
   fullWidth?: boolean;
@@ -53,7 +68,12 @@ export interface TimePickerProps {
  * a 1dp outline with the active option on tertiary-container. Hour numbers
  * sit on a 12-number ring (AM/PM preserved), minute marks map to n×5 with
  * 48px hit areas; arrows on the dial increment/decrement hour/minute and
- * picking an hour auto-advances to minute editing after 600ms.
+ * picking an hour auto-advances to minute editing after 600ms. In 24-hour
+ * mode the dial becomes the official double-ring face: outer ring 00–11
+ * (00 at top, 06 at bottom), inner ring 12–23 (12 at top, 18 at bottom) at
+ * the official 101dp/69dp radii, with the selection handle traveling between
+ * rings (hours 12–23 on the inner ring) and a small dot marking the same
+ * clock position on the opposite ring.
  */
 export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(function TimePicker(
   { value, onChange, use24h = false, fullWidth = false, className },
@@ -82,11 +102,24 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
   const hour12 = time.hour % 12 === 0 ? 12 : time.hour % 12;
   const hourLabel = use24h ? pad2(time.hour) : String(hour12);
 
-  const angle = mode === "hour" ? hour12 * 30 : time.minute * 6;
+  // 24h hour dial: the handle travels between rings — hours 12–23 sit on the
+  // inner ring, 00–11 on the outer ring (minute + 12h modes stay on the outer ring)
+  const doubleRing = use24h && mode === "hour";
+  const handleRadius = doubleRing && time.hour >= 12 ? INNER_24H_RADIUS : DIAL_RADIUS;
+  const tickRadius = doubleRing && time.hour >= 12 ? OUTER_24H_RADIUS : INNER_24H_RADIUS;
+
+  const angle = mode === "hour" ? (use24h ? time.hour % 12 : hour12) * 30 : time.minute * 6;
 
   const scheduleModeSwitch = () => {
     if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
     switchTimer.current = window.setTimeout(() => setMode("minute"), HOUR_AUTO_SWITCH_MS);
+  };
+
+  /** Pick an hour on the 24h double ring (00–11 outer, 12–23 inner) */
+  const setHour24 = (h: number) => {
+    update({ hour: h });
+    // Official flow: selecting an hour auto-advances to minute editing
+    scheduleModeSwitch();
   };
 
   /** Pick a ring number as the hour; preserves the current half-day */
@@ -118,8 +151,14 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
     if (dir === 0) return;
     e.preventDefault();
     if (mode === "hour") {
-      const next = hour12 + dir;
-      setHourOnDial(next < 1 ? 12 : next > 12 ? 1 : next);
+      if (use24h) {
+        // Full 0–23 range: 23 → 00 wraps forward, 00 → 23 wraps back
+        update({ hour: (time.hour + dir + 24) % 24 });
+        scheduleModeSwitch();
+      } else {
+        const next = hour12 + dir;
+        setHourOnDial(next < 1 ? 12 : next > 12 ? 1 : next);
+      }
     } else {
       update({ minute: (time.minute + dir + 60) % 60 });
     }
@@ -141,8 +180,8 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
   };
 
   const theta = (angle * Math.PI) / 180;
-  const selX = DIAL_CENTER + DIAL_RADIUS * Math.sin(theta);
-  const selY = DIAL_CENTER - DIAL_RADIUS * Math.cos(theta);
+  const selX = DIAL_CENTER + handleRadius * Math.sin(theta);
+  const selY = DIAL_CENTER - handleRadius * Math.cos(theta);
 
   const readoutSegment = (label: string, target: "hour" | "minute") => (
     <button
@@ -236,13 +275,82 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
             height: DIAL_RADIUS,
             transformOrigin: "bottom center",
           }}
-          animate={{ rotate: angle }}
+          animate={{ rotate: angle, height: handleRadius }}
           transition={springs.defaultVisual}
         />
         {/* Selector center (8dp) */}
         <span className="absolute left-1/2 top-1/2 z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" />
-        {/* Hour / minute numbers (48px hit areas; adjacent centers ≈ 54px apart) */}
-        {DIAL_POSITIONS.map((n) => {
+        {/* 24h cross-ring dot: marks the same clock position on the opposite ring */}
+        {doubleRing && (
+          <motion.span
+            className="absolute z-10 h-1.5 w-1.5 rounded-full bg-m3-primary"
+            style={{
+              left: DIAL_CENTER + tickRadius * Math.sin(theta) - 3,
+              top: DIAL_CENTER - tickRadius * Math.cos(theta) - 3,
+            }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={springs.expressiveEffects}
+          />
+        )}
+        {doubleRing ? (
+          <>
+            {/* Outer ring: hours 00–11 at the official 101dp radius —
+                smaller label-large numerals in on-surface-variant */}
+            {OUTER_RING_HOURS.map((h) => {
+              const { x, y } = dialPosition(h === 0 ? 12 : h, OUTER_24H_RADIUS);
+              const isActive = h === time.hour;
+              return (
+                <button
+                  type="button"
+                  key={`h${h}`}
+                  aria-label={`${h}:00`}
+                  onClick={() => setHour24(h)}
+                  onKeyDown={handleDialKeyDown}
+                  style={{ left: x - 20, top: y - 20 }}
+                  className="m3-state m3-focus absolute z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full outline-none"
+                >
+                  <span
+                    className={cn(
+                      isActive ? "text-m3-on-primary" : "text-m3-on-surface-variant",
+                      "md-label-large tabular-nums"
+                    )}
+                  >
+                    {h === 0 ? "00" : String(h)}
+                  </span>
+                </button>
+              );
+            })}
+            {/* Inner ring: hours 12–23 at the official 69dp radius —
+                body-large numerals in on-surface */}
+            {INNER_RING_HOURS.map((h) => {
+              const { x, y } = dialPosition(h === 12 ? 12 : h - 12, INNER_24H_RADIUS);
+              const isActive = h === time.hour;
+              return (
+                <button
+                  type="button"
+                  key={`h${h}`}
+                  aria-label={`${h}:00`}
+                  onClick={() => setHour24(h)}
+                  onKeyDown={handleDialKeyDown}
+                  style={{ left: x - 18, top: y - 18 }}
+                  className="m3-state m3-focus absolute z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full outline-none"
+                >
+                  <span
+                    className={cn(
+                      isActive ? "text-m3-on-primary" : "text-m3-on-surface",
+                      "md-body-large tabular-nums"
+                    )}
+                  >
+                    {String(h)}
+                  </span>
+                </button>
+              );
+            })}
+          </>
+        ) : (
+          /* Hour / minute numbers (48px hit areas; adjacent centers ≈ 54px apart) */
+          DIAL_POSITIONS.map((n) => {
           const { x, y } = dialPosition(n);
           const label = mode === "hour" ? String(n) : pad2((n * 5) % 60);
           const isActive =
@@ -267,7 +375,8 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
               </span>
             </button>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );

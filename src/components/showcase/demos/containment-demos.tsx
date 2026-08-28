@@ -299,9 +299,17 @@ export function DatePickerDemo() {
 
 export function TimePickerDemo() {
   const [time, setTime] = React.useState({ hour: 10, minute: 30 });
+  const [time24, setTime24] = React.useState({ hour: 18, minute: 30 });
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
-      <TimePicker value={time} onChange={setTime} />
+      <div className="flex flex-col items-center gap-2">
+        <TimePicker value={time} onChange={setTime} />
+        <span className="md-label-medium text-m3-on-surface-variant">12-hour · AM/PM selector</span>
+      </div>
+      <div className="flex flex-col items-center gap-2" data-testid="timepicker-24h">
+        <TimePicker use24h value={time24} onChange={setTime24} />
+        <span className="md-label-medium text-m3-on-surface-variant">24-hour double-ring dial</span>
+      </div>
       <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-tertiary-container p-4 text-m3-on-tertiary-container">
         <span className="md-label-medium">Selected time</span>
         <span className="md-display-small tabular-nums">
