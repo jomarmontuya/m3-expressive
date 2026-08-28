@@ -18,6 +18,7 @@ Windsurf, Zed, Gemini CLI, …) as **structured component knowledge** — not ra
 | `get_component_source` | The actual `.tsx` implementation (deep behavior questions) |
 | `list_themes` | The 4 curated M3 color schemes (Material Violet, Ocean Blue, Emerald Fresh, Warm Coral) |
 | `get_theme` | Full light + dark M3 color-role schemes for one theme (hex per role) |
+| `generate_theme` | Generate a full M3 scheme (light + dark, all roles + CSS blocks) from any seed color — official Dynamic Color engine, 7 palette styles, 3 contrast levels |
 | `get_design_tokens` | Every token: 24 color roles + CSS vars, springs, easings, durations, shapes, elevations, type scale, state layers |
 | `get_motion_guidance` | M3E motion system rules + all motion tokens |
 | `get_accessibility_guidance` | Touch targets, focus, keyboard contracts, ARIA patterns |

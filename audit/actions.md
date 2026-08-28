@@ -316,3 +316,4 @@ Updated only my 8 metas, small unique-anchor edits:
    heights, 14px/0.096px labels, shape-morph mid-animation, primary selected icon color, FAB
    16/28px radii + level 3/4 shadows, 4px menu radius + 48px items, 40dp segmented control,
    Escape/outside dismissal) and zero page errors.
+Resolved (round 3, task 3-c): segments expand touch target to ≥48dp vertically via ::before hit-expander.

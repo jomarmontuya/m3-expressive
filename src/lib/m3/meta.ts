@@ -460,7 +460,7 @@ export const segmentedButtonMeta: M3ComponentMeta = {
   name: "Segmented button",
   category: "actions",
   description:
-    "Segmented buttons help people select options, switch views, or sort elements inside one connected pill outline. Selected segments fill with a tonal color and reveal a check with a springy width animation.",
+    "Segmented buttons help people select options, switch views, or sort elements inside one connected pill outline. Selected segments fill with a tonal color and reveal a check with a springy width animation. Each segment expands its touch target to ≥48dp vertically via an invisible ::before hit area (vertical-only, so adjacent segments never overlap).",
   importLine: `import { SegmentedButton } from "@/components/m3";`,
   variants: ["single", "multiple"],
   props: [
@@ -478,7 +478,7 @@ export const segmentedButtonMeta: M3ComponentMeta = {
       "Use type='multiple' for independent on/off filters, like day/time filters in a date picker.",
     ],
     anatomy: ["Connected pill outline (border-m3-outline)", "Equal-width segments (40/56px tall)", "1px dividers between segments", "Secondary-container selected fill", "Leading check icon on selection"],
-    states: ["Unselected (on-surface label)", "Selected (secondary-container + check)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (97% scale spring)", "Disabled (outline 12%, content on-surface 38%, selected fill on-surface 12%)"],
+    states: ["Unselected (on-surface label)", "Selected (secondary-container + check)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (97% scale spring)", "Touch target (≥48dp vertically via ::before hit-expander; no horizontal expansion, so adjacent segments never overlap)", "Disabled (outline 12%, content on-surface 38%, selected fill on-surface 12%)"],
     dos: [
       "Keep segments to 2–5, with equal-width content",
       "Use short labels, optionally paired with an icon",
@@ -902,7 +902,7 @@ export const tabsMeta: M3ComponentMeta = {
   name: "Tabs",
   category: "navigation",
   description:
-    "Tabs organize content across different screens, data sets, and other interactions. Primary tabs are 64dp icon+label columns with a spring-animated 3dp underline; the M3 Expressive secondary style slides a tonal pill between 48dp destinations. Scroll arrows appear when tabs overflow.",
+    "Tabs organize content across different screens, data sets, and other interactions. Primary tabs are 64dp icon+label columns with a spring-animated 3dp underline sized to the active label's measured text width (ResizeObserver + fonts.ready); the M3 Expressive secondary style slides a tonal pill between 48dp destinations. Scroll arrows appear when tabs overflow.",
   importLine: `import { Tabs } from "@/components/m3";`,
   variants: ["primary", "secondary"],
   props: [
@@ -918,7 +918,7 @@ export const tabsMeta: M3ComponentMeta = {
       "Use at the top of a screen for in-context navigation, not for app-level destinations.",
       "Use the secondary variant for a lighter, more expressive in-page filter row.",
     ],
-    anatomy: ["Tab row container (64dp primary / 48dp secondary, bottom divider on primary)", "Tab (24dp icon + label-large label, state layer + ripple, 96dp min width)", "Active indicator (shared-layout 3dp underline or tonal pill)", "Scroll arrows (appear while tabs overflow in that direction)"],
+    anatomy: ["Tab row container (64dp primary / 48dp secondary, bottom divider on primary)", "Tab (24dp icon + label-large label, state layer + ripple, 96dp min width)", "Active indicator (shared-layout 3dp underline sized to the label text width via ResizeObserver + fonts.ready, or tonal pill)", "Scroll arrows (appear while tabs overflow in that direction)"],
     states: ["Selected (primary color / tonal pill, filled icon)", "Unselected (on-surface-variant)", "Hover (8% state layer)", "Focus (3px focus ring)", "Pressed (ripple)", "Keyboard (roving tabindex; ArrowLeft/Right, Home/End move and activate)"],
     dos: [
       "Keep tab labels short — a single word is ideal",
@@ -1251,6 +1251,69 @@ export const searchBarMeta: M3ComponentMeta = {
 />`,
   related: ["text-field", "autocomplete"],
   demoName: "SearchBarDemo",
+};
+
+export const searchViewMeta: M3ComponentMeta = {
+  id: "search-view",
+  name: "SearchView",
+  category: "textinput",
+  description:
+    "The expanded companion of the search bar: a persistent search surface for larger, richer search that expands over the UI with a 56dp input row, recent-search suggestion rows and a full results area.",
+  importLine: `import { SearchView } from "@/components/m3";`,
+  variants: ["full-screen", "docked"],
+  props: [
+    { name: "open", type: `boolean`, description: "Whether the search view is shown." },
+    { name: "onOpenChange", type: `(open: boolean) => void`, description: "Called when the view requests to open or close (Escape, leading icon)." },
+    { name: "mode", type: `'full-screen' | 'docked'`, default: `'full-screen'`, description: "full-screen covers the viewport as a modal dialog; docked renders inline above its results." },
+    { name: "placeholder", type: `string`, default: `'Search'`, description: "Hint text, also used as the accessible dialog label." },
+    { name: "value", type: `string`, description: "Controlled query text." },
+    { name: "defaultValue", type: `string`, description: "Initial query for uncontrolled usage." },
+    { name: "onValueChange", type: `(v: string) => void`, description: "Called on every query edit, clear, or recent-search selection." },
+    { name: "recentSearches", type: `string[]`, description: "Recent-search suggestion rows, shown while the query is empty." },
+    { name: "onRecentSelect", type: `(q: string) => void`, description: "Invoked when a recent search is chosen (click or Enter)." },
+    { name: "onRecentRemove", type: `(q: string) => void`, description: "Trailing close icon per row; omit to hide the removal affordance." },
+    { name: "leadingIcon", type: `ReactNode`, default: `arrow_back icon`, description: "Leading navigation icon node; clicking it closes the view." },
+    { name: "trailingActions", type: `ReactNode`, description: "Extra trailing controls rendered after the clear button." },
+    { name: "children", type: `ReactNode`, description: "Results content below the divider; hidden while recent suggestions show." },
+    { name: "autoFocus", type: `boolean`, default: `true`, description: "Focus the query input when the full-screen view opens." },
+  ],
+  guidelines: {
+    whenToUse: [
+      "Use for larger, richer search experiences — query building, filters and result sets that need room.",
+      "Use as the expanded companion of a search bar: tapping the bar opens the view over the UI.",
+      "Use recent-search rows to reduce retyping for repeat queries.",
+    ],
+    anatomy: ["56dp input row on surface-container-high", "Leading navigation icon (arrow back / close)", "Query input (body-large)", "Trailing clear + custom action icons (24dp icons, ≥48dp targets)", "1dp outline-variant divider", "Scrollable results or recent-search suggestion rows (48dp, history icon, label-large)"],
+    states: ["Rest (elevation 0 — the view replaces the surface)", "Input focused (caret + on-surface text)", "Suggestion rows: hover/focus state layer", "Divider permanently separates input from content"],
+    dos: [
+      "Keep the input row exactly 56dp on surface-container-high with a 1dp outline-variant divider below.",
+      "Provide an obvious way out — a leading arrow-back icon that closes, plus Escape in full-screen mode.",
+      "Restore focus to the trigger when the full-screen view closes.",
+      "Keep recent rows keyboard-reachable: ArrowUp/ArrowDown walk the list, Enter selects.",
+    ],
+    donts: [
+      "Don't stack a scrim under the full-screen view — it is opaque and replaces the surface.",
+      "Don't show suggestion rows and results at once; results take over once a query exists.",
+      "Don't use a search view for structured filtering — it is free-form query entry.",
+    ],
+  },
+  exampleCode: `const [open, setOpen] = React.useState(false);
+<SearchBar
+  value={query}
+  onChange={(e) => setQuery(e.target.value)}
+  onFocus={() => setOpen(true)}
+/>
+<SearchView
+  open={open}
+  onOpenChange={setOpen}
+  recentSearches={recents}
+  onRecentSelect={(q) => setQuery(q)}
+  onRecentRemove={(q) => setRecents(recents.filter((r) => r !== q))}
+>
+  <ProductResults query={query} />
+</SearchView>`,
+  related: ["search-bar", "autocomplete"],
+  demoName: "SearchViewDemo",
 };
 
 export const splitButtonMeta: M3ComponentMeta = {

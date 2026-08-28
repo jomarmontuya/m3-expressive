@@ -24,6 +24,7 @@ import { bottomSheetMeta } from "@/lib/m3/meta";
 import { sideSheetMeta } from "@/lib/m3/meta";
 import { textFieldMeta } from "@/lib/m3/meta";
 import { searchBarMeta } from "@/lib/m3/meta";
+import { searchViewMeta } from "@/lib/m3/meta";
 import { autocompleteMeta } from "@/lib/m3/meta";
 import { checkboxMeta } from "@/lib/m3/meta";
 import { radioMeta } from "@/lib/m3/meta";
@@ -72,6 +73,7 @@ const TABLE: RegistryRow[] = [
   { meta: sideSheetMeta, file: "SideSheet" },
   { meta: textFieldMeta, file: "TextField" },
   { meta: searchBarMeta, file: "SearchBar" },
+  { meta: searchViewMeta, file: "SearchView" },
   { meta: autocompleteMeta, file: "Autocomplete" },
   { meta: checkboxMeta, file: "Checkbox" },
   { meta: radioMeta, file: "Radio" },

@@ -11,9 +11,11 @@ import { Card } from "@/components/m3/Card";
 import { colorRoles, springs, shapes, typeScale, stateOpacities } from "@/lib/m3/tokens";
 import { m3Themes } from "@/lib/m3/themes";
 import { useM3Theme } from "@/hooks/use-m3-theme";
+import { ThemeBuilderTab } from "@/components/showcase/ThemeBuilderTab";
 
 const TABS = [
   { value: "themes", label: "Themes", icon: "style" },
+  { value: "builder", label: "Theme builder", icon: "colorize" },
   { value: "color", label: "Color", icon: "palette" },
   { value: "typography", label: "Typography", icon: "text_fields" },
   { value: "shape", label: "Shape", icon: "rounded_corner" },
@@ -41,6 +43,7 @@ export function FoundationsView({ tab = "color", onTab }: { tab?: string; onTab:
 
       <div className="mt-8">
         {activeTab === "themes" && <ThemesTab />}
+        {activeTab === "builder" && <ThemeBuilderTab />}
         {activeTab === "color" && <ColorTab />}
         {activeTab === "typography" && <TypographyTab />}
         {activeTab === "shape" && <ShapeTab />}

@@ -45,6 +45,11 @@ const ENDPOINTS = [
   },
   {
     method: "GET",
+    path: "/api/theme-builder",
+    desc: "Generate a full M3 scheme from any seed: ?seed=#FF0000&variant=vibrant&contrast=0.5 → light+dark roles + CSS blocks.",
+  },
+  {
+    method: "GET",
     path: "/llms.txt",
     desc: "Plain-text handbook following the llms.txt convention — paste into any LLM context window.",
   },
@@ -61,6 +66,7 @@ const MCP_TOOLS = [
   ["get_component_source", "The actual .tsx implementation for deep questions"],
   ["list_themes", "The 4 curated M3 color schemes"],
   ["get_theme", "Full light + dark color-role schemes (hex per role)"],
+  ["generate_theme", "Generate a full M3 scheme from any seed color — 7 palette styles, 3 contrast levels"],
   ["get_design_tokens", "Every token: colors, springs, easings, durations, shapes, elevation, type"],
   ["get_motion_guidance", "M3E motion system rules + all motion tokens"],
   ["get_accessibility_guidance", "Touch targets, focus, keyboard contracts, ARIA patterns"],
@@ -150,7 +156,7 @@ export function AgentView() {
               />
             </div>
             <p className="mt-3 md-body-small text-m3-on-surface-variant">
-              13 tools · full instructions in <code className="font-mono">mini-services/mcp-server/README.md</code>
+              14 tools · full instructions in <code className="font-mono">mini-services/mcp-server/README.md</code>
             </p>
           </Card>
           <Card variant="outlined" className="p-0">

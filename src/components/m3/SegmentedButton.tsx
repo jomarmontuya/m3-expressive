@@ -96,6 +96,9 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
               transition={springs.fastVisual}
               className={cn(
                 "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 px-4",
+                /* 48dp touch target: invisible ::before hit-expander, vertical-only
+                   (horizontal expansion would dead-zone across adjacent segments). */
+                "before:absolute before:content-[''] before:left-0 before:right-0 before:-inset-y-2",
                 "md-label-large transition-colors duration-150",
                 i > 0 && (disabled ? "border-l border-m3-on-surface/12" : "border-l border-m3-outline"),
                 i === 0 && "rounded-l-full",

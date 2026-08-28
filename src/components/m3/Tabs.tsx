@@ -24,7 +24,7 @@ export interface TabsProps {
   items: NavItem[];
   value: string;
   onChange: (v: string) => void;
-  /** primary = 64dp icon+label columns with a sliding 3dp underline; secondary = 48dp expressive tonal pill row */
+  /** primary = 64dp icon+label columns with a sliding 3dp underline sized to the label text; secondary = 48dp expressive tonal pill row */
   variant?: "primary" | "secondary";
   /** Stretch to the container width and distribute tabs equally */
   fullWidth?: boolean;
@@ -34,7 +34,8 @@ export interface TabsProps {
 /**
  * M3 Tabs — organize content across different screens, data sets and interactions.
  * Primary tabs are the official 64dp icon+label columns with a 3dp active
- * indicator (shared-layout underline); secondary tabs are the 48dp Expressive
+ * indicator — a shared-layout underline sized to the measured label text width
+ * (ResizeObserver + document.fonts.ready); secondary tabs are the 48dp Expressive
  * tonal pill row. Horizontally scrollable when tabs overflow — per spec,
  * leading/trailing scroll arrows appear while content overflows in that
  * direction. Roving tabindex with ArrowLeft/Right/Home/End (automatic
@@ -100,6 +101,38 @@ export function Tabs({
     onChange(items[next].value);
   };
 
+  /* --- Primary indicator: measure label text so the underline matches it (M3) --- */
+  const labelRefs = React.useRef<Map<string, HTMLSpanElement>>(new Map());
+  const [labelWidths, setLabelWidths] = React.useState<Record<string, number>>({});
+
+  const measureLabels = React.useCallback(() => {
+    const next: Record<string, number> = {};
+    labelRefs.current.forEach((el, v) => {
+      next[v] = el.getBoundingClientRect().width;
+    });
+    setLabelWidths((prev) => {
+      const keys = Object.keys(next);
+      const unchanged =
+        keys.length === Object.keys(prev).length &&
+        keys.every((k) => prev[k] === next[k]);
+      return unchanged ? prev : next;
+    });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    measureLabels();
+    const ro = new ResizeObserver(measureLabels);
+    labelRefs.current.forEach((el) => ro.observe(el));
+    let cancelled = false;
+    document.fonts?.ready.then(() => {
+      if (!cancelled) measureLabels();
+    });
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+    };
+  }, [measureLabels, items]);
+
   const tablist = (
     <div
       ref={scrollerRef}
@@ -111,6 +144,7 @@ export function Tabs({
     >
       {items.map((item, index) => {
         const active = item.value === value;
+        const measuredWidth = labelWidths[item.value] ?? 0;
         const textColor = active
           ? isPrimary
             ? "text-m3-primary"
@@ -142,7 +176,18 @@ export function Tabs({
                   <motion.div
                     layoutId={indicatorId}
                     transition={spring(springs.expressive)}
-                    className="absolute bottom-0 left-1/3 h-[3px] w-1/3 rounded-full bg-m3-primary"
+                    className={cn(
+                      "absolute bottom-0 h-[3px] rounded-full bg-m3-primary",
+                      measuredWidth === 0 && "left-1/3 w-1/3"
+                    )}
+                    style={
+                      measuredWidth > 0
+                        ? {
+                            width: measuredWidth,
+                            left: `calc(50% - ${measuredWidth / 2}px)`,
+                          }
+                        : undefined
+                    }
                   />
                 )
               : active && (
@@ -167,7 +212,15 @@ export function Tabs({
                 {item.badge}
               </span>
             )}
-            <span className="relative md-label-large">{item.label}</span>
+            <span
+              ref={(el) => {
+                if (el) labelRefs.current.set(item.value, el);
+                else labelRefs.current.delete(item.value);
+              }}
+              className="relative md-label-large"
+            >
+              {item.label}
+            </span>
           </button>
         );
       })}

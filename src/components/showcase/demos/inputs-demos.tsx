@@ -3,7 +3,9 @@
 import * as React from "react";
 import { TextField } from "@/components/m3/TextField";
 import { SearchBar } from "@/components/m3/SearchBar";
+import { SearchView } from "@/components/m3/SearchView";
 import { Autocomplete } from "@/components/m3/Autocomplete";
+import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Checkbox } from "@/components/m3/Checkbox";
 import { Radio, RadioGroup } from "@/components/m3/Radio";
 import { Switch } from "@/components/m3/Switch";
@@ -72,6 +74,93 @@ export function SearchBarDemo() {
       />
       <SearchBar size="sm" value={preset} onChange={(e) => setPreset(e.target.value)} fullWidth trailingIcons={["filter_list"]} />
       <SearchBar size="lg" value="" onChange={() => {}} leadingIcon="travel_explore" placeholder="Large, disabled" fullWidth disabled />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Search view                                                         */
+/* ------------------------------------------------------------------ */
+
+const CATALOG = [
+  "Search bar", "Search view", "Text field", "Autocomplete", "Checkbox",
+  "Chip", "Dialog", "Bottom sheet", "Navigation drawer", "Slider",
+  "Snackbar", "Tabs", "Banner", "FAB",
+];
+
+/** Static result rows filtered by the current query, with an empty state. */
+function SearchResultRows({ query }: { query: string }) {
+  const q = query.trim().toLowerCase();
+  const matches = CATALOG.filter((c) => c.toLowerCase().includes(q));
+  if (matches.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
+        <MaterialSymbol icon="search_off" size={40} className="text-m3-on-surface-variant" />
+        <p className="md-body-large text-m3-on-surface-variant">No results for “{query}”</p>
+      </div>
+    );
+  }
+  return (
+    <ul>
+      {matches.map((m) => (
+        <li
+          key={m}
+          className="m3-state relative flex min-h-12 cursor-pointer items-center gap-3 overflow-hidden px-4 md-body-large text-m3-on-surface"
+        >
+          <MaterialSymbol icon="search" size={20} className="text-m3-on-surface-variant" />
+          <span className="truncate">{m}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function SearchViewDemo() {
+  const [open, setOpen] = React.useState(false);
+  const [recents, setRecents] = React.useState(["navigation rail", "bottom sheet", "chips", "elevation"]);
+  const [fullQuery, setFullQuery] = React.useState("");
+  const [dockedQuery, setDockedQuery] = React.useState("");
+  const [lastAction, setLastAction] = React.useState("Nothing selected yet");
+  return (
+    <div className="flex max-w-xl flex-col gap-6 p-2">
+      {/* (a) Full-screen search view, opened from a SearchBar-style trigger */}
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="m3-state flex h-14 w-full items-center gap-3 rounded-full bg-m3-surface-container-high px-4 text-left"
+        >
+          <MaterialSymbol icon="search" size={24} className="shrink-0 text-m3-on-surface-variant" />
+          <span className="md-body-large text-m3-on-surface-variant">Search the catalog…</span>
+        </button>
+        <p className="md-body-small text-m3-on-surface-variant">{lastAction}</p>
+      </div>
+      <SearchView
+        open={open}
+        onOpenChange={setOpen}
+        value={fullQuery}
+        onValueChange={setFullQuery}
+        recentSearches={recents}
+        onRecentSelect={(q) => setLastAction(`Selected recent: “${q}”`)}
+        onRecentRemove={(q) => setRecents((r) => r.filter((x) => x !== q))}
+      >
+        <SearchResultRows query={fullQuery} />
+      </SearchView>
+
+      {/* (b) Docked search view — always open, inline with its results */}
+      <div className="flex flex-col gap-3">
+        <p className="md-label-large text-m3-on-surface">Docked mode</p>
+        <SearchView
+          open
+          mode="docked"
+          value={dockedQuery}
+          onOpenChange={() => {}}
+          onValueChange={setDockedQuery}
+          placeholder="Search tokens"
+        >
+          <SearchResultRows query={dockedQuery} />
+        </SearchView>
+      </div>
     </div>
   );
 }
@@ -259,6 +348,7 @@ export function ChipDemo() {
 export const inputsDemoMap: Record<string, React.ComponentType> = {
   "text-field": TextFieldDemo,
   "search-bar": SearchBarDemo,
+  "search-view": SearchViewDemo,
   autocomplete: AutocompleteDemo,
   checkbox: CheckboxDemo,
   radio: RadioDemo,

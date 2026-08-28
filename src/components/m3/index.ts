@@ -26,6 +26,7 @@ export { BottomSheet, bottomSheetMeta, type BottomSheetProps } from "./BottomShe
 export { SideSheet, sideSheetMeta, type SideSheetProps } from "./SideSheet";
 export { TextField, textFieldMeta, type TextFieldProps } from "./TextField";
 export { SearchBar, searchBarMeta, type SearchBarProps } from "./SearchBar";
+export { SearchView, searchViewMeta, type SearchViewProps, type SearchViewMode } from "./SearchView";
 export { Autocomplete, autocompleteMeta, type AutocompleteProps } from "./Autocomplete";
 export { Checkbox, checkboxMeta, type CheckboxProps } from "./Checkbox";
 export { Radio, RadioGroup, radioMeta, type RadioProps, type RadioGroupProps } from "./Radio";

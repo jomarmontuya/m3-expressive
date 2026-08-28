@@ -20,7 +20,7 @@ import { springs } from "@/lib/m3/tokens";
  *  - Light/dark mode: light · system · dark
  */
 export function ThemeSwitcher() {
-  const { colorTheme, setColorTheme, mode, setMode } = useM3Theme();
+  const { colorTheme, setColorTheme, mode, setMode, customScheme, clearCustomTheme } = useM3Theme();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
 
@@ -71,9 +71,28 @@ export function ThemeSwitcher() {
               Color scheme
             </div>
 
-            <div role="radiogroup" aria-label="Curated color schemes">
+            <div role="radiogroup" aria-label="Color schemes">
+              {/* Active custom (Theme Builder) scheme — shown only while active */}
+              {customScheme && (
+                <div className="m3-state flex w-full items-center gap-3 rounded-lg bg-m3-secondary-container px-2 py-2 text-left text-m3-on-secondary-container">
+                  <span
+                    className="h-6 w-10 shrink-0 rounded-full border border-m3-outline-variant/60"
+                    style={{ backgroundColor: customScheme.seed }}
+                  />
+                  <span className="flex-1 md-label-large">
+                    Custom · seed {customScheme.seed.toUpperCase()}
+                  </span>
+                  <IconButton
+                    icon="close"
+                    size="sm"
+                    variant="standard"
+                    aria-label="Remove custom scheme and restore curated theme"
+                    onClick={clearCustomTheme}
+                  />
+                </div>
+              )}
               {m3Themes.map((theme) => {
-                const selected = theme.id === activeTheme.id;
+                const selected = !customScheme && theme.id === activeTheme.id;
                 return (
                   <button
                     key={theme.id}
@@ -118,7 +137,9 @@ export function ThemeSwitcher() {
             <div className="flex items-center gap-2 px-2 py-1.5">
               <MaterialSymbol icon="style" size={18} className="text-m3-on-surface-variant" />
               <span className="md-body-small text-m3-on-surface-variant">
-                {activeTheme.label} · seed {activeTheme.seed}
+                {customScheme
+                  ? `Custom scheme · seed ${customScheme.seed.toUpperCase()}`
+                  : `${activeTheme.label} · seed ${activeTheme.seed}`}
               </span>
             </div>
           </motion.div>

@@ -22,7 +22,7 @@
  *   list_components · get_component · get_component_api ·
  *   get_component_examples · get_component_guidelines · get_component_states ·
  *   get_component_source · search_components · list_themes · get_theme ·
- *   get_design_tokens
+ *   generate_theme · get_design_tokens
  */
 import { readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
@@ -49,6 +49,7 @@ import {
   elevations, colorRoles,
 } from "../../src/lib/m3/tokens";
 import { m3Themes, defaultThemeId, getTheme } from "../../src/lib/m3/themes";
+import { generateScheme, schemeToCssVars } from "../../src/lib/m3/theme-builder";
 
 /* ------------------------------------------------------------------ */
 /* Registry                                                            */
@@ -302,6 +303,47 @@ server.registerTool(
       return { content: [{ type: "text" as const, text: `Unknown theme "${id}". Valid: ${m3Themes.map((x) => x.id).join(", ")}` }], isError: true };
     }
     return text(t);
+  }
+);
+
+server.registerTool(
+  "generate_theme",
+  {
+    title: "Generate theme",
+    description:
+      "Generate a complete Material 3 color scheme (light + dark, every color role as hex) from any seed color using Google's official Dynamic Color engine — the algorithm behind Material Theme Builder. 7 palette styles (variants) and 3 contrast levels. Returns the role maps plus ready-to-use CSS custom-property blocks for --md-* tokens.",
+    inputSchema: {
+      seed: z.string().describe("Seed color as hex — 3 or 6 digits, '#' optional (e.g. '#6750A4' or '0B57D0')"),
+      variant: z
+        .enum(["tonal-spot", "vibrant", "expressive", "content", "fidelity", "rainbow", "fruit-salad"])
+        .optional()
+        .describe("Palette style (default 'tonal-spot' — the Android 12+ default)"),
+      contrast: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe("Contrast level: 0 standard, 0.5 medium, 1 high (default 0)"),
+    },
+  },
+  ({ seed, variant, contrast }) => {
+    const v = variant ?? "tonal-spot";
+    const c = contrast ?? 0;
+    try {
+      const result = generateScheme(seed, v, c);
+      return text({
+        seed,
+        variant: v,
+        contrast: c,
+        light: result.light,
+        dark: result.dark,
+        css: schemeToCssVars(result),
+        usage:
+          "Apply the css blocks as :root[data-theme='<id>'] and [data-theme='<id>'].dark — components consume --md-* roles only. See list_themes for examples.",
+      });
+    } catch (e) {
+      return { content: [{ type: "text" as const, text: `Could not generate scheme: ${e}` }], isError: true };
+    }
   }
 );
 

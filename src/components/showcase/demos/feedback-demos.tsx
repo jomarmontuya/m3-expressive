@@ -105,6 +105,9 @@ export function SnackbarDemo() {
       <Button variant="filled" icon="archive" onClick={() => setActionOpen(true)}>
         Snackbar with action
       </Button>
+      <p className="w-full md-body-medium text-m3-on-surface-variant">
+        Snackbars are swipe-dismissable — flick or drag one in any direction to dismiss.
+      </p>
       <Snackbar
         open={simpleOpen}
         message="File sent"
