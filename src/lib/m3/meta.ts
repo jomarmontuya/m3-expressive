@@ -106,14 +106,18 @@ export const datePickerMeta: M3ComponentMeta = {
   name: "Date Picker",
   category: "selection",
   description:
-    "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Compact inline implementation — the official modal picker is 568×368dp (landscape) / 328×512dp (portrait) with a selected-date header, which this simplified grid intentionally omits.",
+    "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker — 328×512dp portrait / 568×368dp landscape (viewport ≥ 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons.",
   importLine: `import { DatePicker } from "@/components/m3";`,
-  variants: ["month-view", "year-view"],
+  variants: ["month-view", "year-view", "modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
     { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked." },
     { name: "minDate", type: `Date`, description: "Earliest selectable date; earlier days render disabled (38%)." },
     { name: "maxDate", type: `Date`, description: "Latest selectable date; later days render disabled (38%)." },
+    { name: "presentation", type: `'inline' | 'modal'`, default: `'inline'`, description: "Embedded calendar grid, or the official modal picker (328×512dp portrait / 568×368dp landscape at viewport ≥ 600px) with selected-date header and 32% scrim." },
+    { name: "open", type: `boolean`, description: "Modal only — controls visibility (fully controlled, like Dialog/SearchView)." },
+    { name: "onOpenChange", type: `(open: boolean) => void`, description: "Modal only — called with the next open state on scrim click, Escape, or day pick." },
+    { name: "closeOnSelect", type: `boolean`, default: `true`, description: "Modal only — close automatically when a day is picked (M3 live-apply; Escape/scrim always dismiss)." },
     { name: "fullWidth", type: `boolean`, default: `false`, description: "Stretch to the container width." },
     { name: "className", type: `string`, description: "Extra classes for the container." },
   ],
@@ -122,10 +126,11 @@ export const datePickerMeta: M3ComponentMeta = {
       "Use an inline date picker when choosing a date is the primary in-page task.",
       "Use minDate/maxDate to constrain scheduling to valid ranges.",
       "Pair with a readout chip to show the formatted selected date.",
-      "Wrap in a Dialog or BottomSheet when you need the official modal presentation.",
+      "Use presentation=\"modal\" for the official picker dialog — 328×512dp portrait / 568×368dp landscape with selected-date header, 32% scrim and live-apply selection.",
+      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it.",
     ],
-    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6×7 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (primary pill, spring morph via layoutId)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus ±1 day / ±1 week, Home/End week bounds, Enter selects)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6×7 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) — portrait stacks a header block (label-large “Selected date” + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId · modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus ±1 day / ±1 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9→1 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
@@ -135,13 +140,26 @@ export const datePickerMeta: M3ComponentMeta = {
       "Don't force users to scroll years one month at a time — use the year grid",
       "Don't hide disabled days entirely; dim them to 38%",
       "Don't use the picker for date ranges (extend it deliberately)",
+      "Don't add confirm/cancel buttons to the modal — M3 applies the selection live and Escape/scrim dismiss",
     ],
   },
-  exampleCode: `<DatePicker
+  exampleCode: `// Inline calendar grid (default)
+<DatePicker
   value={date}
   onChange={setDate}
   minDate={new Date(2024, 0, 1)}
   maxDate={new Date(2026, 11, 31)}
+/>
+
+// Official modal picker (328×512 portrait / 568×368 landscape)
+const [open, setOpen] = React.useState(false);
+// ...an outlined text-field-style trigger calls setOpen(true)
+<DatePicker
+  presentation="modal"
+  open={open}
+  onOpenChange={setOpen}
+  value={date}
+  onChange={setDate}
 />`,
   related: ["time-picker", "card", "bottom-sheet"],
   demoName: "DatePickerDemo",
@@ -1641,12 +1659,14 @@ export const fabMenuMeta: M3ComponentMeta = {
   name: "Fab menu",
   category: "actions",
   description:
-    "New in Material 3 Expressive: a FAB that expands into a playful, staggered cascade of related quick actions. The main icon rotates into a close affordance, keeping one entry point for a small action cluster.",
+    "New in Material 3 Expressive: a FAB that expands into a playful, staggered cascade of related quick actions. The main icon rotates into a close affordance, keeping one entry point for a small action cluster. The docked variant anchors flush to the bottom edge — the screen edge or directly above a bottom app bar — and squares the FAB's bottom corners when open so the menu visually connects to the edge.",
   importLine: `import { FabMenu } from "@/components/m3";`,
-  variants: ["primary", "secondary", "tertiary", "surface"],
+  variants: ["primary", "secondary", "tertiary", "surface", "docked · screen", "docked · bottom app bar"],
   props: [
     { name: "actions", type: `{ icon: string; label?: string; onClick?: () => void }[]`, description: "Quick actions revealed on open." },
-    { name: "direction", type: `'horizontal' | 'vertical'`, default: `'vertical'`, description: "Expansion direction of the action row/column." },
+    { name: "direction", type: `'horizontal' | 'vertical'`, default: `'vertical'`, description: "Expansion direction of the action row/column. Ignored while docked — docking fixes the cascade (screen = vertical above, bottom app bar = horizontal row)." },
+    { name: "docked", type: `boolean`, default: `false`, description: "Dock the menu to the bottom edge: closed FAB sits flush bottom-center; when open the FAB's bottom corners morph square (16px → 0 shape morph) and the actions cascade above/on the bar." },
+    { name: "dockedTo", type: `'screen' | 'bottom-app-bar'`, default: `'screen'`, description: "Docking target. 'screen' pins position:fixed to the viewport bottom (or a transformed ancestor, e.g. a demo stage) with a vertical cascade; 'bottom-app-bar' anchors absolute inside the nearest positioned ancestor so the FAB rests on the bar below and actions open as a horizontal row flush on top of it." },
     { name: "color", type: `'primary' | 'secondary' | 'tertiary' | 'surface'`, default: `'primary'`, description: "Tonal color role of the main FAB." },
     { name: "open", type: `boolean`, description: "Controlled open state; omit for uncontrolled behavior." },
     { name: "onOpenChange", type: `(open: boolean) => void`, description: "Called when the menu opens or closes." },
@@ -1657,17 +1677,20 @@ export const fabMenuMeta: M3ComponentMeta = {
       "Use it when screen space is too tight for separate extended FABs or buttons.",
       "Prefer it for creation flows: attach a photo, record audio, add a file.",
     ],
-    anatomy: ["Main small FAB (40px, rotating icon, 48dp touch target)", "Action FABs (32px, primary-container, 48dp touch target)", "Inverse-surface label chips", "Staggered spring entrance (50ms = durations.short1 token)", "Dismisses on Escape / outside press"],
-    states: ["Closed (single FAB)", "Open (icon rotated 45°, actions visible)", "Action hover/press (state layer + 96% scale)", "Main FAB hover/press (103% / 94% expressive spring)", "Dismissed (Escape or outside pointerdown)"],
+    anatomy: ["Main small FAB (40px, rotating icon, 48dp touch target)", "Action FABs (32px, primary-container, 48dp touch target)", "Inverse-surface label chips", "Staggered spring entrance (50ms = durations.short1 token)", "Dismisses on Escape / outside press", "Docked: FAB flush bottom-center; open state squares the bottom corners (shapes.large → shapes.none morph on springs.expressiveEffects) to connect with the screen edge or bar"],
+    states: ["Closed (single FAB)", "Open (icon rotated 45°, actions visible)", "Action hover/press (state layer + 96% scale)", "Main FAB hover/press (103% / 94% expressive spring)", "Dismissed (Escape or outside pointerdown)", "Docked closed (FAB flush at the bottom-center of the edge/bar)", "Docked open (bottom corners square, actions cascade upward / along the bar)"],
     dos: [
       "Keep each action's label short and noun-like ('Camera', 'Gallery')",
       "Limit the menu to 2–5 actions so the cascade stays scannable",
       "Close the menu after an action is chosen",
+      "Use docked for creation flows that live at the bottom edge — above a bottom app bar it keeps one connected surface with the bar",
     ],
     donts: [
       "Don't put destructive actions in the menu",
       "Don't nest menus inside the menu",
       "Don't use it as a navigation drawer substitute",
+      "Don't combine docked with direction — docking fixes the cascade layout (screen = vertical above, bottom app bar = horizontal row)",
+      "Don't wrap the docked menu in an overflow-hidden container without a fixed-height stage or it clips the fixed/absolute anchoring",
     ],
   },
   exampleCode: `<FabMenu
@@ -1676,9 +1699,22 @@ export const fabMenuMeta: M3ComponentMeta = {
     { icon: "image", label: "Gallery", onClick: openGallery },
     { icon: "mic", label: "Voice note", onClick: recordAudio },
   ]}
+/>
+
+// Docked — flush to the bottom edge, bottom corners square when open.
+// dockedTo="screen" pins fixed to the viewport (or a transformed ancestor);
+// "bottom-app-bar" rests the FAB directly on the bar below.
+<FabMenu
+  docked
+  dockedTo="screen"
+  actions={[
+    { icon: "photo_camera", label: "Camera", onClick: openCamera },
+    { icon: "image", label: "Gallery", onClick: openGallery },
+    { icon: "mic", label: "Voice note", onClick: recordAudio },
+  ]}
 />`,
   m3e: true,
-  related: ["fab", "extended-fab", "split-button"],
+  related: ["fab", "extended-fab", "bottom-app-bar", "split-button"],
   demoName: "FabMenuDemo",
 };
 

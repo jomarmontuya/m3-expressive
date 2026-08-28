@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs } from "@/lib/m3/tokens";
+import { durations, springs } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
 
 const MONTH_NAMES = [
@@ -56,32 +56,47 @@ function getMonthGrid(cursor: Date): Date[] {
   return cells;
 }
 
-export interface DatePickerProps {
-  /** Currently selected date */
+/** Modal header headline — "Fri, Aug 21" per the official selected-date header */
+function formatHeadline(d: Date): string {
+  return `${WEEKDAYS[d.getDay()].long.slice(0, 3)}, ${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+}
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
+
+/* ------------------------------------------------------------------ */
+/* Shared calendar internals                                           */
+/* ------------------------------------------------------------------ */
+
+interface DatePickerCalendarProps {
   value?: Date;
   onChange?: (d: Date) => void;
-  /** Earliest selectable date (days before are disabled) */
   minDate?: Date;
-  /** Latest selectable date (days after are disabled) */
   maxDate?: Date;
-  /** Stretch to the container width */
-  fullWidth?: boolean;
-  className?: string;
+  /**
+   * Selected-day container color. Inline uses the library's primary pill;
+   * the modal uses the official androidx DatePickerTokens
+   * SelectedDateContainerColor = primary-container.
+   */
+  tone?: "primary" | "primary-container";
+  /** Slide/fade micro-transition on the month-year label (modal only). */
+  animatedHeader?: boolean;
 }
 
 /**
- * M3 inline Date Picker — a rounded-[28px] surface-container-high panel
- * with a month grid, a tappable "month year" header that flips into a
- * 4-column year grid (1988 → current year + 10), today outlined in
- * primary, and a spring-animated selection pill shared via layoutId
- * (scoped per instance). The grid exposes ARIA grid roles with roving
- * tabindex and arrow-key day navigation (←/→/↑/↓), Home/End for week
- * start/end. Nav chevrons are 48dp targets.
+ * Header row + month grid + year grid, shared verbatim by the inline and
+ * modal presentations. No outer panel/padding — the caller supplies the
+ * surface. Owns its view state (cursor, month/year, roving tabindex), so
+ * each mount starts on the selected/today month.
  */
-export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(function DatePicker(
-  { value, onChange, minDate, maxDate, fullWidth = false, className },
-  ref
-) {
+function DatePickerCalendar({
+  value,
+  onChange,
+  minDate,
+  maxDate,
+  tone = "primary",
+  animatedHeader = false,
+}: DatePickerCalendarProps) {
   const [internal, setInternal] = React.useState<Date | undefined>(undefined);
   const selected = value ?? internal;
   const [cursor, setCursor] = React.useState<Date>(() => startOfMonth(value ?? new Date()));
@@ -181,15 +196,18 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
   const weekRows: Date[][] = [];
   for (let r = 0; r < 6; r++) weekRows.push(cells.slice(r * 7, r * 7 + 7));
 
+  const headerLabel =
+    view === "year"
+      ? String(cursor.getFullYear())
+      : `${MONTH_NAMES[cursor.getMonth()]} ${cursor.getFullYear()}`;
+
+  const selectedPillClass =
+    tone === "primary-container" ? "bg-m3-primary-container" : "bg-m3-primary";
+  const selectedTextClass =
+    tone === "primary-container" ? "text-m3-on-primary-container" : "text-m3-on-primary";
+
   return (
-    <div
-      ref={ref}
-      className={cn(
-        "rounded-[28px] bg-m3-surface-container-high p-6",
-        fullWidth ? "w-full" : "w-[328px]",
-        className
-      )}
-    >
+    <>
       {/* Header: month-year label + month navigation */}
       <div className="mb-1 flex items-center justify-between">
         <button
@@ -197,9 +215,22 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
           onClick={() => setView((v) => (v === "month" ? "year" : "month"))}
           className="m3-state m3-focus md-title-large cursor-pointer rounded-full px-3 py-1 text-m3-on-surface outline-none"
         >
-          {view === "year"
-            ? cursor.getFullYear()
-            : `${MONTH_NAMES[cursor.getMonth()]} ${cursor.getFullYear()}`}
+          {animatedHeader ? (
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={headerLabel}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={springs.fastVisual}
+                className="block"
+              >
+                {headerLabel}
+              </motion.span>
+            </AnimatePresence>
+          ) : (
+            headerLabel
+          )}
         </button>
         <div className="flex items-center">
           <button
@@ -275,11 +306,11 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
                       {isSelected && (
                         <motion.span
                           layoutId={pillId}
-                          className="absolute inset-0 rounded-full bg-m3-primary"
+                          className={cn("absolute inset-0 rounded-full", selectedPillClass)}
                           transition={springs.expressive}
                         />
                       )}
-                      <span className={cn("relative z-10", isSelected && "text-m3-on-primary")}>
+                      <span className={cn("relative z-10", isSelected && selectedTextClass)}>
                         {day.getDate()}
                       </span>
                     </button>
@@ -316,6 +347,311 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
           })}
         </div>
       )}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Modal presentation (official M3 date picker dialog)                 */
+/* ------------------------------------------------------------------ */
+
+interface DatePickerModalProps {
+  value?: Date;
+  onChange?: (d: Date) => void;
+  minDate?: Date;
+  maxDate?: Date;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  closeOnSelect?: boolean;
+  className?: string;
+}
+
+/**
+ * Official modal date picker: a role="dialog" on surface-container-high,
+ * 28dp corners, elevation 3, over a 32% scrim. Portrait (viewport < 600px)
+ * is 328×512dp with the selected-date header stacked on top (label-large
+ * supporting text + display-size headline + divider); landscape (≥ 600px)
+ * is 568×368dp with the header as a 168dp left column, vertically
+ * centered. Selection applies live (no action buttons) and closes the
+ * dialog when closeOnSelect; Escape and scrim tap always dismiss. Focus
+ * moves to the selected/today day on open, Tab is trapped, and focus is
+ * restored to the opener on close (same pattern as Dialog).
+ */
+const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
+  function DatePickerModal(
+    { value, onChange, minDate, maxDate, open = false, onOpenChange, closeOnSelect = true, className },
+    ref
+  ) {
+    const panelRef = React.useRef<HTMLDivElement | null>(null);
+    const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+    // Official breakpoint: landscape layout at viewport ≥ 600dp (client-only)
+    const [landscape, setLandscape] = React.useState(false);
+    // Tracks picks when the caller renders uncontrolled, so the header stays live
+    const [picked, setPicked] = React.useState<Date | undefined>(undefined);
+
+    React.useEffect(() => {
+      const mq = window.matchMedia("(min-width: 600px)");
+      const update = () => setLandscape(mq.matches);
+      update();
+      mq.addEventListener("change", update);
+      return () => mq.removeEventListener("change", update);
+    }, []);
+
+    // Escape dismiss + body scroll lock while open (Dialog pattern)
+    React.useEffect(() => {
+      if (!open) return;
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onOpenChange?.(false);
+      };
+      window.addEventListener("keydown", onKey);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        window.removeEventListener("keydown", onKey);
+        document.body.style.overflow = prevOverflow;
+      };
+    }, [open, onOpenChange]);
+
+    // Initial focus on the selected/today day; restore focus to the opener on close
+    React.useEffect(() => {
+      if (!open) return;
+      restoreFocusRef.current = document.activeElement as HTMLElement | null;
+      const timer = window.setTimeout(() => {
+        const day = panelRef.current?.querySelector<HTMLButtonElement>(
+          'button[data-iso][tabindex="0"]'
+        );
+        if (day) day.focus();
+        else panelRef.current?.focus();
+      }, 0);
+      return () => {
+        window.clearTimeout(timer);
+        restoreFocusRef.current?.focus?.();
+      };
+    }, [open]);
+
+    // Trap Tab focus inside the dialog surface (Dialog pattern)
+    const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const focusables = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === panelRef.current)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    const handleSelect = (d: Date) => {
+      setPicked(d);
+      onChange?.(d);
+      // M3 live-apply: the value updates immediately; close when asked to
+      if (closeOnSelect) onOpenChange?.(false);
+    };
+
+    const headlineDate = value ?? picked ?? new Date();
+    const headline = formatHeadline(headlineDate);
+
+    return (
+      <AnimatePresence>
+        {open && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+            {/* 32% black scrim, click-to-dismiss */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              // Named framer easing (tokens.ts easings.* are CSS strings);
+              // "easeOut" ≙ easings.standardDecelerate — same as Dialog scrim
+              transition={{
+                duration: durations.short4 / 1000,
+                ease: "easeOut",
+              }}
+              className="absolute inset-0 bg-m3-scrim/32"
+              onClick={() => onOpenChange?.(false)}
+            />
+            <motion.div
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Choose date"
+              tabIndex={-1}
+              onKeyDown={handleTab}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={springs.expressive}
+              className={cn(
+                "m3-elevation-3 relative flex overflow-hidden rounded-[28px] bg-m3-surface-container-high outline-none",
+                landscape
+                  ? "h-[368px] max-h-[calc(100dvh-32px)] w-[568px] max-w-[calc(100vw-32px)]"
+                  : "h-[512px] max-h-[calc(100dvh-32px)] w-[328px] max-w-[calc(100vw-32px)] flex-col",
+                className
+              )}
+            >
+              {landscape ? (
+                <>
+                  {/* Header as a 168dp left column, vertically centered */}
+                  <div className="flex w-[168px] shrink-0 flex-col justify-center gap-1 px-4">
+                    <span className="md-label-large text-m3-on-surface-variant">
+                      Selected date
+                    </span>
+                    <span className="md-headline-small leading-tight text-m3-on-surface">
+                      {headline}
+                    </span>
+                  </div>
+                  <div className="m3-scroll min-w-0 flex-1 overflow-y-auto px-4 py-1">
+                    <DatePickerCalendar
+                      value={value ?? picked}
+                      onChange={handleSelect}
+                      minDate={minDate}
+                      maxDate={maxDate}
+                      tone="primary-container"
+                      animatedHeader
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Header block on top: supporting text + display headline + divider */}
+                  <div className="flex shrink-0 flex-col gap-1 px-6 pb-3 pt-6">
+                    <span className="md-label-large text-m3-on-surface-variant">
+                      Selected date
+                    </span>
+                    <span className="md-display-small text-m3-on-surface">{headline}</span>
+                  </div>
+                  <div className="h-px w-full shrink-0 bg-m3-outline-variant" />
+                  <div className="m3-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-2">
+                    <DatePickerCalendar
+                      value={value ?? picked}
+                      onChange={handleSelect}
+                      minDate={minDate}
+                      maxDate={maxDate}
+                      tone="primary-container"
+                      animatedHeader
+                    />
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    );
+  }
+);
+
+DatePickerModal.displayName = "DatePickerModal";
+
+/* ------------------------------------------------------------------ */
+/* Public component                                                    */
+/* ------------------------------------------------------------------ */
+
+export interface DatePickerProps {
+  /** Currently selected date */
+  value?: Date;
+  onChange?: (d: Date) => void;
+  /** Earliest selectable date (days before are disabled) */
+  minDate?: Date;
+  /** Latest selectable date (days after are disabled) */
+  maxDate?: Date;
+  /**
+   * 'inline' (default): the embedded rounded-[28px] calendar panel.
+   * 'modal': the official M3 modal date picker — 328×512dp portrait /
+   * 568×368dp landscape dialog on surface-container-high (elevation 3,
+   * 28dp corners) over a 32% scrim, with a selected-date header
+   * ("Selected date" label-large + display-size headline). Controlled via
+   * open/onOpenChange like Dialog; selection applies live and no action
+   * buttons are shown.
+   */
+  presentation?: "inline" | "modal";
+  /** Modal only — controls visibility (fully controlled, Dialog/SearchView style). */
+  open?: boolean;
+  /** Modal only — called with the next open state on scrim click, Escape, or day pick. */
+  onOpenChange?: (open: boolean) => void;
+  /** Modal only — close automatically when a day is picked. Default true. */
+  closeOnSelect?: boolean;
+  /** Inline only: stretch to the container width */
+  fullWidth?: boolean;
+  className?: string;
+}
+
+/**
+ * M3 Date Picker.
+ *
+ * Inline presentation — a rounded-[28px] surface-container-high panel
+ * with a month grid, a tappable "month year" header that flips into a
+ * 4-column year grid (1988 → current year + 10), today outlined in
+ * primary, and a spring-animated selection pill shared via layoutId
+ * (scoped per instance). The grid exposes ARIA grid roles with roving
+ * tabindex and arrow-key day navigation (←/→/↑/↓), Home/End for week
+ * start/end. Nav chevrons are 48dp targets.
+ *
+ * Modal presentation (presentation="modal") — the official M3 date
+ * picker dialog: 328×512dp portrait (header stacked on top of the
+ * calendar, divider between) / 568×368dp landscape (header as a 168dp
+ * vertically-centered left column) at viewport ≥ 600px, 32% scrim,
+ * spring scale 0.9→1 + fade entry (mirrored exit), live-applied
+ * selection with no action buttons, Escape/scrim dismissal, focus trap
+ * with initial focus on the selected/today day and restore to the
+ * opener, body scroll lock, and the same ARIA-grid calendar internals.
+ * The forwardRef lands on the inline root / the modal dialog panel.
+ */
+export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(function DatePicker(
+  {
+    value,
+    onChange,
+    minDate,
+    maxDate,
+    presentation = "inline",
+    open,
+    onOpenChange,
+    closeOnSelect = true,
+    fullWidth = false,
+    className,
+  },
+  ref
+) {
+  if (presentation === "modal") {
+    return (
+      <DatePickerModal
+        ref={ref}
+        open={open}
+        onOpenChange={onOpenChange}
+        closeOnSelect={closeOnSelect}
+        value={value}
+        onChange={onChange}
+        minDate={minDate}
+        maxDate={maxDate}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-[28px] bg-m3-surface-container-high p-6",
+        fullWidth ? "w-full" : "w-[328px]",
+        className
+      )}
+    >
+      <DatePickerCalendar
+        value={value}
+        onChange={onChange}
+        minDate={minDate}
+        maxDate={maxDate}
+      />
     </div>
   );
 });

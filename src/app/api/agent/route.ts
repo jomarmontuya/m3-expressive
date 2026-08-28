@@ -12,6 +12,28 @@ export async function GET() {
   const base = {
     library: "m3-expressive-react",
     version: m3Registry.version,
+    package: {
+      name: "m3-expressive-react",
+      version: "1.0.0",
+      install: "npm i m3-expressive-react",
+      exports: {
+        ".": "Barrel — all 40 components + MaterialSymbol/Ripple primitives + tokens/registry/types/themes re-exports",
+        "./styles.css": "Standalone token + primitive stylesheet (all --md-* color roles light/dark, 4 curated [data-theme] schemes, .md-* type scale, .m3-state/.m3-focus/.m3-elevation-*/ripple/m3-scroll, Material Symbols icon CSS)",
+        "./tokens": "springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale, elevations, colorRoles",
+        "./types": "M3ComponentMeta / M3Registry contract types",
+        "./meta": "All 40 M3ComponentMeta objects (agentic metadata)",
+        "./themes": "m3Themes, getTheme, themeIds, schemeToCssVars (curated schemes as data)",
+        "./theme-builder": "generateScheme/schemeToCssVars — seed → full light+dark scheme (@material/material-color-utilities, server-safe)",
+        "./registry": "m3Registry, getComponent, searchComponents, getComponentsByCategory (isomorphic)",
+        "./hooks": "useM3Theme — curated + custom scheme and light/dark controller (client)",
+      },
+      peerDependencies: {
+        react: ">=18 <20",
+        "react-dom": ">=18 <20",
+        "framer-motion": ">=11 <13",
+      },
+      note: "Tailwind 4 is required for full component styling: add @source \"../node_modules/m3-expressive-react\"; plus the --color-m3-*/--radius-m3-* @theme mapping from the package README. styles.css alone provides tokens + primitives.",
+    },
     role: "Material 3 Expressive component library for React / Next.js",
     forAgents: {
       summary:

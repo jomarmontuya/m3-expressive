@@ -92,6 +92,22 @@ official sources disagreed, the official source won (both cases noted below).
    cells stay 40dp (official dense calendar grid — 7×48 would overflow the 328dp
    width); no `aria-rowcount/colcount` on the grid.
 
+   **Resolved (round 4, task 4-b):** the official modal presentation now ships as
+   `presentation="modal"` on the same component — 328×512dp portrait (header block:
+   label-large "Selected date" + display-small "Fri, Aug 21" headline + divider, then
+   the shared calendar grid) and 568×368dp landscape at viewport ≥ 600px via
+   `matchMedia` (header as a 168dp vertically-centered left column). Surface-container-high
+   panel, 28dp corners, elevation 3, 32% scrim (`bg-m3-scrim/32`), no action buttons
+   (live-apply; Escape/scrim dismiss), spring scale 0.9→1 + fade entry/exit
+   (`springs.expressive`), focus trap + initial focus on the selected/today day +
+   restore to opener + body scroll lock (Dialog pattern), animated month-year label.
+   API: `open`/`onOpenChange` (controlled, Dialog/SearchView style) + `closeOnSelect`
+   (default true). Modal selected-day circle uses androidx
+   `SelectedDateContainerColor` = primary-container; all other day states identical to
+   inline; inline presentation byte-unchanged (calendar internals extracted into a
+   shared internal subcomponent). Remaining: no text-input entry, day cells stay 40dp,
+   no `aria-rowcount/colcount` on the grid (unchanged).
+
 ## TimePicker
 
 1. **Material specification being followed.** Clock dial time picker per androidx

@@ -416,3 +416,94 @@ Stable and feature-complete for round 3: 40 components (SearchView added), spec-
 - Variant row in Theme builder scrolls horizontally on mobile instead of wrapping (SegmentedButton is one connected pill) — acceptable, noted.
 - Generated scheme values may differ ±1 hex from hand-curated themes.ts (HCT round-trip) — intentional, curated files untouched.
 - Known remaining audit limitations (all minor, recorded in audit/*.md): timepicker single-ring 24h display; date-picker modal-size presentation; md-label weight handled globally. Candidate next steps: (1) visual-regression screenshot suite (per-component baseline PNGs + compare script); (2) package export hardening — real npm package build (tsup/tsc + exports map + d.ts) so `m3-expressive-react` is installable outside the monorepo; (3) FAB menu docked behaviors; (4) date-picker official modal presentation; (5) MCP HTTP transport option alongside stdio.
+
+---
+Task ID: 4-kickoff
+Agent: orchestrator (Z.ai Code)
+Task: Round-4 status assessment, agent-browser QA sweep, work-focus selection
+
+Work Log:
+- Read worklog tail (round-3 state: 40 components incl. SearchView, Theme Builder, MCP 14 tools, all green).
+- QA sweep: dev.log clean (200s, fast compiles); /api/registry?summary=200 (totalCount 40), /llms.txt 200, / 200, /api/agent 200; /api/theme-builder valid+400-on-bad-seed verified earlier.
+- agent-browser: opened / — zero page errors, console clean (only HMR/Fast-Refresh info). Deep-linked #/component/fab-menu — zero errors; clicked main FAB → Camera/Gallery action cascade rendered, expanded=true, Escape dismisses. Deep-linked #/component/date-picker — renders; meta note confirms documented gap: official modal picker 568×368 (landscape) / 328×512 (portrait) with selected-date header intentionally omitted in inline-only implementation.
+- Confirmed fab-menu ALREADY registered; remaining worklog candidates are enhancements, not new components.
+- Inspected library import graph for packaging: src/components/m3 + src/lib/m3 externals = react + framer-motion only; @/ aliases all resolve inside src/ (tsconfig paths "@/*" → ./src/*); theme-builder imports @material/material-color-utilities (runtime dep for subpath export).
+
+Stage Summary:
+- Project STABLE — no bugs to fix; QA green. Round-4 focus (independent selection, 3 parallel tasks):
+  - 4-a: package export hardening → real npm package `m3-expressive-react` (packages/ workspace dir, tsup ESM+CJS+d.ts, exports map, standalone styles.css token layer, npm README, npm pack verification).
+  - 4-b: DatePicker official modal presentation (328×512 portrait / 568×368 landscape, selected-date header) as `presentation="modal"` — resolves documented audit gap.
+  - 4-c: FabMenu docked behavior (flush bottom-edge docking, shape-morph connection, above bottom app bar) — M3E docked fab menu + styling polish.
+---
+Task ID: 4-c
+Agent: fabmenu-docked
+Task: Add M3E "docked fab menu" behavior (flush bottom-edge / bottom-app-bar docking with corner-square shape morph) + FabMenu styling polish
+
+Work Log:
+- Read worklog conventions, FabMenu.tsx, audit/actions.md FabMenu section, fabMenuMeta, FabMenuDemo in showcase/demos/actions-demos.tsx, and the docking precedents BottomAppBar.tsx (center-FAB borderRadius morph on springs.expressiveEffects) + Toolbar.tsx (dockable variant).
+- FabMenu.tsx: added `docked?: boolean` (default false) + `dockedTo?: 'screen' | 'bottom-app-bar'` (default 'screen') + exported `FabMenuDockTarget` type. 'screen' docks `position: fixed bottom-0` to the viewport (or a transformed ancestor, which becomes the containing block) with a vertical cascade above the FAB; 'bottom-app-bar' docks `position: absolute bottom-0` inside the nearest positioned ancestor so the FAB rests directly on a bottom app bar and actions open as a horizontal row flush on top of the bar. Docked root anchors `right-[calc(50%_-_20px)]` so the widening cascade never shifts the FAB; z-50. Docking overrides `direction` (documented in JSDoc + meta). Floating vertical/horizontal code paths untouched (non-docked renders no inline borderRadius).
+- Shape morph: docked main FAB animates borderRadius "16px 16px 16px 16px" ↔ "16px 16px 0px 0px" built from tokens.shapes.large/shapes.none on springs.expressiveEffects (per-value transition inside animate, so hover/tap keep springs.expressive) — BottomAppBar FAB morph pattern. Connected-surface underlay considered and declined (would collide with the bar's own surface-container; connection reads via squared corners) — documented.
+- Polish: label chips + whitespace-nowrap; chip typography confirmed md-label-medium (type scale token); icon rotation 45° stays expressiveEffects; entrance stagger stays durations.short1 + springs.expressive; m3-focus rings, m3-state layers, 48dp ::before hit expanders, aria-haspopup/aria-expanded/dynamic aria-label, Escape + outside-pointerdown dismissal all preserved; no colors outside m3 tokens.
+- components/m3/index.ts: export type FabMenuDockTarget.
+- showcase/demos/actions-demos.tsx: FabMenuDemo gained a "Docked · bottom corners square when open" column with a bordered two-scene stage (data-testid docked-fab-stage-screen / docked-fab-stage-bar): screen scene = fixed FabMenu inside a transform ([transform:translateZ(0)]) fixed-height stage (transformed ancestor becomes the fixed containing block → docks to stage bottom without page disruption); bar scene = relative content area above a real BottomAppBar with dockedTo="bottom-app-bar". Vertical/Horizontal/Controlled examples untouched; shared "Last action" readout wired via onAction prop.
+- meta.ts (Edit-only, unique anchors scoped to fabMenuMeta): description documents docking; variants += "docked · screen", "docked · bottom app bar"; props += docked/dockedTo and direction note; anatomy/states += docked closed/open; dos += bottom-edge/bottom-app-bar guidance; donts += don't combine with direction, don't clip the anchoring; exampleCode += docked screen sample; related += "bottom-app-bar".
+- audit/actions.md: appended "Resolved (round 4, task 4-c)" note under ## FabMenu.tsx.
+- Did NOT touch DatePicker.tsx, inputs-demos.tsx, audit/inputs.md, llms.txt, api routes, packages/, tokens.ts, globals.css, other metas/demos.
+
+Stage Summary:
+- Verification: `bunx tsc --noEmit` → 0 errors under src/ (remaining errors are examples/ + skills/ + packages/m3-expressive-react/dist build artifacts owned by other agents). `bun run lint` → 36 errors ALL no-require-imports in packages/m3-expressive-react/dist/* (agent 4-a's build output; file out of my scope) + 1 pre-existing layout.tsx warning; `bunx eslint` on my 4 touched files → clean. Registry API 200, totalCount 40.
+- agent-browser (temp QA instance, see deviation note): zero page errors on #/component/fab-menu. Screen-docked FAB closed → borderRadius "16px", FAB center == stage center (137==137), flush bottom (1px = stage border); open → "16px 16px 0px 0px" (bbl/bbr 0px, btl/btr 16px), aria-expanded=true, 3 actions cascading above. Bar-docked open → "16px 16px 0px 0px", action FABs left of main FAB (x 210/270 vs 324), FAB bottom (443) exactly on bar top (442) — resting on the 80dp BottomAppBar. Escape returns both to "16px"/expanded=false/actions removed. Floating Vertical demo: expanded=true + chips Camera/Gallery/Voice note, Escape → chips [] (note: chips linger ~0.8s during the spring exit — first check at 600ms was mid-animation, re-verified clean at 1500ms). Floating Horizontal demo: expanded=true + Invite/New group, Escape closes. Screenshot (open state, both docked stages): tool-results/fab-menu-docked.png (PNG 390×844).
+- Deviation note: the shared dev server on :3000 was found DEAD at task start (connection refused; no process; shared dev.log shows only pre-task compiles; poll for ~1min didn't recover it). To complete the mandatory browser QA without touching port 3000 I ran a temporary `next dev -p 3100` in throwaway Bash sessions (server killed after each sweep; no conflict with the shared port; documented in tool-results/qa-4c*.sh). Compile logs clean (dev-4c.log: only GET 200s + a Next 16 allowedDevOrigins notice).
+
+Stage Summary (results):
+- Docked fab menu shipped: API = `docked` + `dockedTo: 'screen' | 'bottom-app-bar'`; corner-square morph verified live via computed styles; floating demos byte-identical and re-verified; meta/audit/demo wired; all motion/colors tokenized; tsc + eslint clean on task files; screenshot at tool-results/fab-menu-docked.png.
+
+---
+Task ID: 4-a
+Agent: package-hardener (finished by orchestrator after agent context-deadline; artifacts were complete, orchestrator verified + cleaned up)
+Task: Package export hardening — real npm package `m3-expressive-react` in packages/m3-expressive-react
+
+Work Log:
+- (Agent) Created packages/m3-expressive-react/: package.json (name m3-expressive-react v1.0.0, type module, exports map "./" + ./styles.css + ./tokens + ./types + ./meta + ./themes + ./theme-builder + ./registry + ./hooks + ./package.json + ./*, files [dist, README.md, LICENSE], sideEffects css, peerDeps react/react-dom >=18<20 + framer-motion >=11<13, deps @material/material-color-utilities + clsx + tailwind-merge, scripts build = "tsup && node scripts/patch-client-directive.mjs && cp styles-src/m3-tokens.css dist/styles.css"), tsup.config.ts (ESM+CJS+dts+sourcemap+splitting, externals react/react-dom/framer-motion, @/ alias resolution), LICENSE (MIT), README.md (install/quick-start/Tailwind 4 @source integration/theming/agentic section), scripts/patch-client-directive.mjs (ensures "use client" on emitted chunks), styles-src/m3-tokens.css (standalone Tailwind-free token layer: --md-* roles light+dark, curated theme overrides, md-* type classes, m3-state/m3-focus/m3-elevation-*/ripple/m3-scroll, Material Symbols).
+- (Agent) Built dist/: index.js/.cjs/.d.ts + per-entry tokens/types/meta/themes/theme-builder/registry/hooks + shared chunks + styles.css (17.7KB); "use client" verified preserved in both ESM and CJS output.
+- (Agent) Root package.json: + devDep tsup ^8.5.1, + script "build:package": "cd packages/m3-expressive-react && bun run build". src/app/llms.txt/route.ts: + "## Package" section (npm name, install, peer deps, Tailwind 4 @source + @theme mapping note). src/app/api/agent/route.ts: + package field {name, version, install, exports map, peerDependencies, Tailwind note}.
+- (Orchestrator verification) bun smoke import of dist/index.js → 104 exports; ['Button','FabMenu','SearchView','DatePicker','buttonMeta'] all present. bunx npm pack --dry-run → 60 files, 613.3 kB tarball, name/version correct. bun run lint → 0 errors (1 pre-existing layout.tsx warning; packages/**/dist/** added to eslint.config.mjs ignores by the agent — resolves the 36 no-require-imports errors 4-c had seen). bunx tsc --noEmit → no src/ errors (remaining: pre-existing examples/ + skills/ items). Dev server APIs still 200; /api/agent now returns package field (verified over HTTP).
+- (Orchestrator cleanup) removed .qa4b/ (114MB leftover temp QA install from dead 4-b agent); confirmed two next dev processes = the restarted shared :3000 server.
+
+Stage Summary:
+- `m3-expressive-react` is now a real, publishable npm package: full exports map, d.ts, ESM+CJS, "use client" preserved, standalone styles.css token layer, MIT LICENSE, npm README, npm pack verified (613.3 kB). Build via `bun run build:package` (repo root) or cd packages/m3-expressive-react && bun run build. Agentic surfaces (llms.txt route, /api/agent) advertise the package.
+
+---
+Task ID: 4-b
+Agent: datepicker-modal (implementation complete when agent hit context deadline; orchestrator verified all behaviors live)
+Task: DatePicker official modal presentation (328×512 portrait / 568×368 landscape, selected-date header) — resolves documented audit gap
+
+Work Log:
+- (Agent) src/components/m3/DatePicker.tsx: added presentation: 'inline' | 'modal' (default inline — zero breaking change), closeOnSelect (default true for modal), open/onOpenChange controlled API; shared calendar internals between presentations; modal = role="dialog" aria-modal aria-label="Choose date", 32% scrim, surface-container-high panel, 28dp corners, elevation 3, portrait 328×512 (header top: "Selected date" label + selected-date headline) / landscape ≥600px viewport 568×368 (header as left column), spring scale+fade entry via house tokens, live-apply selection (no action buttons per current M3 spec), Escape/scrim dismiss, focus trap + initial focus on selected/today day, focus restore to opener, body scroll lock.
+- (Agent) src/lib/m3/meta.ts (Edit-only, datePickerMeta block): variants += modal, props += presentation/closeOnSelect/open/onOpenChange, description/anatomy/states/dos/donts rewritten for both presentations, exampleCode with modal usage. audit/inputs.md: "Resolved (round 4, task 4-b)" note appended (file had no date-picker section, so note added at end with explanation). Demo: DatePickerDemo (src/components/showcase/demos/containment-demos.tsx) gained a modal section — outlined text-field-style trigger echoing chosen date + calendar icon, opens modal picker, live value sync.
+- (Orchestrator verification, live :3000) tsc src clean; lint 0 errors. agent-browser: page loads zero errors; trigger "Fri, Aug 28" click → dialog appears; measured exactly 328×512; aria-label "Choose date", aria-modal=true; header text "Selected date / Fri, Aug 28 / August 2026"; picked August 21 → dialog closed, trigger label updated to "Fri, Aug 21"; reopened → initial focus on "August 21, 2026" day, body overflow hidden (scroll lock), Escape → closed. set viewport 900 700 → reopened → dialog measured exactly 568×368 (landscape). Screenshots: tool-results/date-picker-modal-portrait.png (390×844), tool-results/date-picker-modal-landscape.png (900×700). Inline presentation unchanged.
+- Note: display tools rendered `const [modalOpen` as `const odalOpen` (ANSI `[m` swallow quirk) which briefly looked like corrupted syntax — od -c + tsc exit 0 proved the file was valid; no fix needed.
+
+Stage Summary:
+- Official M3 modal date-picker shipped with exact spec dims verified live (328×512 portrait, 568×368 landscape ≥600px), selected-date header, live-apply, full a11y (trap/restore/scroll-lock/Escape/focus-to-day). Meta + audit + demo wired; inline behavior byte-identical.
+
+---
+Task ID: 4-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-4 integration QA + handover
+
+## Current project status
+Stable and feature-complete for round 4: 40 components (DatePicker modal presentation + FabMenu docked added to existing ones), real npm package `m3-expressive-react` (packages/), spec-audited, 4 curated themes + dynamic Theme Builder, MCP server (14 tools) + agent APIs advertising the package. All verification green.
+
+## Completed this round (verification results)
+- QA sweep at start: dev.log clean, APIs 200, agent-browser zero page errors; fab-menu + date-picker functional; no bugs to fix → feature round chosen.
+- 4-c FabMenu docked: `docked` + `dockedTo: 'screen' | 'bottom-app-bar'`, corner-square morph "16px 16px 16px 16px" ↔ "16px 16px 0px 0px" on springs.expressiveEffects, verified via computed styles (4-c agent on temp :3100; re-verified by orchestrator on live :3000: expanded=true, borderRadius "16px 16px 0px 0px", 3 actions; screenshot tool-results/fab-menu-docked-live3000.png; also 4-c's tool-results/fab-menu-docked.png).
+- 4-b DatePicker modal: exact official dims verified (328×512 portrait / 568×368 landscape), selected-date header, live-apply + close-on-select, focus trap/restore/scroll-lock/Escape; screenshots tool-results/date-picker-modal-portrait.png + -landscape.png. Meta/audit/demo wired.
+- 4-a npm package: packages/m3-expressive-react — exports map (barrel + styles.css + tokens/types/meta/themes/theme-builder/registry/hooks subpaths), ESM+CJS+d.ts, "use client" preserved, standalone styles.css token layer, README/LICENSE, npm pack 613.3 kB/60 files, smoke import 104 exports; root `bun run build:package`; llms.txt route + /api/agent advertise package. Lint 0 errors (packages/**/dist/** ignored), tsc src clean.
+- Infra: shared dev server found dead at round start → restarted (nohup bun run dev); .qa4b/ 114MB temp dir removed; two parallel agent context-deadline failures handled (artifacts verified by hand; worklog entries reconstructed).
+
+## Unresolved issues / risks / next-phase priorities
+- Two subagents hit context deadline mid-round; both produced complete code, but future rounds should split tasks smaller (one component feature per agent).
+- npm package includes Tailwind-entangled component styles: consumers need Tailwind 4 + @source + @theme mapping (documented in README/llms/agent API). A future "compiled CSS" variant could remove that requirement.
+- dist/ artifacts are committed in-tree (613 kB tarball); add CI or .gitignore strategy + `npm publish` dry-run from a clean checkout before actually publishing.
+- Remaining candidates (from earlier rounds): visual-regression screenshot suite (per-component baselines + compare script); MCP HTTP transport alongside stdio; timepicker single-ring 24h display (documented limitation); docked FAB menu anchoring to a real TopAppBar/edge integration demo; date-picker range selection (M3E date input).

@@ -170,6 +170,28 @@ listeners while open; `aria-haspopup` + kept `aria-expanded` + dynamic `aria-lab
 (intentional hierarchy: menu items are tonal chips under the accent FAB); the 32dp action size and
 45° rotation are M3E behaviors without a published dp table — kept and documented in meta.
 
+**Resolved (round 4, task 4-c).** Added the M3E docked fab menu: new `docked` +
+`dockedTo: 'screen' | 'bottom-app-bar'` props (default `'screen'`). Screen docking pins
+`position: fixed; bottom: 0` to the viewport — or to a transformed ancestor such as a demo stage,
+which becomes the containing block — with the closed FAB flush bottom-center and a vertical
+cascade growing upward above it; bottom-app-bar docking anchors `position: absolute; bottom: 0`
+inside the nearest positioned ancestor so the FAB rests directly on a bottom app bar and the
+actions open as a horizontal row flush on top of the bar. Open-state shape morph animates the
+main FAB's borderRadius `"16px 16px 16px 16px"` → `"16px 16px 0px 0px"` built from
+`tokens.shapes.large`/`shapes.none` on `springs.expressiveEffects` (the BottomAppBar center-FAB
+morph pattern); the docked root anchors by `right: calc(50% - 20px)` so the widening cascade
+never shifts the FAB horizontally. Docking overrides `direction` (documented in JSDoc + meta).
+Polish pass: label chips gain `whitespace-nowrap`, chip typography confirmed on the type-scale
+token (`md-label-medium`), icon rotation stays on `springs.expressiveEffects`, entrance stagger
+stays `durations.short1` + `springs.expressive`, `m3-focus` rings and 48dp `::before` hit
+expanders unchanged; declined the optional surface-container underlay (would collide with the
+bar's own surface-container and add noise — the connection reads through the squared corners).
+Floating vertical/horizontal behavior byte-identical (non-docked renders no inline borderRadius).
+Demo: `FabMenuDemo` gained a bordered "Docked" stage pair — screen-docked fixed menu inside a
+transform stage + bottom-app-bar-docked menu above a real `BottomAppBar`. Verified: tsc clean,
+lint 0 errors, agent-browser borderRadius eval open vs closed (bottom corners 0px vs 16px),
+Escape dismissal + cascade intact, screenshot `tool-results/fab-menu-docked.png`.
+
 ---
 
 ## SplitButton.tsx (M3E)

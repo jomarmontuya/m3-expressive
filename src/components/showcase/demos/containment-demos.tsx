@@ -241,8 +241,14 @@ export function SideSheetDemo() {
 
 export function DatePickerDemo() {
   const [date, setDate] = React.useState<Date | undefined>(() => new Date());
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [modalDate, setModalDate] = React.useState<Date | undefined>(() => new Date());
+  // "Fri, Aug 21" — same format as the modal header headline
+  const fmt = (d: Date) =>
+    `${d.toLocaleDateString("en-US", { weekday: "short" })}, ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getDate()}`;
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      {/* Inline presentation (default) */}
       <DatePicker value={date} onChange={setDate} />
       <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-secondary-container p-4 text-m3-on-secondary-container">
         <span className="md-label-medium">Selected date</span>
@@ -250,6 +256,39 @@ export function DatePickerDemo() {
           {date ? date.toDateString() : "None"}
         </span>
       </div>
+
+      {/* Official modal presentation: outlined text-field-style trigger.
+          Landscape layout (568×368) renders automatically at viewport ≥ 600px. */}
+      <div className="flex w-full flex-col gap-3">
+        <span className="md-label-large text-m3-on-surface">
+          Modal presentation — 328×512dp portrait, 568×368dp landscape at viewport ≥ 600px
+        </span>
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="m3-state m3-focus flex h-14 w-64 cursor-pointer items-center justify-between gap-3 rounded-m3-xs border border-m3-outline px-4 outline-none hover:border-m3-on-surface"
+          >
+            <span
+              className={`md-body-large truncate ${modalDate ? "text-m3-on-surface" : "text-m3-on-surface-variant"}`}
+            >
+              {modalDate ? fmt(modalDate) : "Choose date"}
+            </span>
+            <MaterialSymbol icon="calendar_today" size={24} className="shrink-0 text-m3-on-surface-variant" />
+          </button>
+          <span className="md-body-small text-m3-on-surface-variant">
+            Selection applies live · Escape / scrim dismiss
+          </span>
+        </div>
+      </div>
+
+      <DatePicker
+        presentation="modal"
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        value={modalDate}
+        onChange={setModalDate}
+      />
     </div>
   );
 }

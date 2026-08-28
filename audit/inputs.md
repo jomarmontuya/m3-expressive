@@ -271,3 +271,40 @@ Verification: `bunx tsc --noEmit` filtered to audited files → 0 errors (projec
 - Outlined TextField label gap uses a `bg-m3-surface` patch; background-agnostic corner-gap needs a mask/pseudo-element rework.
 - Switch/Checkbox/Radio/Chip disabled = 38% overall (library convention) vs official multi-token dimming; a central `disabledTokens` in tokens.ts would fix all components at once (out of scope).
 - Slider M3E gapped-track discrete style and always-on value label are expressive upgrades, not fixes.
+
+---
+
+## Date Picker — Resolved (round 4, task 4-b)
+
+Note: the DatePicker audit itself lives in `audit/containment-2.md` (§ DatePicker) — this
+file had no date-picker section, so the resolution note requested for task 4-b is
+appended here verbatim alongside the full note added under containment-2.md.
+
+**Resolved (round 4, task 4-b):** the documented gap — "the official modal picker is
+568×368dp (landscape) / 328×512dp (portrait) with a selected-date header, which this
+simplified grid intentionally omits" — is now implemented in `DatePicker.tsx` as
+`presentation="modal"` (default stays `"inline"`, zero breaking change):
+
+- **API**: `presentation?: 'inline' | 'modal'`, `open?: boolean` +
+  `onOpenChange?: (open: boolean) => void` (controlled, Dialog/SearchView house style),
+  `closeOnSelect?: boolean` (default true, modal only). Inline props/exports/ARIA untouched.
+- **Panel**: surface-container-high, 28dp corners, elevation 3, 32% scrim
+  (`bg-m3-scrim/32`), no action buttons (M3 live-apply; Escape/scrim always dismiss).
+- **Portrait** (< 600px viewport): 328×512dp — header block on top ("Selected date"
+  label-large + display-small headline "Fri, Aug 21" + outline-variant divider) above the
+  shared calendar grid, internal scroll, max-w/max-h viewport caps.
+- **Landscape** (≥ 600px, via `matchMedia`): 568×368dp — header as a 168dp left column
+  with vertically centered headline-small, calendar on the right.
+- **Motion**: panel scale 0.9→1 + fade on `springs.expressive`, scrim fade on
+  `durations.short4`/easeOut (Dialog house pattern); animated month-year label
+  (popLayout slide/fade, modal only).
+- **A11y**: `role="dialog"` `aria-modal="true"` `aria-label="Choose date"`; focus trap
+  (Dialog FOCUSABLE pattern); initial focus on the selected/today day; focus restore to
+  the opener; body scroll lock; grid keeps its ARIA-grid/arrow-key semantics.
+- **Selected day in modal** uses the official androidx `SelectedDateContainerColor`
+  (primary-container circle); every other day state matches the inline grid exactly.
+- **Wiring**: `datePickerMeta` updated (variants + modal, 4 new props, description/
+  anatomy/states/dos/donts/exampleCode); `DatePickerDemo` gained an outlined
+  text-field-style trigger pill + landscape note; verified `bunx tsc --noEmit` (0 errors
+  in src/), `bun run lint` (0 errors), and agent-browser QA with portrait/landscape
+  screenshots in `tool-results/`.

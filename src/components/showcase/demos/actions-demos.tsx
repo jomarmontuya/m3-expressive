@@ -6,6 +6,7 @@ import { IconButton } from "@/components/m3/IconButton";
 import { Fab } from "@/components/m3/FAB";
 import { ExtendedFab } from "@/components/m3/ExtendedFab";
 import { FabMenu } from "@/components/m3/FabMenu";
+import { BottomAppBar } from "@/components/m3/BottomAppBar";
 import { SplitButton } from "@/components/m3/SplitButton";
 import { ButtonGroup } from "@/components/m3/ButtonGroup";
 import { SegmentedButton } from "@/components/m3/SegmentedButton";
@@ -203,11 +204,73 @@ export function FabMenuDemo() {
         <Caption>Controlled</Caption>
         <ControlledFabMenu />
       </div>
+      <div className="flex flex-col items-center gap-3">
+        <Caption>Docked · bottom corners square when open</Caption>
+        <DockedFabMenuStage onAction={setLastAction} />
+      </div>
       {lastAction && (
         <span className="self-center md-label-large text-m3-on-surface-variant">
           Last action: {lastAction}
         </span>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Docked fab menu stage (M3E)                                         */
+/* ------------------------------------------------------------------ */
+/**
+ * Docked fab-menu stage. Two bordered, fixed-height scenes:
+ * - "Screen": the FabMenu uses `dockedTo="screen"` (position: fixed); the
+ *   stage carries a transform so it becomes the containing block for the
+ *   fixed menu — the FAB docks to the stage's bottom edge instead of the
+ *   real viewport, showing the screen-docking behavior without page
+ *   disruption.
+ * - "Bottom app bar": the FabMenu uses `dockedTo="bottom-app-bar"` anchored
+ *   inside the relative content area that sits directly above an 80dp
+ *   BottomAppBar; when open the FAB's bottom corners square off onto the bar
+ *   and the actions cascade as a horizontal row flush on top of it.
+ */
+function DockedFabMenuStage({ onAction }: { onAction: (label: string) => void }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div
+        data-testid="docked-fab-stage-screen"
+        className="relative h-64 w-48 overflow-hidden rounded-lg border border-m3-outline-variant bg-m3-surface [transform:translateZ(0)]"
+      >
+        <span className="absolute left-3 top-3 z-10 md-label-small text-m3-on-surface-variant">
+          Screen
+        </span>
+        <FabMenu
+          docked
+          actions={[
+            { icon: "photo_camera", label: "Camera", onClick: () => onAction("Camera") },
+            { icon: "image", label: "Gallery", onClick: () => onAction("Gallery") },
+            { icon: "mic", label: "Voice note", onClick: () => onAction("Voice note") },
+          ]}
+        />
+      </div>
+      <div
+        data-testid="docked-fab-stage-bar"
+        className="flex h-64 w-48 flex-col overflow-hidden rounded-lg border border-m3-outline-variant bg-m3-surface"
+      >
+        <div className="relative flex-1">
+          <FabMenu
+            docked
+            dockedTo="bottom-app-bar"
+            color="tertiary"
+            actions={[
+              { icon: "edit", label: "Draft", onClick: () => onAction("Draft") },
+              { icon: "attach_file", label: "Attach", onClick: () => onAction("Attach") },
+            ]}
+          />
+        </div>
+        <BottomAppBar
+          navigationIcon={{ icon: "menu", label: "Menu" }}
+          trailingIcons={["more_vert"]}
+        />
+      </div>
     </div>
   );
 }

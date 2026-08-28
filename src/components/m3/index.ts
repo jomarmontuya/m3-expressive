@@ -7,7 +7,12 @@ export { Button, buttonMeta, type ButtonProps, type ButtonVariant, type ButtonSi
 export { IconButton, iconButtonMeta, type IconButtonProps } from "./IconButton";
 export { Fab, fabMeta, type FabProps } from "./FAB";
 export { ExtendedFab, extendedFabMeta, type ExtendedFabProps } from "./ExtendedFab";
-export { FabMenu, fabMenuMeta, type FabMenuProps } from "./FabMenu";
+export {
+  FabMenu,
+  fabMenuMeta,
+  type FabMenuProps,
+  type FabMenuDockTarget,
+} from "./FabMenu";
 export { SplitButton, splitButtonMeta, type SplitButtonProps } from "./SplitButton";
 export { ButtonGroup, buttonGroupMeta, type ButtonGroupProps } from "./ButtonGroup";
 export { SegmentedButton, segmentedButtonMeta, type SegmentedButtonProps } from "./SegmentedButton";
