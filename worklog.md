@@ -1234,3 +1234,49 @@ Stage Summary:
 - Live-verified at 1280x900: control column 400px, 0 options beyond the column, 0 clipped labels on button/chip/date-picker playgrounds.
 - Code tab verified at 320px + 375px: segmented control 175px, no internal wrap, no page h-scroll.
 - Gates: tsc 0 src errors; lint 0 errors (2 pre-existing warnings); VR baselines refreshed 41/41 --force then PASS on 3 consecutive checks (identical 39-40 · minor 1-2 · changed 0).
+
+---
+Task ID: 19-dead-code-purge
+Agent: orchestrator (Z.ai Code)
+Task: Audit and remove dead code / unused scaffold per Jomar's instruction
+
+## Work Log
+- Evidence-first audit: import-graph greps for every dep + the ui/ folder's outside-importer chain. Findings: Prisma dead (src/lib/db.ts self-contained, zero importers); ENTIRE shadcn ui/ set (49 files) dead — only outside importer was use-toast.ts, whose only consumer was the unmounted ui/toaster.tsx; .zscripts/ + tests/ = sandbox-platform heritage; examples/ zero refs; no old GH workflows exist (only current ci.yml); tailwind.config.ts + components.json unreferenced; 16 more deps imported nowhere (@reactuses/core, date-fns included).
+- Removed: prisma/, src/lib/db.ts, db:* scripts, src/components/ui/ (49 files), src/hooks/use-toast.ts, .zscripts/, tests/, examples/, tailwind.config.ts, components.json. 57 deps via bun remove. Untracked + gitignored: audit/, docs/, download/ (kept local for strategy work).
+- Updated AGENTS.md (stack line, commands table, forbidden-scaffold note now points at removal, gate 2 simplified, conventions note), README/CONTRIBUTING (setup steps), ci.yml (plain tsc gate).
+- Note for later: audit/ + docs/ excluded per instruction — re-include decision at public-flip time (release plan called audit/ a trust asset).
+
+## Stage Summary
+Verified: tsc 0 errors FULLY clean (exemption filter deleted), lint 0 errors / 2 known warnings, build:package exit 0, dev server HTTP 200. Committed 81e422b, pushed to private repo. Deps: 90 → 33.
+
+---
+Task ID: 20-m3-spec-verification
+Agent: Codex
+Task: Read-only verification of all 41 registry components against current Google Material sources
+
+## Work Log
+- Audited the current 41-component registry against the live `m3.material.io` component pages. Used Material Web as a secondary web implementation reference and AndroidX Compose only where the web page did not expose an exact implementation value.
+- Applied strict verdicts: a documented approximation, extension, different default, or unsupported official behavior cannot receive a verified 1:1 result.
+- Result: 1 verified, 19 variances, 19 mismatches, 2 components with no standalone M3 specification, and 0 unverified.
+- Confirmed the previous all-green scorecard is stale. Key examples: Button defaults to 56px instead of Google's small default and uses one 20px pressed radius instead of the published per-size radii; Badge uses full-round geometry instead of the current 3dp/8dp radii; CircularProgress defaults to 48px while the current AndroidX token is 40dp; several navigation components implement baseline variants that the current M3 Expressive pages supersede.
+- Confirmed `material-components/material-web/docs` is useful for web behavior and API evidence but is not a replacement for the current design spec: it covers only a subset of the 41 components and the project is in maintenance mode.
+- No component, metadata, demo, baseline, package build artifact, or existing `audit/` file was changed.
+
+## Stage Summary
+- Running showcase verified at `http://localhost:3000`: registry count 41; rendered Button default 56px; label weight is currently 500, so the old documented 600-weight gap is stale.
+- Verification gates for this read-only audit: lint/typecheck/package-typecheck rerun separately; package build and visual-regression checks intentionally not run because they rewrite tracked generated artifacts and no component code changed.
+
+---
+Task ID: 20-baseui-spike
+Agent: orchestrator (Z.ai Code)
+Task: Base UI rc.0→stable spike (investigation only, no code changes)
+
+## Work Log
+- npm registry truth: @base-ui-components/react is a dead name (frozen at rc.0, Dec 2025, deprecated) — stable lives at @base-ui/react, latest 1.7.0 (Aug 4 2026), 11M dl/wk; shadcn pins 1.6.0 as its default primitive base.
+- Research agent (primary sources: base-ui.com release notes, mui/base-ui GitHub): rc.0→1.0 breaking change = package rename ONLY (our rc.0 ≡ 1.0 code). 1.0→1.7 touches us in 3 places: Toolbar disabled-forwarding removal (1.6), render-prop typing tightening (1.7, Tooltip/Menu), Radio/Checkbox/Combobox marginal behavior. preventUnmountingOnClose/preventUnmountOnClose: neither exists — actual API is keepMounted on Portal.
+- Custom-by-design list unchanged: Badge/DatePicker/TimePicker/NavigationBar/NavigationRail/Snackbar absent in 1.7.0. New Drawer primitive (1.3) is a future BottomSheet/SideSheet simplification candidate.
+- Watch-list from open issues: Autocomplete actionsRef auto-unmount (#5587, opened Aug 28), Toast queue (#4986).
+- Wrote docs/base-ui-upgrade-spike.md (local): GO verdict, half-day plan (rename sed → tsc → gates → VR 41-component diff → spot-checks), target 1.7.0.
+
+## Stage Summary
+Verdict: GO. Local usage map done (19 subpaths/~35 import lines). No code changed this task.

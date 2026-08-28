@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from "react";
-import { Toolbar } from "@base-ui-components/react/toolbar";
+import { Toolbar } from "@base-ui/react/toolbar";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";

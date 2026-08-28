@@ -6,7 +6,7 @@ import type { HTMLMotionProps, Transition } from "framer-motion";
 import {
   Tooltip as BaseTooltip,
   type TooltipRootActions,
-} from "@base-ui-components/react/tooltip";
+} from "@base-ui/react/tooltip";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
 import type { M3Spring } from "@/lib/m3/tokens";
@@ -62,7 +62,7 @@ export function Tooltip({
   className,
 }: TooltipProps) {
   // Keep the tooltip mounted while the framer-motion exit plays, then unmount.
-  const actionsRef = React.useRef<TooltipRootActions>({ unmount() {} });
+  const actionsRef = React.useRef<TooltipRootActions>({ unmount() {}, close() {} });
 
   const popupMotion: HTMLMotionProps<"span"> = {
     initial: { opacity: 0, scale: 0.8, y: placement === "top" ? 4 : -4 },

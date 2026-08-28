@@ -3,8 +3,8 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
-import { Field } from "@base-ui-components/react/field";
-import { Input } from "@base-ui-components/react/input";
+import { Field } from "@base-ui/react/field";
+import { Input } from "@base-ui/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";

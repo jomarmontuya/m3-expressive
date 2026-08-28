@@ -30,10 +30,10 @@ import type { Route } from "./Sidebar";
 /* ------------------------------------------------------------------ */
 
 const INSTALL_CMD: Record<string, string> = {
-  bun: "bun add @base-ui-components/react framer-motion clsx tailwind-merge",
-  npm: "npm install @base-ui-components/react framer-motion clsx tailwind-merge",
-  pnpm: "pnpm add @base-ui-components/react framer-motion clsx tailwind-merge",
-  yarn: "yarn add @base-ui-components/react framer-motion clsx tailwind-merge",
+  bun: "bun add @base-ui/react framer-motion clsx tailwind-merge",
+  npm: "npm install @base-ui/react framer-motion clsx tailwind-merge",
+  pnpm: "pnpm add @base-ui/react framer-motion clsx tailwind-merge",
+  yarn: "yarn add @base-ui/react framer-motion clsx tailwind-merge",
 };
 
 const MCP_PROMPT = `# After wiring the m3-expressive MCP server (.mcp.json — see the Agent API page),
@@ -367,7 +367,7 @@ function InstallTab({ navigate }: { navigate: (r: Route) => void }) {
       {/* philosophy strip */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: "download", title: "1 · Install", body: "Four runtime deps: @base-ui-components/react, framer-motion, clsx, tailwind-merge." },
+          { icon: "download", title: "1 · Install", body: "Four runtime deps: @base-ui/react, framer-motion, clsx, tailwind-merge." },
           { icon: "content_copy", title: "2 · Copy", body: "The source lands in your repo — by hand or via your AI agent." },
           { icon: "key", title: "3 · Own it", body: "No version lock. Fork, restyle, delete — it's your code." },
         ].map((s) => (

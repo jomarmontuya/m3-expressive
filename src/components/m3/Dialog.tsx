@@ -7,7 +7,7 @@ import {
   Dialog as BaseDialog,
   type DialogRootActions,
   type DialogRootChangeEventDetails,
-} from "@base-ui-components/react/dialog";
+} from "@base-ui/react/dialog";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
-import { Input } from "@base-ui-components/react/input";
+import { Input } from "@base-ui/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";

@@ -8,7 +8,7 @@ import {
   Menu as BaseMenu,
   type MenuRootActions,
   type MenuRootChangeEventDetails,
-} from "@base-ui-components/react/menu";
+} from "@base-ui/react/menu";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 import { fabColorStyles, type FabColor } from "./FAB";
@@ -83,7 +83,7 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
   const isOpen = open ?? internalOpen;
 
   // Keep the menu mounted while the staggered exit plays, then unmount.
-  const actionsRef = React.useRef<MenuRootActions>({ unmount() {} });
+  const actionsRef = React.useRef<MenuRootActions>({ unmount() {}, close() {} });
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean, eventDetails: MenuRootChangeEventDetails) => {
       if (!nextOpen) eventDetails.preventUnmountOnClose();

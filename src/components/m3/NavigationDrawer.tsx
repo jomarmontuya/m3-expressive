@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from "react";
-import { Dialog } from "@base-ui-components/react/dialog";
-import type { DialogRootActions, DialogRootChangeEventDetails } from "@base-ui-components/react/dialog";
+import { Dialog } from "@base-ui/react/dialog";
+import type { DialogRootActions, DialogRootChangeEventDetails } from "@base-ui/react/dialog";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";

@@ -3,8 +3,8 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { HTMLMotionProps, Transition } from "framer-motion";
-import { Dialog, type DialogRootActions, type DialogRootChangeEventDetails } from "@base-ui-components/react/dialog";
-import { Input } from "@base-ui-components/react/input";
+import { Dialog, type DialogRootActions, type DialogRootChangeEventDetails } from "@base-ui/react/dialog";
+import { Input } from "@base-ui/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens, durations } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";

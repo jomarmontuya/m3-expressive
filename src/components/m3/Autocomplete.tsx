@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { HTMLMotionProps, Transition } from "framer-motion";
-import { Autocomplete as BaseAutocomplete } from "@base-ui-components/react/autocomplete";
+import { Autocomplete as BaseAutocomplete } from "@base-ui/react/autocomplete";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";

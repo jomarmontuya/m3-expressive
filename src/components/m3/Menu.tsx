@@ -7,7 +7,7 @@ import {
   Menu as BaseMenu,
   type MenuRootActions,
   type MenuRootChangeEventDetails,
-} from "@base-ui-components/react/menu";
+} from "@base-ui/react/menu";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -72,7 +72,7 @@ export function Menu({
   const isOpen = open !== undefined ? open : internalOpen;
 
   // Keep the menu mounted while the framer-motion exit plays, then unmount.
-  const actionsRef = React.useRef<MenuRootActions>({ unmount() {} });
+  const actionsRef = React.useRef<MenuRootActions>({ unmount() {}, close() {} });
 
   const setOpen = React.useCallback(
     (next: boolean) => {

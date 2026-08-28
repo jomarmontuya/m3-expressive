@@ -3,8 +3,8 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Transition } from "framer-motion";
-import { Toggle } from "@base-ui-components/react/toggle";
-import { Button } from "@base-ui-components/react/button";
+import { Toggle } from "@base-ui/react/toggle";
+import { Button } from "@base-ui/react/button";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";

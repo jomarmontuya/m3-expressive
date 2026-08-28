@@ -15,7 +15,7 @@
     "vr:check": "bun scripts/vr-compare.ts"
   },
   "dependencies": {
-    "@base-ui-components/react": "^1.0.0-rc.0",
+    "@base-ui/react": "^1.7.0",
     "@material/material-color-utilities": "^0.4.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.2",

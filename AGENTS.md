@@ -11,7 +11,7 @@ A **Material 3 Expressive React component library** plus everything that ships a
 - `mini-services/mcp-server/` — an MCP server exposing the library to AI agents (stdio + HTTP)
 - `src/app/llms.txt/route.ts` — an `/llms.txt` agent handbook route
 
-**Stack:** Bun (runtime + package manager) · Next.js 16 App Router · React 19 · TypeScript strict · Tailwind 4 · framer-motion 12 · `@base-ui-components/react` 1.0.0-rc.0.
+**Stack:** Bun (runtime + package manager) · Next.js 16 App Router · React 19 · TypeScript strict · Tailwind 4 · framer-motion 12 · `@base-ui/react` 1.7.0.
 
 **Path alias:** `@/*` → `./src/*`.
 
@@ -67,7 +67,7 @@ Every component file in `src/components/m3/` must:
 ### Known gotchas
 
 - **framer-motion 12 vs. token springs:** `tokens.ts` springs widen `type` to `string`, so `transition={springs.x}` fails typecheck. Fix per-file without touching `tokens.ts`: `const springs = springsTokens as { [K in keyof typeof springsTokens]: Transition };` (or a local `asTransition` helper). Never pass `easings.*` cubic-bezier strings as framer `ease` — use named easings or cast.
-- **Base UI is 1.0.0-rc.0.** 31 of 41 components sit on it; 10 are custom-by-design and each carries a documented "no Base UI primitive in v1.0.0-rc.0" comment. Don't migrate the custom ones until Base UI ships the missing primitives (Badge, DatePicker/TimePicker, NavigationBar/Rail, …).
+- **Base UI is `@base-ui/react` 1.7.0** (renamed from the deprecated `@base-ui-components/react`, migrated 2026-08 with a 41/41 identical VR run). 31 of 41 components sit on it; 10 are custom-by-design — Badge, DatePicker/TimePicker, NavigationBar/Rail, Snackbar, Banner, Card, List, Carousel, LoadingIndicator — still absent from Base UI 1.7.0. Don't migrate those until Base UI ships the primitives. Base UI also now ships a stable `Drawer` (1.3+): a future simplification candidate for BottomSheet/SideSheet internals.
 - **Base UI portals to `<body>`.** `--md-*` CSS vars cascade from `:root`/`[data-theme]`/`.dark`, so token styling still works — but any selector that assumes DOM ancestry inside `.m3-*` containers will not cross a portal.
 - **`next.config.ts` sets `typescript.ignoreBuildErrors: true`** — `next build` will NOT catch type errors. Always run `bunx tsc --noEmit` yourself.
 

@@ -7,7 +7,7 @@ import {
   Menu as BaseMenu,
   type MenuRootActions,
   type MenuRootChangeEventDetails,
-} from "@base-ui-components/react/menu";
+} from "@base-ui/react/menu";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -72,7 +72,7 @@ export const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(fu
   const s = sizeStyles[size];
 
   // Keep the menu mounted while the framer-motion exit plays, then unmount.
-  const actionsRef = React.useRef<MenuRootActions>({ unmount() {} });
+  const actionsRef = React.useRef<MenuRootActions>({ unmount() {}, close() {} });
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean, eventDetails: MenuRootChangeEventDetails) => {
       if (!nextOpen) eventDetails.preventUnmountOnClose();

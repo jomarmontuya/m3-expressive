@@ -4,7 +4,7 @@ import * as React from "react";
 // NOTE: `useToastManager`/`createToastManager` are only reachable as values
 // through the `Toast` namespace in v1.0.0-rc.0 (the package root re-exports
 // their *types* only), so they are consumed as `BaseToast.*` below.
-import { Toast as BaseToast } from "@base-ui-components/react/toast";
+import { Toast as BaseToast } from "@base-ui/react/toast";
 import { cn } from "@/lib/utils";
 import { MaterialSymbol } from "./MaterialSymbol";
 

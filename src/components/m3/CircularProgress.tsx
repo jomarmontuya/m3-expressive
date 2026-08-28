@@ -1,6 +1,6 @@
 "use client";
 
-import { Progress } from "@base-ui-components/react/progress";
+import { Progress } from "@base-ui/react/progress";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
