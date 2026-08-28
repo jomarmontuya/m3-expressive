@@ -1590,13 +1590,13 @@ var timePickerMeta = {
   id: "time-picker",
   name: "Time Picker",
   category: "selection",
-  description: "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. Simplified compact implementation \u2014 the official 12-number dial stays in both meridiem modes and only 5-minute marks are labelled.",
+  description: "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. In 24-hour mode the dial switches to the official double-ring face \u2014 outer ring 00\u201311, inner ring 12\u201323 \u2014 with the selection handle traveling between rings; only 5-minute marks are labelled in minute mode.",
   importLine: `import { TimePicker } from "@/components/m3";`,
-  variants: ["12-hour", "24-hour-readout"],
+  variants: ["12-hour", "24-hour-double-ring"],
   props: [
     { name: "value", type: `{ hour: number; minute: number }`, description: "Selected time (hour 0\u201323, minute 0\u201359). Defaults to 10:30 when uncontrolled." },
     { name: "onChange", type: `(t: { hour: number; minute: number }) => void`, description: "Fires on any dial, readout or meridiem change." },
-    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0\u201323 and hides AM/PM. The dial stays a 12-number ring; picking hours preserves the current half-day. Hour\u2192minute auto-advance applies in both modes." },
+    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0\u201323, hides AM/PM, and switches the dial to the official double-ring 24h face: outer ring 00\u201311 (00 at the top, 06 at the bottom, 101dp radius) and inner ring 12\u201323 (12 at the top, 18 at the bottom, 69dp radius). The selection handle travels between rings; arrows step the full 0\u201323 range. Hour\u2192minute auto-advance applies in both modes." },
     { name: "fullWidth", type: `boolean`, default: `false`, description: "Stretch to the container width." },
     { name: "className", type: `string`, description: "Extra classes for the container." }
   ],
@@ -1606,15 +1606,17 @@ var timePickerMeta = {
       "Use with a date picker for scheduling flows.",
       "Use the 24h readout for locales or domains that require it."
     ],
-    anatomy: ["Container (28px corners, surface-container-high, elevation 3, 24dp padding)", "Readout: two 96\xD780dp time-selector segments (8dp corner-small, display-large; active on primary-container, inactive on surface-container-highest/on-surface) + 52\xD780dp vertical period selector with 1dp outline (active option on tertiary-container)", "Dial (256dp circle, surface-container-highest, elevation 1)", "12 number positions (radius 104px, 48px hit areas)", "48dp primary selection handle, 2dp track and 8dp center dot"],
-    states: ["Hour editing", "Minute editing (marks = n\xD75)", "Selected number (48dp primary handle, spring scale)", "AM / PM selected (tertiary-container pill inside the outlined column)", "Active readout segment (primary-container, 8dp corners)", "Auto-switch (hour \u2192 minute after 600ms, both meridiem modes)", "Keyboard (Tab to dial/readout/AM-PM; Enter picks; \u2191/\u2192 +1 \xB7 \u2193/\u2190 \u22121 on dial; arrows move meridiem)"],
+    anatomy: ["Container (28px corners, surface-container-high, elevation 3, 24dp padding)", "Readout: two 96\xD780dp time-selector segments (8dp corner-small, display-large; active on primary-container, inactive on surface-container-highest/on-surface) + 52\xD780dp vertical period selector with 1dp outline (active option on tertiary-container)", "Dial (256dp circle, surface-container-highest, elevation 1)", "12 number positions (radius 104px, 48px hit areas); 24h hour dial = double ring per androidx tokens \u2014 outer ring 00\u201311 at 101dp (label-large, on-surface-variant), inner ring 12\u201323 at 69dp (body-large, on-surface)", "48dp primary selection handle, 2dp track and 8dp center dot; in 24h mode the handle travels between rings with a small cross-ring dot at the same clock position"],
+    states: ["Hour editing", "Minute editing (marks = n\xD75)", "Selected number (48dp primary handle, spring scale)", "24h double-ring hour dial (outer 00\u201311 \xB7 inner 12\u201323; handle on the selected hour's ring, springs between rings)", "AM / PM selected (tertiary-container pill inside the outlined column)", "Active readout segment (primary-container, 8dp corners)", "Auto-switch (hour \u2192 minute after 600ms, both meridiem modes)", "Keyboard (Tab to dial/readout/AM-PM; Enter picks; \u2191/\u2192 +1 \xB7 \u2193/\u2190 \u22121 \u2014 full 0\u201323 wrap in 24h; arrows move meridiem)"],
     dos: [
       "Show the current selection in the readout while editing the other segment",
+      "Use the 24h double-ring dial for locales that expect it \u2014 both half-days stay visible, no AM/PM arithmetic",
       "Keep the hand and pill in sync with the selected value",
       "Pad minute labels to two digits for readability"
     ],
     donts: [
       "Don't hide the AM/PM state when the readout shows 12-hour values",
+      "Don't keep the 12h single ring when use24h is set \u2014 the official face carries both half-days on two rings",
       "Don't make the dial smaller than 256px \u2014 numbers need 48px hit areas",
       "Don't use the time picker for durations"
     ]
@@ -6808,19 +6810,23 @@ var DatePicker = React34.forwardRef(function DatePicker2({
 // ../../src/components/m3/TimePicker.tsx
 import * as React35 from "react";
 import { motion as motion39 } from "framer-motion";
-import { jsx as jsx42, jsxs as jsxs38 } from "react/jsx-runtime";
+import { Fragment as Fragment7, jsx as jsx42, jsxs as jsxs38 } from "react/jsx-runtime";
 var DIAL_CENTER = 128;
 var DIAL_RADIUS = 104;
 var HOUR_AUTO_SWITCH_MS = 600;
+var OUTER_24H_RADIUS = 101;
+var INNER_24H_RADIUS = 69;
+var OUTER_RING_HOURS = Array.from({ length: 12 }, (_, i) => i);
+var INNER_RING_HOURS = Array.from({ length: 12 }, (_, i) => i + 12);
 var DIAL_POSITIONS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 function pad2(n) {
   return String(n).padStart(2, "0");
 }
-function dialPosition(n) {
+function dialPosition(n, radius = DIAL_RADIUS) {
   const theta = n * 30 * Math.PI / 180;
   return {
-    x: DIAL_CENTER + DIAL_RADIUS * Math.sin(theta),
-    y: DIAL_CENTER - DIAL_RADIUS * Math.cos(theta)
+    x: DIAL_CENTER + radius * Math.sin(theta),
+    y: DIAL_CENTER - radius * Math.cos(theta)
   };
 }
 var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use24h = false, fullWidth = false, className }, ref) {
@@ -6843,10 +6849,17 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
   const isPM = time.hour >= 12;
   const hour12 = time.hour % 12 === 0 ? 12 : time.hour % 12;
   const hourLabel = use24h ? pad2(time.hour) : String(hour12);
-  const angle = mode === "hour" ? hour12 * 30 : time.minute * 6;
+  const doubleRing = use24h && mode === "hour";
+  const handleRadius = doubleRing && time.hour >= 12 ? INNER_24H_RADIUS : DIAL_RADIUS;
+  const tickRadius = doubleRing && time.hour >= 12 ? OUTER_24H_RADIUS : INNER_24H_RADIUS;
+  const angle = mode === "hour" ? (use24h ? time.hour % 12 : hour12) * 30 : time.minute * 6;
   const scheduleModeSwitch = () => {
     if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
     switchTimer.current = window.setTimeout(() => setMode("minute"), HOUR_AUTO_SWITCH_MS);
+  };
+  const setHour24 = (h) => {
+    update({ hour: h });
+    scheduleModeSwitch();
   };
   const setHourOnDial = (n) => {
     const base = n % 12;
@@ -6865,8 +6878,13 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
     if (dir === 0) return;
     e.preventDefault();
     if (mode === "hour") {
-      const next = hour12 + dir;
-      setHourOnDial(next < 1 ? 12 : next > 12 ? 1 : next);
+      if (use24h) {
+        update({ hour: (time.hour + dir + 24) % 24 });
+        scheduleModeSwitch();
+      } else {
+        const next = hour12 + dir;
+        setHourOnDial(next < 1 ? 12 : next > 12 ? 1 : next);
+      }
     } else {
       update({ minute: (time.minute + dir + 60) % 60 });
     }
@@ -6884,8 +6902,8 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
     (toAM ? amRef : pmRef).current?.focus();
   };
   const theta = angle * Math.PI / 180;
-  const selX = DIAL_CENTER + DIAL_RADIUS * Math.sin(theta);
-  const selY = DIAL_CENTER - DIAL_RADIUS * Math.cos(theta);
+  const selX = DIAL_CENTER + handleRadius * Math.sin(theta);
+  const selY = DIAL_CENTER - handleRadius * Math.cos(theta);
   const readoutSegment = (label, target) => /* @__PURE__ */ jsx42(
     "button",
     {
@@ -6972,38 +6990,107 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
                 height: DIAL_RADIUS,
                 transformOrigin: "bottom center"
               },
-              animate: { rotate: angle },
+              animate: { rotate: angle, height: handleRadius },
               transition: springs.defaultVisual
             }
           ),
           /* @__PURE__ */ jsx42("span", { className: "absolute left-1/2 top-1/2 z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" }),
-          DIAL_POSITIONS.map((n) => {
-            const { x, y } = dialPosition(n);
-            const label = mode === "hour" ? String(n) : pad2(n * 5 % 60);
-            const isActive = mode === "hour" ? n === hour12 : n * 5 % 60 === time.minute;
-            return /* @__PURE__ */ jsx42(
-              "button",
-              {
-                type: "button",
-                "aria-label": mode === "hour" ? `${n} hours` : `${n * 5 % 60} minutes`,
-                onClick: () => handleNumberClick(n),
-                onKeyDown: handleDialKeyDown,
-                style: { left: x - 24, top: y - 24 },
-                className: "m3-state m3-focus absolute z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full outline-none",
-                children: /* @__PURE__ */ jsx42(
-                  "span",
-                  {
-                    className: cn(
-                      isActive ? "text-m3-on-primary" : "text-m3-on-surface",
-                      "md-body-large"
-                    ),
-                    children: label
-                  }
-                )
+          doubleRing && /* @__PURE__ */ jsx42(
+            motion39.span,
+            {
+              className: "absolute z-10 h-1.5 w-1.5 rounded-full bg-m3-primary",
+              style: {
+                left: DIAL_CENTER + tickRadius * Math.sin(theta) - 3,
+                top: DIAL_CENTER - tickRadius * Math.cos(theta) - 3
               },
-              n
-            );
-          })
+              initial: { scale: 0 },
+              animate: { scale: 1 },
+              transition: springs.expressiveEffects
+            }
+          ),
+          doubleRing ? /* @__PURE__ */ jsxs38(Fragment7, { children: [
+            OUTER_RING_HOURS.map((h) => {
+              const { x, y } = dialPosition(h === 0 ? 12 : h, OUTER_24H_RADIUS);
+              const isActive = h === time.hour;
+              return /* @__PURE__ */ jsx42(
+                "button",
+                {
+                  type: "button",
+                  "aria-label": `${h}:00`,
+                  onClick: () => setHour24(h),
+                  onKeyDown: handleDialKeyDown,
+                  style: { left: x - 20, top: y - 20 },
+                  className: "m3-state m3-focus absolute z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full outline-none",
+                  children: /* @__PURE__ */ jsx42(
+                    "span",
+                    {
+                      className: cn(
+                        isActive ? "text-m3-on-primary" : "text-m3-on-surface-variant",
+                        "md-label-large tabular-nums"
+                      ),
+                      children: h === 0 ? "00" : String(h)
+                    }
+                  )
+                },
+                `h${h}`
+              );
+            }),
+            INNER_RING_HOURS.map((h) => {
+              const { x, y } = dialPosition(h === 12 ? 12 : h - 12, INNER_24H_RADIUS);
+              const isActive = h === time.hour;
+              return /* @__PURE__ */ jsx42(
+                "button",
+                {
+                  type: "button",
+                  "aria-label": `${h}:00`,
+                  onClick: () => setHour24(h),
+                  onKeyDown: handleDialKeyDown,
+                  style: { left: x - 18, top: y - 18 },
+                  className: "m3-state m3-focus absolute z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full outline-none",
+                  children: /* @__PURE__ */ jsx42(
+                    "span",
+                    {
+                      className: cn(
+                        isActive ? "text-m3-on-primary" : "text-m3-on-surface",
+                        "md-body-large tabular-nums"
+                      ),
+                      children: String(h)
+                    }
+                  )
+                },
+                `h${h}`
+              );
+            })
+          ] }) : (
+            /* Hour / minute numbers (48px hit areas; adjacent centers ≈ 54px apart) */
+            DIAL_POSITIONS.map((n) => {
+              const { x, y } = dialPosition(n);
+              const label = mode === "hour" ? String(n) : pad2(n * 5 % 60);
+              const isActive = mode === "hour" ? n === hour12 : n * 5 % 60 === time.minute;
+              return /* @__PURE__ */ jsx42(
+                "button",
+                {
+                  type: "button",
+                  "aria-label": mode === "hour" ? `${n} hours` : `${n * 5 % 60} minutes`,
+                  onClick: () => handleNumberClick(n),
+                  onKeyDown: handleDialKeyDown,
+                  style: { left: x - 24, top: y - 24 },
+                  className: "m3-state m3-focus absolute z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full outline-none",
+                  children: /* @__PURE__ */ jsx42(
+                    "span",
+                    {
+                      className: cn(
+                        isActive ? "text-m3-on-primary" : "text-m3-on-surface",
+                        "md-body-large"
+                      ),
+                      children: label
+                    }
+                  )
+                },
+                n
+              );
+            })
+          )
         ] })
       ]
     }

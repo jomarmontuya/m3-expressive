@@ -96,7 +96,38 @@ Components style themselves with Tailwind utility classes mapped onto M3 tokens 
 }
 ```
 
-Then import `m3-expressive-react/styles.css` too (it defines the `--md-*` variables the mapping reads). **Without Tailwind 4, components will render unstyled layouts** — the token layer loads, but the internal utility classes won't exist. Tailwind 4 is currently a practical requirement of this release.
+Then import `m3-expressive-react/styles.css` too (it defines the `--md-*` variables the mapping reads). Prefer the smallest possible CSS? Use this `@source` route — it generates only the utilities your app actually renders.
+
+## Without Tailwind (compiled stylesheet)
+
+No Tailwind in your stack? Import the **compiled stylesheet** instead — it bundles the `--md-*` tokens, the `.md-*`/`.m3-*` helpers, and exactly the Tailwind utilities the components emit, pre-generated at build time:
+
+```tsx
+import { Button } from "m3-expressive-react";
+import "m3-expressive-react/compiled.css"; // or: "m3-expressive-react/dist/compiled.css"
+
+export function Actions() {
+  return <Button variant="filled">Create</Button>;
+}
+```
+
+```html
+<!-- plain HTML / any framework -->
+<link rel="stylesheet" href="./node_modules/m3-expressive-react/dist/compiled.css" />
+```
+
+What it contains, and what it deliberately leaves out:
+
+- **All `--md-*` token variables** (light default on `:root`, dark via `.dark`/`[data-theme="dark"]`, the ocean/emerald/coral `[data-theme]` schemes) plus the `.md-*` type scale, `.m3-state`, `.m3-focus`, `.m3-elevation-1…5`, ripple keyframes, `.m3-scroll`, and Material Symbols icon CSS — the full `styles.css` layer.
+- **Exactly the utilities the components use** (`bg-m3-primary`, `text-m3-on-surface/38`, `rounded-m3-xs`, …) — compiled from the package sources with the Tailwind v4 standalone CLI, nothing more.
+- **No preflight/reset** — only the theme + utilities layers are compiled, so it is safe to drop alongside any CSS stack; your own document styles are untouched. Components set their own backgrounds and draw their own borders.
+
+Notes:
+
+- The two Google Fonts imports (Roboto Flex, Material Symbols Rounded) live at the top of the file; self-host by replacing them with your own `@font-face` rules.
+- Dark mode + curated schemes work identically (`.dark` class / `data-theme` attribute) — theming is pure CSS-variable swapping.
+- The compiled file is generated from the same sources the npm package ships; if you tree-shake your own Tailwind build via the `@source` route above, prefer that route for marginally smaller CSS. Don't load both `styles.css` and `compiled.css` — the latter already includes the former.
+- `tailwind-merge`/`cn` still work as-is for your own `className` extensions.
 
 ## Theming
 
@@ -132,6 +163,7 @@ This library is designed to be used by AI coding agents:
 | --- | --- |
 | `m3-expressive-react` | Barrel: all components + primitives + token/registry/types/themes re-exports |
 | `m3-expressive-react/styles.css` | Standalone token + primitive stylesheet |
+| `m3-expressive-react/compiled.css` | Compiled stylesheet for consumers **without Tailwind**: tokens + helpers + the exact utilities the components use (no preflight) |
 | `m3-expressive-react/tokens` | Motion springs, easings, durations, shape, state, type, color tokens |
 | `m3-expressive-react/types` | `M3ComponentMeta`, category, registry contract types |
 | `m3-expressive-react/meta` | All 40 `M3ComponentMeta` objects |

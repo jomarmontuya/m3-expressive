@@ -1360,13 +1360,13 @@ var timePickerMeta = {
   id: "time-picker",
   name: "Time Picker",
   category: "selection",
-  description: "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. Simplified compact implementation \u2014 the official 12-number dial stays in both meridiem modes and only 5-minute marks are labelled.",
+  description: "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. In 24-hour mode the dial switches to the official double-ring face \u2014 outer ring 00\u201311, inner ring 12\u201323 \u2014 with the selection handle traveling between rings; only 5-minute marks are labelled in minute mode.",
   importLine: `import { TimePicker } from "@/components/m3";`,
-  variants: ["12-hour", "24-hour-readout"],
+  variants: ["12-hour", "24-hour-double-ring"],
   props: [
     { name: "value", type: `{ hour: number; minute: number }`, description: "Selected time (hour 0\u201323, minute 0\u201359). Defaults to 10:30 when uncontrolled." },
     { name: "onChange", type: `(t: { hour: number; minute: number }) => void`, description: "Fires on any dial, readout or meridiem change." },
-    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0\u201323 and hides AM/PM. The dial stays a 12-number ring; picking hours preserves the current half-day. Hour\u2192minute auto-advance applies in both modes." },
+    { name: "use24h", type: `boolean`, default: `false`, description: "Renders the readout 0\u201323, hides AM/PM, and switches the dial to the official double-ring 24h face: outer ring 00\u201311 (00 at the top, 06 at the bottom, 101dp radius) and inner ring 12\u201323 (12 at the top, 18 at the bottom, 69dp radius). The selection handle travels between rings; arrows step the full 0\u201323 range. Hour\u2192minute auto-advance applies in both modes." },
     { name: "fullWidth", type: `boolean`, default: `false`, description: "Stretch to the container width." },
     { name: "className", type: `string`, description: "Extra classes for the container." }
   ],
@@ -1376,15 +1376,17 @@ var timePickerMeta = {
       "Use with a date picker for scheduling flows.",
       "Use the 24h readout for locales or domains that require it."
     ],
-    anatomy: ["Container (28px corners, surface-container-high, elevation 3, 24dp padding)", "Readout: two 96\xD780dp time-selector segments (8dp corner-small, display-large; active on primary-container, inactive on surface-container-highest/on-surface) + 52\xD780dp vertical period selector with 1dp outline (active option on tertiary-container)", "Dial (256dp circle, surface-container-highest, elevation 1)", "12 number positions (radius 104px, 48px hit areas)", "48dp primary selection handle, 2dp track and 8dp center dot"],
-    states: ["Hour editing", "Minute editing (marks = n\xD75)", "Selected number (48dp primary handle, spring scale)", "AM / PM selected (tertiary-container pill inside the outlined column)", "Active readout segment (primary-container, 8dp corners)", "Auto-switch (hour \u2192 minute after 600ms, both meridiem modes)", "Keyboard (Tab to dial/readout/AM-PM; Enter picks; \u2191/\u2192 +1 \xB7 \u2193/\u2190 \u22121 on dial; arrows move meridiem)"],
+    anatomy: ["Container (28px corners, surface-container-high, elevation 3, 24dp padding)", "Readout: two 96\xD780dp time-selector segments (8dp corner-small, display-large; active on primary-container, inactive on surface-container-highest/on-surface) + 52\xD780dp vertical period selector with 1dp outline (active option on tertiary-container)", "Dial (256dp circle, surface-container-highest, elevation 1)", "12 number positions (radius 104px, 48px hit areas); 24h hour dial = double ring per androidx tokens \u2014 outer ring 00\u201311 at 101dp (label-large, on-surface-variant), inner ring 12\u201323 at 69dp (body-large, on-surface)", "48dp primary selection handle, 2dp track and 8dp center dot; in 24h mode the handle travels between rings with a small cross-ring dot at the same clock position"],
+    states: ["Hour editing", "Minute editing (marks = n\xD75)", "Selected number (48dp primary handle, spring scale)", "24h double-ring hour dial (outer 00\u201311 \xB7 inner 12\u201323; handle on the selected hour's ring, springs between rings)", "AM / PM selected (tertiary-container pill inside the outlined column)", "Active readout segment (primary-container, 8dp corners)", "Auto-switch (hour \u2192 minute after 600ms, both meridiem modes)", "Keyboard (Tab to dial/readout/AM-PM; Enter picks; \u2191/\u2192 +1 \xB7 \u2193/\u2190 \u22121 \u2014 full 0\u201323 wrap in 24h; arrows move meridiem)"],
     dos: [
       "Show the current selection in the readout while editing the other segment",
+      "Use the 24h double-ring dial for locales that expect it \u2014 both half-days stay visible, no AM/PM arithmetic",
       "Keep the hand and pill in sync with the selected value",
       "Pad minute labels to two digits for readability"
     ],
     donts: [
       "Don't hide the AM/PM state when the readout shows 12-hour values",
+      "Don't keep the 12h single ring when use24h is set \u2014 the official face carries both half-days on two rings",
       "Don't make the dial smaller than 256px \u2014 numbers need 48px hit areas",
       "Don't use the time picker for durations"
     ]
@@ -1900,4 +1902,4 @@ var linearProgressMeta = {
 
 
 exports.buttonGroupMeta = buttonGroupMeta; exports.dividerMeta = dividerMeta; exports.datePickerMeta = datePickerMeta; exports.sideSheetMeta = sideSheetMeta; exports.dialogMeta = dialogMeta; exports.snackbarMeta = snackbarMeta; exports.navigationDrawerMeta = navigationDrawerMeta; exports.listMeta = listMeta; exports.cardMeta = cardMeta; exports.segmentedButtonMeta = segmentedButtonMeta; exports.sliderMeta = sliderMeta; exports.textFieldMeta = textFieldMeta; exports.autocompleteMeta = autocompleteMeta; exports.navigationRailMeta = navigationRailMeta; exports.chipMeta = chipMeta; exports.bannerMeta = bannerMeta; exports.checkboxMeta = checkboxMeta; exports.fabMeta = fabMeta; exports.tabsMeta = tabsMeta; exports.loadingIndicatorMeta = loadingIndicatorMeta; exports.menuMeta = menuMeta; exports.bottomAppBarMeta = bottomAppBarMeta; exports.extendedFabMeta = extendedFabMeta; exports.circularProgressMeta = circularProgressMeta; exports.badgeMeta = badgeMeta; exports.searchBarMeta = searchBarMeta; exports.searchViewMeta = searchViewMeta; exports.splitButtonMeta = splitButtonMeta; exports.switchMeta = switchMeta; exports.timePickerMeta = timePickerMeta; exports.radioMeta = radioMeta; exports.toolbarMeta = toolbarMeta; exports.iconButtonMeta = iconButtonMeta; exports.tooltipMeta = tooltipMeta; exports.fabMenuMeta = fabMenuMeta; exports.navigationBarMeta = navigationBarMeta; exports.topAppBarMeta = topAppBarMeta; exports.bottomSheetMeta = bottomSheetMeta; exports.buttonMeta = buttonMeta; exports.linearProgressMeta = linearProgressMeta;
-//# sourceMappingURL=chunk-YEYXHVHU.cjs.map
+//# sourceMappingURL=chunk-WEC2GTG6.cjs.map

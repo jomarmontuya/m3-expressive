@@ -19,6 +19,7 @@ export async function GET() {
       exports: {
         ".": "Barrel — all 40 components + MaterialSymbol/Ripple primitives + tokens/registry/types/themes re-exports",
         "./styles.css": "Standalone token + primitive stylesheet (all --md-* color roles light/dark, 4 curated [data-theme] schemes, .md-* type scale, .m3-state/.m3-focus/.m3-elevation-*/ripple/m3-scroll, Material Symbols icon CSS)",
+        "./compiled.css": "Pre-compiled stylesheet for consumers WITHOUT Tailwind: tokens + helpers + exactly the utilities the components use (no preflight/reset — safe alongside any CSS stack)",
         "./tokens": "springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale, elevations, colorRoles",
         "./types": "M3ComponentMeta / M3Registry contract types",
         "./meta": "All 40 M3ComponentMeta objects (agentic metadata)",

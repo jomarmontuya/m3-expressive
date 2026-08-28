@@ -15,6 +15,7 @@
       "require": "./dist/index.cjs"
     },
     "./styles.css": "./dist/styles.css",
+    "./compiled.css": "./dist/compiled.css",
     "./tokens": {
       "types": "./dist/tokens.d.ts",
       "import": "./dist/tokens.js",
@@ -55,7 +56,7 @@
   },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
-    "build": "tsup && node scripts/patch-client-directive.mjs && cp styles-src/m3-tokens.css dist/styles.css",
+    "build": "tsup && node scripts/patch-client-directive.mjs && cp styles-src/m3-tokens.css dist/styles.css && bunx @tailwindcss/cli -i compiled-src/entry.css -o dist/compiled.css --minify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -46,7 +46,7 @@ export { TopAppBar, topAppBarMeta, type TopAppBarProps } from "./TopAppBar";
 export { BottomAppBar, bottomAppBarMeta, type BottomAppBarProps } from "./BottomAppBar";
 export { Toolbar, toolbarMeta, type ToolbarProps } from "./Toolbar";
 export { Menu, menuMeta, type MenuProps, type MenuItemData } from "./Menu";
-export { DatePicker, datePickerMeta, type DatePickerProps } from "./DatePicker";
+export { DatePicker, datePickerMeta, type DatePickerProps, type DateRange } from "./DatePicker";
 export { TimePicker, timePickerMeta, type TimePickerProps, type TimePickerValue } from "./TimePicker";
 
 /* Primitives */

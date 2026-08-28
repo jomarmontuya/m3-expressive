@@ -29,6 +29,7 @@ export async function GET() {
   lines.push("");
   lines.push("- npm: `m3-expressive-react` v1.0.0 — install with `npm i m3-expressive-react`. Peer deps: react >=18 <20, react-dom >=18 <20, framer-motion >=11 <13.");
   lines.push("- Exports: `m3-expressive-react` (barrel: all 40 components + primitives + tokens/registry/types/themes re-exports), `m3-expressive-react/styles.css` (standalone `--md-*` token + primitive stylesheet), and subpaths `tokens`, `types`, `meta`, `themes`, `theme-builder`, `registry`, `hooks`.");
+  lines.push("- Without Tailwind: import `m3-expressive-react/compiled.css` — a pre-compiled stylesheet bundling the `--md-*` tokens, `.md-*`/`.m3-*` helpers, and exactly the utilities the components use (no preflight/reset; safe alongside any CSS stack).");
   lines.push("- Tailwind 4: components style themselves with Tailwind utility classes mapped to M3 tokens — add `@source \"../node_modules/m3-expressive-react\";` plus the `--color-m3-*` / `--radius-m3-*` `@theme` mapping from the package README, and import `m3-expressive-react/styles.css`.");
   lines.push("- Theming: dark mode = `.dark` class on `<html>`; curated schemes = `data-theme=\"ocean\" | \"emerald\" | \"coral\"` (baseline violet = attribute removed); custom seed→scheme via `m3-expressive-react/theme-builder` (`generateScheme`) or the `hooks` controller (`useM3Theme`).");
   lines.push("");

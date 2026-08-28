@@ -106,12 +106,15 @@ export const datePickerMeta: M3ComponentMeta = {
   name: "Date Picker",
   category: "selection",
   description:
-    "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker — 328×512dp portrait / 568×368dp landscape (viewport ≥ 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons.",
+    "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker — 328×512dp portrait / 568×368dp landscape (viewport ≥ 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons. selectionMode='range' adds the official M3 date-range selection (androidx DateRangePicker conventions): tap start then end, in-between days carry a continuous primary-container band behind 40dp start/end circles, hover previews the tentative range, and the modal header shows Start/End date placeholders until the pair is complete.",
   importLine: `import { DatePicker } from "@/components/m3";`,
-  variants: ["month-view", "year-view", "modal"],
+  variants: ["month-view", "year-view", "modal", "range · inline", "range · modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
-    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked." },
+    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked (single mode)." },
+    { name: "selectionMode", type: `'single' | 'range'`, default: `'single'`, description: "Pick one date, or a start/end range: tap start, then end (tap ≥ start completes); tapping before the start or once complete restarts with a fresh start." },
+    { name: "range", type: `{ start?: Date; end?: Date }`, description: "Range mode — controlled selected range; omit for uncontrolled state. Partial ranges (start only) are valid states." },
+    { name: "onRangeChange", type: `(range: { start?: Date; end?: Date }) => void`, description: "Range mode — fires on every tap with the next range (partial ranges included)." },
     { name: "minDate", type: `Date`, description: "Earliest selectable date; earlier days render disabled (38%)." },
     { name: "maxDate", type: `Date`, description: "Latest selectable date; later days render disabled (38%)." },
     { name: "presentation", type: `'inline' | 'modal'`, default: `'inline'`, description: "Embedded calendar grid, or the official modal picker (328×512dp portrait / 568×368dp landscape at viewport ≥ 600px) with selected-date header and 32% scrim." },
@@ -128,18 +131,20 @@ export const datePickerMeta: M3ComponentMeta = {
       "Pair with a readout chip to show the formatted selected date.",
       "Use presentation=\"modal\" for the official picker dialog — 328×512dp portrait / 568×368dp landscape with selected-date header, 32% scrim and live-apply selection.",
       "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it.",
+      "Use selectionMode='range' for check-in/check-out and event spans — the band reads as one stripe per week row between the start/end circles.",
     ],
-    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6×7 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) — portrait stacks a header block (label-large “Selected date” + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId · modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus ±1 day / ±1 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9→1 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6×7 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) — portrait stacks a header block (label-large “Selected date” + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column", "Range band (selectionMode='range'): per-cell layer behind the day buttons — start cell right half (rounded-l-full, hidden under the circle), end cell left half (rounded-r-full), in-between cells full-width square, square cuts at week-row edges, 4dp vertical inset (inset-y-1) keeps adjacent week stripes separate; color = primary-container at 44% (color-mix over the m3 primary-container token — androidx maps its range container to primary-container; attenuated so mid-band days keep on-surface text); start/end days stay 40dp circles (inline primary · modal primary-container)"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId · modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus ±1 day / ±1 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9→1 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)", "Range (selectionMode='range'): start/end days 40dp circles with “start/end of range” label suffixes, in-between days on the primary-container/44 band (all aria-selected), 24% band + primary outline previews the tentative range while only the start is set, modal header shows Start/End date placeholders or the “Aug 21 – Aug 28” pair (headline-small) and closes only on a complete pick"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
       "Keep the selected-day pill circular and high-contrast (primary/on-primary)",
+      "Show start/end placeholders until both dates are picked — the modal header and readouts echo the partial range",
     ],
     donts: [
       "Don't force users to scroll years one month at a time — use the year grid",
       "Don't hide disabled days entirely; dim them to 38%",
-      "Don't use the picker for date ranges (extend it deliberately)",
+      "Don't close the modal picker before the range is complete — a start-only day tap must keep it open",
       "Don't add confirm/cancel buttons to the modal — M3 applies the selection live and Escape/scrim dismiss",
     ],
   },
@@ -160,6 +165,21 @@ const [open, setOpen] = React.useState(false);
   onOpenChange={setOpen}
   value={date}
   onChange={setDate}
+/>
+
+// Range selection (selectionMode="range") — tap start, then end
+const [range, setRange] = React.useState<{ start?: Date; end?: Date }>({});
+<DatePicker selectionMode="range" range={range} onRangeChange={setRange} />
+
+// Range modal — header shows Start/End date placeholders until the pair is
+// complete; it closes only after the second pick (Escape/scrim always dismiss)
+<DatePicker
+  presentation="modal"
+  selectionMode="range"
+  open={open}
+  onOpenChange={setOpen}
+  range={range}
+  onRangeChange={setRange}
 />`,
   related: ["time-picker", "card", "bottom-sheet"],
   demoName: "DatePickerDemo",

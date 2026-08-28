@@ -6,6 +6,7 @@ import { Card } from "@/components/m3/Card";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { m3Registry } from "@/lib/m3/registry";
 import { CodeBlock } from "./CodeBlock";
+import { MCPPlayground } from "./MCPPlayground";
 
 const ENDPOINTS = [
   {
@@ -126,6 +127,9 @@ export function AgentView() {
           ))}
         </div>
       </section>
+
+      {/* MCP playground — live client for the MCP server */}
+      <MCPPlayground />
 
       {/* MCP server */}
       <section className="mt-10">

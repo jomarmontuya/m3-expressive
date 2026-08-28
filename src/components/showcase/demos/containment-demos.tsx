@@ -243,9 +243,22 @@ export function DatePickerDemo() {
   const [date, setDate] = React.useState<Date | undefined>(() => new Date());
   const [modalOpen, setModalOpen] = React.useState(false);
   const [modalDate, setModalDate] = React.useState<Date | undefined>(() => new Date());
+  // Range selection (selectionMode="range") — shared by the inline picker,
+  // the readout card and the range modal so all three stay in sync
+  const [range, setRange] = React.useState<{ start?: Date; end?: Date }>({});
+  const [rangeModalOpen, setRangeModalOpen] = React.useState(false);
   // "Fri, Aug 21" — same format as the modal header headline
   const fmt = (d: Date) =>
     `${d.toLocaleDateString("en-US", { weekday: "short" })}, ${d.toLocaleDateString("en-US", { month: "short" })} ${d.getDate()}`;
+  // "Aug 21" / "Aug 21 – Aug 28" — the range-pair format from the modal header
+  const fmtShort = (d: Date) =>
+    `${d.toLocaleDateString("en-US", { month: "short" })} ${d.getDate()}`;
+  const fmtRange = (r: { start?: Date; end?: Date }) =>
+    r.start && r.end
+      ? `${fmtShort(r.start)} – ${fmtShort(r.end)}`
+      : r.start
+        ? `${fmtShort(r.start)} – …`
+        : "Select range";
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
       {/* Inline presentation (default) */}
@@ -288,6 +301,61 @@ export function DatePickerDemo() {
         onOpenChange={setModalOpen}
         value={modalDate}
         onChange={setModalDate}
+      />
+
+      {/* Range selection: inline picker + live readout + range modal trigger */}
+      <div className="flex w-full flex-col gap-3" data-testid="date-range-demo">
+        <span className="md-label-large text-m3-on-surface">
+          Range selection — tap the start, then the end; tapping before the start restarts
+        </span>
+        <div className="flex flex-wrap items-start gap-6">
+          <div data-testid="date-range-inline">
+            <DatePicker
+              selectionMode="range"
+              range={range}
+              onRangeChange={setRange}
+            />
+          </div>
+          <div
+            data-testid="date-range-readout"
+            className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-secondary-container p-4 text-m3-on-secondary-container"
+          >
+            <span className="md-label-medium">Selected range</span>
+            <span className="md-title-medium tabular-nums" data-testid="range-start">
+              {range.start ? fmtShort(range.start) : "Start date"}
+            </span>
+            <span className="md-title-medium tabular-nums" data-testid="range-end">
+              {range.end ? fmtShort(range.end) : "End date"}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            data-testid="range-modal-trigger"
+            onClick={() => setRangeModalOpen(true)}
+            className="m3-state m3-focus flex h-14 w-64 cursor-pointer items-center justify-between gap-3 rounded-m3-xs border border-m3-outline px-4 outline-none hover:border-m3-on-surface"
+          >
+            <span
+              className={`md-body-large truncate ${range.start && range.end ? "text-m3-on-surface" : "text-m3-on-surface-variant"}`}
+            >
+              {fmtRange(range)}
+            </span>
+            <MaterialSymbol icon="date_range" size={24} className="shrink-0 text-m3-on-surface-variant" />
+          </button>
+          <span className="md-body-small text-m3-on-surface-variant">
+            Modal closes only when the range is complete · Escape / scrim dismiss
+          </span>
+        </div>
+      </div>
+
+      <DatePicker
+        presentation="modal"
+        selectionMode="range"
+        open={rangeModalOpen}
+        onOpenChange={setRangeModalOpen}
+        range={range}
+        onRangeChange={setRange}
       />
     </div>
   );

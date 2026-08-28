@@ -1203,7 +1203,10 @@ interface TimePickerProps {
     /** Selected time (24h fields: hour 0–23, minute 0–59) */
     value?: TimePickerValue;
     onChange?: (t: TimePickerValue) => void;
-    /** 24-hour readout. The dial keeps the 12-number ring; the AM/PM state is preserved when picking hours. */
+    /**
+     * 24-hour format: the readout shows 0–23 and the dial switches to the
+     * official double-ring clock face — outer ring 00–11, inner ring 12–23.
+     */
     use24h?: boolean;
     /** Stretch to the container width */
     fullWidth?: boolean;
@@ -1220,7 +1223,12 @@ interface TimePickerProps {
  * a 1dp outline with the active option on tertiary-container. Hour numbers
  * sit on a 12-number ring (AM/PM preserved), minute marks map to n×5 with
  * 48px hit areas; arrows on the dial increment/decrement hour/minute and
- * picking an hour auto-advances to minute editing after 600ms.
+ * picking an hour auto-advances to minute editing after 600ms. In 24-hour
+ * mode the dial becomes the official double-ring face: outer ring 00–11
+ * (00 at top, 06 at bottom), inner ring 12–23 (12 at top, 18 at bottom) at
+ * the official 101dp/69dp radii, with the selection handle traveling between
+ * rings (hours 12–23 on the inner ring) and a small dot marking the same
+ * clock position on the opposite ring.
  */
 declare const TimePicker: React.ForwardRefExoticComponent<TimePickerProps & React.RefAttributes<HTMLDivElement>>;
 

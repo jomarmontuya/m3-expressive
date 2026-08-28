@@ -61,6 +61,31 @@ function formatHeadline(d: Date): string {
   return `${WEEKDAYS[d.getDay()].long.slice(0, 3)}, ${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
 }
 
+/** "Aug 21" — range-pair format for the modal header (month short + day) */
+function formatShort(d: Date): string {
+  return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+}
+
+/** Official date-range shape (androidx DateRangePicker / MaterialDatePicker) */
+export interface DateRange {
+  start?: Date;
+  end?: Date;
+}
+
+/**
+ * Range tap state machine (androidx DateRangePicker convention):
+ * no start → tap sets start · start-only → tap ≥ start completes the range,
+ * tap < start restarts with a new start · complete → tap restarts fresh.
+ */
+function advanceRange(current: DateRange, d: Date): DateRange {
+  if (!current.start) return { start: d, end: undefined };
+  if (!current.end) {
+    if (startOfDay(d) >= startOfDay(current.start)) return { start: current.start, end: d };
+    return { start: d, end: undefined };
+  }
+  return { start: d, end: undefined };
+}
+
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
 
@@ -81,6 +106,12 @@ interface DatePickerCalendarProps {
   tone?: "primary" | "primary-container";
   /** Slide/fade micro-transition on the month-year label (modal only). */
   animatedHeader?: boolean;
+  /** 'single' (default) picks one date; 'range' picks a start/end pair. */
+  selectionMode?: "single" | "range";
+  /** Range mode — selected range; uncontrolled when omitted. */
+  range?: DateRange;
+  /** Range mode — fires on every tap with the next range (partial included). */
+  onRangeChange?: (r: DateRange) => void;
 }
 
 /**
@@ -96,9 +127,21 @@ function DatePickerCalendar({
   maxDate,
   tone = "primary",
   animatedHeader = false,
+  selectionMode = "single",
+  range,
+  onRangeChange,
 }: DatePickerCalendarProps) {
   const [internal, setInternal] = React.useState<Date | undefined>(undefined);
   const selected = value ?? internal;
+  const [internalRange, setInternalRange] = React.useState<DateRange>({});
+  const rangeOn = selectionMode === "range";
+  const rangeSel = rangeOn ? (range ?? internalRange) : undefined;
+  // Hover/focus preview source while only the start of the range is set
+  const [hoverDate, setHoverDate] = React.useState<Date | undefined>(undefined);
+  const previewFrom =
+    rangeOn && rangeSel?.start !== undefined && rangeSel?.end === undefined
+      ? rangeSel.start
+      : undefined;
   const [cursor, setCursor] = React.useState<Date>(() => startOfMonth(value ?? new Date()));
   const [view, setView] = React.useState<"month" | "year">("month");
   const [rovingOverride, setRovingOverride] = React.useState<string | null>(null);
@@ -135,6 +178,12 @@ function DatePickerCalendar({
   );
 
   const handleSelect = (d: Date) => {
+    if (rangeOn) {
+      const next = advanceRange(rangeSel ?? {}, d);
+      setInternalRange(next);
+      onRangeChange?.(next);
+      return;
+    }
     setInternal(d);
     onChange?.(d);
   };
@@ -148,20 +197,22 @@ function DatePickerCalendar({
   };
 
   const today = new Date();
-  const highlightYear = (selected ?? cursor).getFullYear();
+  // Range mode anchors on the range start (the first picked day)
+  const anchor = rangeOn ? rangeSel?.start : selected;
+  const highlightYear = (anchor ?? cursor).getFullYear();
 
-  // Roving tabindex anchor: selected day in view → today → first enabled day of month
+  // Roving tabindex anchor: selected day in view → today → first enabled day of month.
   const activeIso = React.useMemo(() => {
     if (rovingOverride) return rovingOverride;
     const inView = (d: Date) => cells.some((c) => sameDay(c, d));
     const pick =
-      (selected && inView(selected) && !isDisabledDay(selected) ? selected : undefined) ??
+      (anchor && inView(anchor) && !isDisabledDay(anchor) ? anchor : undefined) ??
       (inView(today) && !isDisabledDay(today) ? today : undefined) ??
       cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)) ??
       cells.find((c) => !isDisabledDay(c)) ??
       cells[0];
     return isoOf(pick);
-  }, [rovingOverride, cells, selected, today, cursor, isDisabledDay]);
+  }, [rovingOverride, cells, anchor, today, cursor, isDisabledDay]);
 
   const focusCell = (iso: string) => {
     requestAnimationFrame(() => {
@@ -273,44 +324,135 @@ function DatePickerCalendar({
               {week.map((day, c) => {
                 const iso = isoOf(day);
                 const idx = r * 7 + c;
-                const isSelected = selected !== undefined && sameDay(day, selected);
+                const isSelected = !rangeOn && selected !== undefined && sameDay(day, selected);
                 const isToday = sameDay(day, today);
                 const inMonth = day.getMonth() === cursor.getMonth();
                 const disabled = isDisabledDay(day);
+                // Range mode: committed membership
+                const isRangeStart = rangeOn && rangeSel?.start !== undefined && sameDay(day, rangeSel.start);
+                const isRangeEnd = rangeOn && rangeSel?.end !== undefined && sameDay(day, rangeSel.end);
+                const inCommittedRange =
+                  rangeOn &&
+                  rangeSel?.start !== undefined &&
+                  rangeSel?.end !== undefined &&
+                  startOfDay(day) > startOfDay(rangeSel.start) &&
+                  startOfDay(day) < startOfDay(rangeSel.end);
+                // Tentative preview while only the start is set: hovering/focusing a
+                // later day paints the band start→hover, an earlier day previews a restart.
+                const previewEnd =
+                  previewFrom !== undefined &&
+                  hoverDate !== undefined &&
+                  sameDay(day, hoverDate) &&
+                  startOfDay(day) > startOfDay(previewFrom);
+                const inPreviewRange =
+                  previewFrom !== undefined &&
+                  hoverDate !== undefined &&
+                  startOfDay(day) > startOfDay(previewFrom) &&
+                  startOfDay(day) < startOfDay(hoverDate);
+                const previewRestart =
+                  previewFrom !== undefined &&
+                  hoverDate !== undefined &&
+                  sameDay(day, hoverDate) &&
+                  startOfDay(day) < startOfDay(previewFrom);
+                // Band segment per cell: start = right half (rounded-l, hidden under the
+                // circle), end = left half (rounded-r), in-between = full & square;
+                // square cuts at week-row edges, 4dp vertical inset (inset-y-1).
+                const bandKind: string | null =
+                  isRangeStart && !isRangeEnd ? "start"
+                  : isRangeEnd && !isRangeStart ? "end"
+                  : inCommittedRange ? "mid"
+                  : previewEnd ? "preview-end"
+                  : inPreviewRange ? "preview-mid"
+                  : null;
+                const rangeProps =
+                  rangeOn && previewFrom !== undefined
+                    ? {
+                        onMouseEnter: () => setHoverDate(day),
+                        onMouseLeave: () => setHoverDate(undefined),
+                        onFocus: () => setHoverDate(day),
+                        onBlur: () => setHoverDate(undefined),
+                      }
+                    : {};
                 return (
                   <div
                     key={iso}
                     role="gridcell"
-                    aria-selected={isSelected || undefined}
+                    aria-selected={
+                      isSelected || isRangeStart || isRangeEnd || inCommittedRange || undefined
+                    }
                     aria-current={isToday ? "date" : undefined}
                     aria-disabled={disabled || undefined}
-                    className="flex items-center justify-center"
+                    className="relative flex w-full items-center justify-center"
                   >
+                    {bandKind && (
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "pointer-events-none absolute inset-y-1",
+                          bandKind === "start" &&
+                            "left-1/2 right-0 rounded-l-full bg-m3-primary-container/44",
+                          bandKind === "end" &&
+                            "left-0 right-1/2 rounded-r-full bg-m3-primary-container/44",
+                          bandKind === "mid" && "inset-x-0 bg-m3-primary-container/44",
+                          bandKind === "preview-end" &&
+                            "left-0 right-1/2 rounded-r-full bg-m3-primary-container/24",
+                          bandKind === "preview-mid" && "inset-x-0 bg-m3-primary-container/24"
+                        )}
+                      />
+                    )}
                     <button
                       type="button"
                       data-iso={iso}
                       disabled={disabled}
                       tabIndex={iso === activeIso ? 0 : -1}
-                      aria-label={`${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}`}
+                      aria-label={`${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}${
+                        isRangeStart ? ", start of range" : isRangeEnd ? ", end of range" : ""
+                      }`}
                       onClick={() => handleSelect(day)}
                       onKeyDown={(e) => handleDayKeyDown(e, idx)}
+                      {...rangeProps}
                       className={cn(
                         "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
                         disabled && "pointer-events-none opacity-38",
                         !isSelected && isToday && "border border-m3-primary text-m3-primary",
+                        !isSelected && (previewEnd || previewRestart) && "border border-m3-primary",
                         !isSelected &&
                           !isToday &&
+                          !previewEnd &&
+                          !previewRestart &&
                           (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
                       )}
                     >
-                      {isSelected && (
+                      {rangeOn ? (
+                        isRangeStart && (
+                          <motion.span
+                            layoutId={`${pillId}-start`}
+                            className={cn("absolute inset-0 rounded-full", selectedPillClass)}
+                            transition={springs.expressive}
+                          />
+                        )
+                      ) : (
+                        isSelected && (
+                          <motion.span
+                            layoutId={pillId}
+                            className={cn("absolute inset-0 rounded-full", selectedPillClass)}
+                            transition={springs.expressive}
+                          />
+                        )
+                      )}
+                      {rangeOn && isRangeEnd && !isRangeStart && (
                         <motion.span
-                          layoutId={pillId}
+                          layoutId={`${pillId}-end`}
                           className={cn("absolute inset-0 rounded-full", selectedPillClass)}
                           transition={springs.expressive}
                         />
                       )}
-                      <span className={cn("relative z-10", isSelected && selectedTextClass)}>
+                      <span
+                        className={cn(
+                          "relative z-10",
+                          (isSelected || isRangeStart || isRangeEnd) && selectedTextClass
+                        )}
+                      >
                         {day.getDate()}
                       </span>
                     </button>
@@ -364,6 +506,9 @@ interface DatePickerModalProps {
   onOpenChange?: (open: boolean) => void;
   closeOnSelect?: boolean;
   className?: string;
+  selectionMode?: "single" | "range";
+  range?: DateRange;
+  onRangeChange?: (r: DateRange) => void;
 }
 
 /**
@@ -376,10 +521,27 @@ interface DatePickerModalProps {
  * dialog when closeOnSelect; Escape and scrim tap always dismiss. Focus
  * moves to the selected/today day on open, Tab is trapped, and focus is
  * restored to the opener on close (same pattern as Dialog).
+ *
+ * selectionMode="range": the header shows "Start date" / "End date"
+ * placeholders (or the formatted pair "Aug 21 – Aug 28") and the dialog
+ * closes only once a COMPLETE range is picked — a start-only day tap keeps
+ * it open. Escape/scrim mid-selection dismiss without fabricating an end.
  */
 const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
   function DatePickerModal(
-    { value, onChange, minDate, maxDate, open = false, onOpenChange, closeOnSelect = true, className },
+    {
+      value,
+      onChange,
+      minDate,
+      maxDate,
+      open = false,
+      onOpenChange,
+      closeOnSelect = true,
+      className,
+      selectionMode = "single",
+      range,
+      onRangeChange,
+    },
     ref
   ) {
     const panelRef = React.useRef<HTMLDivElement | null>(null);
@@ -388,6 +550,10 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
     const [landscape, setLandscape] = React.useState(false);
     // Tracks picks when the caller renders uncontrolled, so the header stays live
     const [picked, setPicked] = React.useState<Date | undefined>(undefined);
+    // Range-mode equivalent of `picked` for the uncontrolled header/live state
+    const [pickedRange, setPickedRange] = React.useState<DateRange>({});
+    const rangeOn = selectionMode === "range";
+    const rangeSel = rangeOn ? (range ?? pickedRange) : undefined;
 
     React.useEffect(() => {
       const mq = window.matchMedia("(min-width: 600px)");
@@ -458,8 +624,35 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
       if (closeOnSelect) onOpenChange?.(false);
     };
 
+    // Range picks arrive via the calendar's onRangeChange (range mode routes
+    // through it, not onChange). closeOnSelect range semantics: only a
+    // COMPLETE range closes the dialog — a start-only day tap keeps it open;
+    // Escape/scrim mid-selection dismiss without fabricating an end.
+    const handleRangeChange = (r: DateRange) => {
+      setPickedRange(r);
+      onRangeChange?.(r);
+      if (r.start && r.end && closeOnSelect) onOpenChange?.(false);
+    };
+
     const headlineDate = value ?? picked ?? new Date();
     const headline = formatHeadline(headlineDate);
+
+    // Range header: "Start date" / "End date" placeholders, or the formatted pair
+    let rangeHeadline: React.ReactNode;
+    if (rangeSel?.start && rangeSel?.end) {
+      rangeHeadline = `${formatShort(rangeSel.start)} – ${formatShort(rangeSel.end)}`;
+    } else if (rangeSel?.start) {
+      rangeHeadline = (
+        <>
+          {formatShort(rangeSel.start)}
+          {" – "}
+          <span className="text-m3-on-surface-variant">End date</span>
+        </>
+      );
+    } else {
+      rangeHeadline = <span className="text-m3-on-surface-variant">Start date</span>;
+    }
+    const headerLabel = rangeOn ? "Selected dates" : "Selected date";
 
     return (
       <AnimatePresence>
@@ -483,7 +676,7 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
               ref={panelRef}
               role="dialog"
               aria-modal="true"
-              aria-label="Choose date"
+              aria-label={rangeOn ? "Choose date range" : "Choose date"}
               tabIndex={-1}
               onKeyDown={handleTab}
               initial={{ scale: 0.9, opacity: 0 }}
@@ -503,11 +696,17 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
                   {/* Header as a 168dp left column, vertically centered */}
                   <div className="flex w-[168px] shrink-0 flex-col justify-center gap-1 px-4">
                     <span className="md-label-large text-m3-on-surface-variant">
-                      Selected date
+                      {headerLabel}
                     </span>
-                    <span className="md-headline-small leading-tight text-m3-on-surface">
-                      {headline}
-                    </span>
+                    {rangeOn ? (
+                      <span className="md-headline-small leading-tight text-m3-on-surface">
+                        {rangeHeadline}
+                      </span>
+                    ) : (
+                      <span className="md-headline-small leading-tight text-m3-on-surface">
+                        {headline}
+                      </span>
+                    )}
                   </div>
                   <div className="m3-scroll min-w-0 flex-1 overflow-y-auto px-4 py-1">
                     <DatePickerCalendar
@@ -517,6 +716,9 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
                       maxDate={maxDate}
                       tone="primary-container"
                       animatedHeader
+                      selectionMode={selectionMode}
+                      range={range}
+                      onRangeChange={rangeOn ? handleRangeChange : undefined}
                     />
                   </div>
                 </>
@@ -525,9 +727,15 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
                   {/* Header block on top: supporting text + display headline + divider */}
                   <div className="flex shrink-0 flex-col gap-1 px-6 pb-3 pt-6">
                     <span className="md-label-large text-m3-on-surface-variant">
-                      Selected date
+                      {headerLabel}
                     </span>
-                    <span className="md-display-small text-m3-on-surface">{headline}</span>
+                    {rangeOn ? (
+                      <span className="md-headline-small leading-tight text-m3-on-surface">
+                        {rangeHeadline}
+                      </span>
+                    ) : (
+                      <span className="md-display-small text-m3-on-surface">{headline}</span>
+                    )}
                   </div>
                   <div className="h-px w-full shrink-0 bg-m3-outline-variant" />
                   <div className="m3-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-2">
@@ -538,6 +746,9 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
                       maxDate={maxDate}
                       tone="primary-container"
                       animatedHeader
+                      selectionMode={selectionMode}
+                      range={range}
+                      onRangeChange={rangeOn ? handleRangeChange : undefined}
                     />
                   </div>
                 </>
@@ -582,6 +793,14 @@ export interface DatePickerProps {
   closeOnSelect?: boolean;
   /** Inline only: stretch to the container width */
   fullWidth?: boolean;
+  /** 'single' (default) picks one date via value/onChange; 'range' picks a
+   * start/end pair via range/onRangeChange (tap start, then end; a tap
+   * before the start restarts — androidx DateRangePicker convention). */
+  selectionMode?: "single" | "range";
+  /** Range mode — controlled range; uncontrolled when omitted. */
+  range?: DateRange;
+  /** Range mode — fires on every tap with the next range (partial included). */
+  onRangeChange?: (r: DateRange) => void;
   className?: string;
 }
 
@@ -604,7 +823,21 @@ export interface DatePickerProps {
  * selection with no action buttons, Escape/scrim dismissal, focus trap
  * with initial focus on the selected/today day and restore to the
  * opener, body scroll lock, and the same ARIA-grid calendar internals.
- * The forwardRef lands on the inline root / the modal dialog panel.
+ *
+ * selectionMode="range" — official M3 date-range selection in BOTH
+ * presentations: the first tap sets the start, a tap ≥ start completes the
+ * range, a tap < start (or any tap once complete) restarts; in-between
+ * days carry a continuous primary-container band (start cell = right half
+ * with rounded-left edge under the circle, end cell = left half with
+ * rounded-right edge, mid cells square, square cuts at week-row edges, a
+ * 4dp vertical inset keeps adjacent week stripes separate) while start/end
+ * days are 40dp circles; hovering/focusing while only the start is set
+ * previews the tentative range. ARIA: start/end/in-between days are
+ * aria-selected with "start/end of range" label suffixes; arrow-key
+ * navigation is unchanged. In the modal the header shows Start/End date
+ * placeholders (or the formatted pair) and closeOnSelect only closes once
+ * the range is complete — Escape/scrim mid-selection never fabricate an
+ * end. The forwardRef lands on the inline root / the modal dialog panel.
  */
 export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(function DatePicker(
   {
@@ -617,6 +850,9 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
     onOpenChange,
     closeOnSelect = true,
     fullWidth = false,
+    selectionMode = "single",
+    range,
+    onRangeChange,
     className,
   },
   ref
@@ -632,6 +868,9 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
         onChange={onChange}
         minDate={minDate}
         maxDate={maxDate}
+        selectionMode={selectionMode}
+        range={range}
+        onRangeChange={onRangeChange}
         className={className}
       />
     );
@@ -651,6 +890,9 @@ export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(func
         onChange={onChange}
         minDate={minDate}
         maxDate={maxDate}
+        selectionMode={selectionMode}
+        range={range}
+        onRangeChange={onRangeChange}
       />
     </div>
   );

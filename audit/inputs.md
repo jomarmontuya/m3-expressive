@@ -308,3 +308,14 @@ simplified grid intentionally omits" — is now implemented in `DatePicker.tsx` 
   text-field-style trigger pill + landscape note; verified `bunx tsc --noEmit` (0 errors
   in src/), `bun run lint` (0 errors), and agent-browser QA with portrait/landscape
   screenshots in `tool-results/`.
+
+## Date Picker — Extended (round 6, task 6-b)
+**Extended:** `selectionMode="range"` adds the official M3 date-range selection on the SAME
+inline/modal presentations (androidx DateRangePicker conventions): tap start then end
+(tap < start or after complete restarts with a fresh start); in-between days carry a
+continuous primary-container/44 band behind 40dp start/end circles (square mid-band cuts
+at week-row edges, 4dp vertical inset); hovering with only a start set previews the
+tentative band (primary-container/24, restart preview when hovering earlier days);
+aria-selected on all range cells + "start/end of range" label suffixes; modal header shows
+Start/End placeholders until the pair is complete and the modal closes only on a complete
+range. Single-mode behavior byte-identical.
