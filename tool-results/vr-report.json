@@ -2,37 +2,37 @@
   {
     "id": "button",
     "baselineExists": true,
-    "diffPercent": 0.5444,
+    "diffPercent": 0.5436,
     "status": "minor"
   },
   {
     "id": "icon-button",
     "baselineExists": true,
-    "diffPercent": 0.0089,
+    "diffPercent": 0.0078,
     "status": "identical"
   },
   {
     "id": "fab",
     "baselineExists": true,
-    "diffPercent": 0.2718,
+    "diffPercent": 0.2716,
     "status": "minor"
   },
   {
     "id": "extended-fab",
     "baselineExists": true,
-    "diffPercent": 0.0056,
+    "diffPercent": 0.008,
     "status": "identical"
   },
   {
     "id": "fab-menu",
     "baselineExists": true,
-    "diffPercent": 0.0089,
+    "diffPercent": 0.0102,
     "status": "identical"
   },
   {
     "id": "split-button",
     "baselineExists": true,
-    "diffPercent": 0.0028,
+    "diffPercent": 0.0023,
     "status": "identical"
   },
   {
@@ -56,46 +56,46 @@
   {
     "id": "linear-progress",
     "baselineExists": true,
-    "diffPercent": 0.0026,
-    "status": "identical",
+    "diffPercent": 0.0643,
+    "status": "minor",
     "knownAnimated": true
   },
   {
     "id": "circular-progress",
     "baselineExists": true,
-    "diffPercent": 1.7253,
+    "diffPercent": 1.7276,
     "status": "minor",
     "knownAnimated": true
   },
   {
     "id": "loading-indicator",
     "baselineExists": true,
-    "diffPercent": 0.0111,
+    "diffPercent": 0.0088,
     "status": "identical",
     "knownAnimated": true
   },
   {
     "id": "snackbar",
     "baselineExists": true,
-    "diffPercent": 0.0078,
+    "diffPercent": 0.0055,
     "status": "identical"
   },
   {
     "id": "tooltip",
     "baselineExists": true,
-    "diffPercent": 0.0003,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "banner",
     "baselineExists": true,
-    "diffPercent": 0.0006,
+    "diffPercent": 0.0004,
     "status": "identical"
   },
   {
     "id": "dialog",
     "baselineExists": true,
-    "diffPercent": 0.0039,
+    "diffPercent": 0.0037,
     "status": "identical"
   },
   {
@@ -131,13 +131,13 @@
   {
     "id": "carousel",
     "baselineExists": true,
-    "diffPercent": 0.0049,
+    "diffPercent": 0.0053,
     "status": "identical"
   },
   {
     "id": "checkbox",
     "baselineExists": true,
-    "diffPercent": 0.0023,
+    "diffPercent": 0.0017,
     "status": "identical"
   },
   {
@@ -167,19 +167,19 @@
   {
     "id": "date-picker",
     "baselineExists": true,
-    "diffPercent": 0.0065,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "time-picker",
     "baselineExists": true,
-    "diffPercent": 0.0082,
+    "diffPercent": 0.0041,
     "status": "identical"
   },
   {
     "id": "text-field",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0002,
     "status": "identical"
   },
   {
@@ -209,13 +209,13 @@
   {
     "id": "navigation-bar",
     "baselineExists": true,
-    "diffPercent": 0.0092,
+    "diffPercent": 0.0088,
     "status": "identical"
   },
   {
     "id": "navigation-drawer",
     "baselineExists": true,
-    "diffPercent": 0.0054,
+    "diffPercent": 0.0048,
     "status": "identical"
   },
   {
@@ -233,7 +233,7 @@
   {
     "id": "bottom-app-bar",
     "baselineExists": true,
-    "diffPercent": 0.0041,
+    "diffPercent": 0.0037,
     "status": "identical"
   },
   {

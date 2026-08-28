@@ -62,6 +62,8 @@ import type {
 import { List, ListItem } from "@/components/m3/List";
 import { Toolbar } from "@/components/m3/Toolbar";
 import type { ToolbarColor, ToolbarVariant } from "@/components/m3/Toolbar";
+import { DatePicker } from "@/components/m3/DatePicker";
+import { TimePicker } from "@/components/m3/TimePicker";
 
 /**
  * Stage Switch with an accessible name. The library Switch forwards its ref
@@ -163,8 +165,40 @@ const joinCode = (component: string, props: string[], body?: string): string => 
 
 const sizeOptions = (values: string[]) => values.map((v) => ({ value: v, label: v }));
 
+/* Date/time playground helpers — dates/times can't live in PlaygroundValue
+   (string | number | boolean), so they are stored as "YYYY-MM-DD" / "H:m"
+   strings and parsed on render. */
+const PG_MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "YYYY-MM-DD" → local Date (undefined when empty/malformed). */
+function pgIso(s: PlaygroundValue | undefined): Date | undefined {
+  if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return undefined;
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Local Date → "YYYY-MM-DD". */
+function pgIsoStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** "H:m" → [hour, minute] (defaults 9:41, the official docs sample time). */
+function pgTime(s: PlaygroundValue | undefined): [number, number] {
+  const m = typeof s === "string" && /^\d{1,2}:\d{1,2}$/.test(s) ? s.split(":").map(Number) : [9, 41];
+  return [m[0] ?? 9, m[1] ?? 41];
+}
+
+/** Readout label — 24h "09:41" / 12h "9:41 AM". */
+function pgTimeLabel(h: number, m: number, use24h: boolean): string {
+  const mm = String(m).padStart(2, "0");
+  if (use24h) return `${String(h).padStart(2, "0")}:${mm}`;
+  const period = h < 12 ? "AM" : "PM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${mm} ${period}`;
+}
+
 /* ------------------------------------------------------------------ */
-/* PLAYGROUND_SPECS — 28 components                                   */
+/* PLAYGROUND_SPECS — 30 components                                   */
 /* ------------------------------------------------------------------ */
 
 export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
@@ -1610,6 +1644,128 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (width !== 280 && v.docked !== true) props.push(`width={${width}}`);
       const open = `<Toolbar${props.length ? " " + props.join(" ") : ""} />`;
       return `import { Toolbar } from "m3-expressive-react";\n\nconst icons = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "date-picker": {
+    id: "date-picker",
+    component: "DatePicker",
+    explainer:
+      "Pick live on the calendar — Range switches to the start/end band selection; Modal presents the official scrim dialog that only closes on a complete range.",
+    defaults: { presentation: "inline", mode: "single", open: false, closeOnSelect: true, value: "", start: "", end: "" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "presentation",
+        label: "Presentation",
+        icon: "web_asset",
+        options: sizeOptions(["inline", "modal"]),
+      },
+      {
+        kind: "segmented",
+        key: "mode",
+        label: "Selection mode",
+        icon: "date_range",
+        options: sizeOptions(["single", "range"]),
+      },
+      {
+        kind: "switch",
+        key: "closeOnSelect",
+        label: "Close on pick",
+        icon: "logout",
+        disabledWhen: (v) => v.presentation !== "modal",
+      },
+    ],
+    stageKey: (v) => `${pgStr(v.presentation, "inline")}-${pgStr(v.mode, "single")}`,
+    render: (v, set) => {
+      const modal = v.presentation === "modal";
+      const range = v.mode === "range";
+      const picked =
+        v.value !== "" ? PG_MONTHS_SHORT[pgIso(v.value)!.getMonth()] + " " + pgIso(v.value)!.getDate() : "";
+      const pair =
+        v.start !== "" && v.end !== ""
+          ? `${PG_MONTHS_SHORT[pgIso(v.start)!.getMonth()]} ${pgIso(v.start)!.getDate()} – ${PG_MONTHS_SHORT[pgIso(v.end)!.getMonth()]} ${pgIso(v.end)!.getDate()}`
+          : v.start !== ""
+            ? `${PG_MONTHS_SHORT[pgIso(v.start)!.getMonth()]} ${pgIso(v.start)!.getDate()} – …`
+            : "";
+      const readout = range ? pair : picked;
+      return (
+        <div className="flex flex-col items-center gap-4">
+          {modal && (
+            <Button
+              icon="calendar_today"
+              onClick={() => set("open", true)}
+              variant={readout ? "tonal" : "filled"}
+            >
+              {readout || "Pick a date"}
+            </Button>
+          )}
+          {readout && !modal && (
+            <div className="rounded-[16px] bg-m3-secondary-container px-4 py-2 md-title-medium text-m3-on-secondary-container tabular-nums">
+              {readout}
+            </div>
+          )}
+          <DatePicker
+            presentation={modal ? "modal" : "inline"}
+            selectionMode={range ? "range" : "single"}
+            open={v.open === true}
+            onOpenChange={(o) => set("open", o)}
+            closeOnSelect={v.closeOnSelect !== false}
+            value={range ? undefined : (pgIso(v.value) ?? undefined)}
+            onChange={(d) => set("value", pgIsoStr(d))}
+            range={range ? { start: pgIso(v.start) ?? undefined, end: pgIso(v.end) ?? undefined } : undefined}
+            onRangeChange={(r) => {
+              set("start", r.start ? pgIsoStr(r.start) : "");
+              set("end", r.end ? pgIsoStr(r.end) : "");
+            }}
+          />
+        </div>
+      );
+    },
+    code: (v) => {
+      const props: string[] = [];
+      if (v.presentation === "modal") {
+        props.push('presentation="modal"', "open={open}", "onOpenChange={setOpen}");
+        if (v.closeOnSelect === false) props.push("closeOnSelect={false}");
+      }
+      if (v.mode === "range") {
+        props.push('selectionMode="range"', "range={range}", "onRangeChange={setRange}");
+      } else {
+        props.push("value={value}", "onChange={setValue}");
+      }
+      return joinCode("DatePicker", props);
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "time-picker": {
+    id: "time-picker",
+    component: "TimePicker",
+    explainer:
+      "Drag or tap the clock dial — 24h swaps to the official double-ring face (outer 00–11, inner 12–23) with a digital 96×80dp readout.",
+    defaults: { use24h: false, time: "9:41" },
+    controls: [{ kind: "switch", key: "use24h", label: "24-hour", icon: "schedule" }],
+    stageKey: (v) => (v.use24h === true ? "24h" : "12h"),
+    render: (v, set) => {
+      const [h, m] = pgTime(v.time);
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <div className="rounded-[20px] bg-m3-surface-container px-6 py-2 md-title-large text-m3-on-surface tabular-nums">
+            {pgTimeLabel(h, m, v.use24h === true)}
+          </div>
+          <TimePicker
+            value={{ hour: h, minute: m }}
+            onChange={(t) => set("time", `${t.hour}:${t.minute}`)}
+            use24h={v.use24h === true}
+          />
+        </div>
+      );
+    },
+    code: (v) => {
+      const props: string[] = ["value={time}", "onChange={setTime}"];
+      if (v.use24h === true) props.push("use24h");
+      return joinCode("TimePicker", props);
     },
   },
 };

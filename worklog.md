@@ -811,3 +811,29 @@ All-green production state: **41 components**, **Props Playground on 28 of 41 pa
 - Multi-select playground state (segmented/button-group) is stored as comma-joined string — fine for controls but a future `PlaygroundValue` array variant would be cleaner.
 - Hero layout ratio 0.66/0.34 vs official 3:2 — documented, unchanged. CI yaml still untested (no git remote); npm publish still blocked on registry access.
 - Next candidates: date-picker range selection feature; MCP stateful SSE sessions; fab-menu/split-button playgrounds (trigger-state pattern now proven by menu/dialog); README badges; a11y deep-audit (keyboard roving on new playground stages).
+
+---
+Task ID: 10-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-10 QA + date-picker range live-verification + date/time-picker playgrounds (28 → 30)
+
+## Current project status
+All-green production state: **41 components**, **Props Playground on 30 of 41 pages** (was 28), MCP 14 tools (stdio + HTTP :3210), VR PASS. Key reconciliation this round: the "date-picker range selection" next-candidate carried since round 8 was ALREADY fully implemented, meta-documented, audited and shipped in the package — it just had never been live-verified end-to-end nor surfaced in a playground. Both gaps closed.
+
+## Completed this round (verification results)
+- Start-of-round QA: dev.log clean, tsc 0 src errors, 4-route browser sweep zero errors, MCP HTTP health ok (14 tools / 41 components).
+- **Stale-candidate reconciliation**: `selectionMode="range"` / `range` / `onRangeChange` verified present in DatePicker.tsx (inline + modal + advanceRange state machine), meta.ts (props + variants + description), audit/inputs.md §"Extended" (accurate), and packages dist index.d.ts (DateRange exported). Worklog candidate list was stale — no code change needed.
+- **Live end-to-end range verification** (agent-browser): inline — tap day 10 then 16 → 7 aria-selected cells, 7 band segments, readout card "Aug 10" / "Aug 16"; modal — trigger shows synced pair, dialog aria-label "Choose date range", header "Aug 10 – Aug 16"; new start tap (day 20) keeps dialog OPEN with "Aug 20 – End date" placeholder; end tap (day 24) closes; readouts update to Aug 20 – Aug 24. Official close-only-on-complete semantics confirmed live.
+- **Playground 28 → 30** (src/components/showcase/playground-specs.tsx): 
+  - date-picker — controls: Presentation (inline/modal) × Selection mode (single/range) × Close-on-pick (modal only); stage renders the live calendar with a secondary-container readout chip ("Aug 14 – Aug 18" pair or single "Aug 12"), modal mode adds a trigger button whose label carries the current selection; code mirrors presentation/open/onOpenChange/closeOnSelect/selectionMode/range/onRangeChange/value/onChange. Live-verified: single pick, range band, modal open/Escape/label sync.
+  - time-picker — control: 24-hour switch; stage shows a digital readout chip above the dial; live-verified hour-6 tap ("9:41 AM" → "6:41 AM"), 24h toggle ("06:41" + double-ring dial with 18 on the inner ring and 12 at top).
+  - New shared helpers (PlaygroundValue can't hold Date): pgIso/pgIsoStr ("YYYY-MM-DD"), pgTime/pgTimeLabel ("H:m" ↔ readout, 12h/24h formats), PG_MONTHS_SHORT.
+- Mobile 375×812: both new pages zero horizontal overflow; playground interactions unchanged.
+- Gates: tsc 0 src errors; lint 0 errors/1 documented warning; VR baselines refreshed (date-picker, time-picker) → full vr:check **PASS: identical 37 · minor 4 · changed 0 (41/41)** — time-picker now sits in the minor band BY DESIGN (clock hand tracks current time between capture and compare); fresh-load sweep zero page errors; dev.log gained zero new Fast Refresh warnings (two pre-existing stale mid-edit ones). No library/package source touched — no package rebuild needed.
+
+## Unresolved issues / risks / next-phase priorities
+- Playground covers 30/41; remaining 11: fab-menu, split-button (trigger-state pattern proven), bottom-sheet, side-sheet, carousel, search-view, navigation-bar, navigation-drawer, navigation-rail, top-app-bar, bottom-app-bar (app-frame mocks, explicit-width frame pattern from round 9).
+- time-picker VR baseline will always compare "minor" (live clock hand) — acceptable, documented; date-picker baseline identical.
+- Multi-select/array PlaygroundValue still string-joined (segmented/button-group) — cleaner array variant remains open.
+- Hero ratio 0.66/0.34 vs 3:2 documented; CI untested (no remote); npm publish blocked on registry access.
+- Next candidates: carousel playground (arrows variant — cheap win), search-view playground, date-picker min/max controls on the existing spec, MCP stateful SSE sessions, README badges, keyboard-roving a11y audit of playground stages.
