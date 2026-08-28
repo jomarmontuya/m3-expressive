@@ -43,6 +43,25 @@ import { Card } from "@/components/m3/Card";
 import type { CardShape, CardVariant } from "@/components/m3/Card";
 import { Snackbar } from "@/components/m3/Snackbar";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
+import { Menu } from "@/components/m3/Menu";
+import type { MenuPlacement } from "@/components/m3/Menu";
+import { Dialog } from "@/components/m3/Dialog";
+import { Banner } from "@/components/m3/Banner";
+import { SearchBar } from "@/components/m3/SearchBar";
+import type { SearchBarSize } from "@/components/m3/SearchBar";
+import { Autocomplete } from "@/components/m3/Autocomplete";
+import { Tabs } from "@/components/m3/Tabs";
+import { SegmentedButton } from "@/components/m3/SegmentedButton";
+import type { SegmentedButtonSize } from "@/components/m3/SegmentedButton";
+import { ButtonGroup } from "@/components/m3/ButtonGroup";
+import type {
+  ButtonGroupSelection,
+  ButtonGroupSize,
+  ButtonGroupVariant,
+} from "@/components/m3/ButtonGroup";
+import { List, ListItem } from "@/components/m3/List";
+import { Toolbar } from "@/components/m3/Toolbar";
+import type { ToolbarColor, ToolbarVariant } from "@/components/m3/Toolbar";
 
 /**
  * Stage Switch with an accessible name. The library Switch forwards its ref
@@ -145,7 +164,7 @@ const joinCode = (component: string, props: string[], body?: string): string => 
 const sizeOptions = (values: string[]) => values.map((v) => ({ value: v, label: v }));
 
 /* ------------------------------------------------------------------ */
-/* PLAYGROUND_SPECS — 18 components                                   */
+/* PLAYGROUND_SPECS — 28 components                                   */
 /* ------------------------------------------------------------------ */
 
 export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
@@ -1015,6 +1034,582 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.actionLabel === true) props.push('actionLabel="Undo"');
       props.push("onClose={handleClose}");
       return joinCode("Snackbar", props);
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  menu: {
+    id: "menu",
+    component: "Menu",
+    explainer:
+      "Trigger-attached list — Options drops the elevation-2 sheet under the button; Esc or an outside click closes it.",
+    defaults: { open: false, placement: "bottom-start", icons: true, shortcuts: true, destructive: true, disabled: false },
+    controls: [
+      {
+        kind: "segmented",
+        key: "placement",
+        label: "Placement",
+        icon: "swap_horiz",
+        options: sizeOptions(["bottom-start", "bottom-end"]),
+      },
+      { kind: "switch", key: "icons", label: "Leading icons", icon: "image" },
+      { kind: "switch", key: "shortcuts", label: "Shortcuts", icon: "keyboard_command_key" },
+      { kind: "switch", key: "destructive", label: "Destructive item", icon: "delete" },
+      { kind: "switch", key: "disabled", label: "Disabled item", icon: "block" },
+    ],
+    render: (v, set) => {
+      const icons = v.icons === true;
+      const shortcuts = v.shortcuts === true;
+      const items: { label: string; icon?: string; shortcut?: string; destructive?: boolean; disabled?: boolean }[] = [
+        { label: "Edit", icon: icons ? "edit" : undefined, shortcut: shortcuts ? "⌘E" : undefined },
+        { label: "Duplicate", icon: icons ? "content_copy" : undefined, shortcut: shortcuts ? "⌘D" : undefined },
+      ];
+      if (v.destructive === true) items.push({ label: "Delete", icon: icons ? "delete" : undefined, destructive: true });
+      if (v.disabled === true) items.push({ label: "Archive", icon: icons ? "archive" : undefined, disabled: true });
+      return (
+        <div className="relative flex items-center justify-center">
+          <Menu
+            trigger={
+              <Button variant="outlined" size="sm" icon="more_vert">
+                Options
+              </Button>
+            }
+            items={items}
+            open={v.open === true}
+            onOpenChange={(o) => set("open", o)}
+            placement={pgStr(v.placement, "bottom-start") as MenuPlacement}
+          />
+        </div>
+      );
+    },
+    code: (v) => {
+      const icons = v.icons === true;
+      const shortcuts = v.shortcuts === true;
+      const rows: string[] = [
+        `  { label: "Edit"${icons ? ', icon: "edit"' : ""}${shortcuts ? ', shortcut: "⌘E"' : ""} },`,
+        `  { label: "Duplicate"${icons ? ', icon: "content_copy"' : ""}${shortcuts ? ', shortcut: "⌘D"' : ""} },`,
+      ];
+      if (v.destructive === true) {
+        rows.push('  { type: "divider" },');
+        rows.push(`  { label: "Delete"${icons ? ', icon: "delete"' : ""}, destructive: true },`);
+      }
+      if (v.disabled === true) {
+        rows.push(`  { label: "Archive"${icons ? ', icon: "archive"' : ""}, disabled: true },`);
+      }
+      const props: string[] = [
+        "trigger={<Button variant=\"outlined\" size=\"sm\">Options</Button>}",
+        "items={items}",
+      ];
+      if (v.placement !== "bottom-start") props.push(`placement="${pgStr(v.placement, "bottom-start")}"`);
+      const open = `<Menu${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { Menu, Button } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  dialog: {
+    id: "dialog",
+    component: "Dialog",
+    explainer:
+      "Modal scrim + centered card — Fullscreen swaps the centered card for a full-viewport sheet; scrim taps close unless you turn Scrim dismiss off.",
+    defaults: { open: false, fullscreen: false, icon: true, dismissible: true, headline: "Reset settings?" },
+    controls: [
+      { kind: "switch", key: "fullscreen", label: "Fullscreen", icon: "fullscreen" },
+      { kind: "switch", key: "icon", label: "Header icon", icon: "restart_alt" },
+      { kind: "switch", key: "dismissible", label: "Scrim dismiss", icon: "touch_app" },
+      { kind: "text", key: "headline", label: "Headline", icon: "title" },
+    ],
+    render: (v, set) => {
+      const close = () => set("open", false);
+      return (
+        <div className="relative flex items-center justify-center">
+          <Button icon="settings_backup_restore" onClick={() => set("open", true)}>
+            Open dialog
+          </Button>
+          <Dialog
+            open={v.open === true}
+            onClose={close}
+            fullscreen={v.fullscreen === true}
+            icon={v.icon === true ? "restart_alt" : undefined}
+            headline={pgStr(v.headline, "").trim() || "Reset settings?"}
+            dismissible={v.dismissible !== false}
+            actions={
+              <>
+                <Button variant="text" onClick={close}>
+                  Cancel
+                </Button>
+                <Button variant="text" onClick={close}>
+                  Reset
+                </Button>
+              </>
+            }
+          >
+            This will reset all app settings to their defaults. Your files won&apos;t be affected.
+          </Dialog>
+        </div>
+      );
+    },
+    code: (v) => {
+      const props: string[] = ["open={open}", "onClose={handleClose}"];
+      if (v.fullscreen === true) props.push("fullscreen");
+      if (v.icon === true) props.push('icon="restart_alt"');
+      props.push(`headline="${pgStr(v.headline, "").trim() || "Reset settings?"}"`);
+      if (v.dismissible === false) props.push("dismissible={false}");
+      const open = `<Dialog${props.length ? " " + props.join(" ") : ""}>`;
+      return `import { Dialog, Button } from "m3-expressive-react";\n\n${open}\n  This will reset all app settings to their defaults.\n  <>\n    <Button variant="text" onClick={handleClose}>Cancel</Button>\n    <Button variant="text" onClick={handleReset}>Reset</Button>\n  </>\n</Dialog>`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  banner: {
+    id: "banner",
+    component: "Banner",
+    explainer:
+      "Inline system notice — toggling Open collapses the container through AnimatePresence; actions sit at the trailing edge.",
+    defaults: { open: true, icon: true, actions: true, fullWidth: false, text: "You're offline — messages will send once you reconnect" },
+    controls: [
+      { kind: "switch", key: "open", label: "Open", icon: "visibility" },
+      { kind: "switch", key: "icon", label: "Leading icon", icon: "wifi_off" },
+      { kind: "switch", key: "actions", label: "Action buttons", icon: "touch_app" },
+      { kind: "switch", key: "fullWidth", label: "Full width", icon: "resize_width" },
+      { kind: "text", key: "text", label: "Text", icon: "edit" },
+    ],
+    stageKey: (v) => (v.open === true ? "open" : "closed"),
+    render: (v, set) => (
+      <div className="w-[420px] max-w-full">
+        <Banner
+          open={v.open !== false}
+          icon={v.icon === true ? "wifi_off" : undefined}
+          text={pgStr(v.text, "").trim() || "You're offline — messages will send once you reconnect"}
+          fullWidth={v.fullWidth === true}
+          actions={
+            v.actions === true
+              ? [
+                  { label: "Retry", onClick: () => undefined },
+                  { label: "Dismiss", onClick: () => set("open", false) },
+                ]
+              : undefined
+          }
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = ["open={open}"];
+      if (v.icon === true) props.push('icon="wifi_off"');
+      props.push(`text="${pgStr(v.text, "").trim() || "You're offline — messages will send once you reconnect"}"`);
+      if (v.fullWidth === true) props.push("fullWidth");
+      const open = `<Banner${props.length ? " " + props.join(" ") : ""}`;
+      if (v.actions === true) {
+        return `import { Banner } from "m3-expressive-react";\n\n${open}\n  actions={[\n    { label: "Retry", onClick: handleRetry },\n    { label: "Dismiss", onClick: handleClose },\n  ]}\n/>`;
+      }
+      return `${open} />`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "search-bar": {
+    id: "search-bar",
+    component: "SearchBar",
+    explainer:
+      "Type live on the stage — the pill grows at lg and the trailing icons complete the M3 search experience; Enter fires onSubmit.",
+    defaults: { value: "", size: "md", trailing: true, disabled: false, placeholder: "Search photos" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "size",
+        label: "Size",
+        icon: "straighten",
+        options: sizeOptions(["sm", "md", "lg"]),
+      },
+      { kind: "switch", key: "trailing", label: "Trailing icons", icon: "mic" },
+      { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
+      { kind: "text", key: "placeholder", label: "Placeholder", icon: "edit" },
+    ],
+    render: (v, set) => (
+      <div className="w-[360px] max-w-full">
+        <SearchBar
+          value={pgStr(v.value, "")}
+          onChange={(e) => set("value", e.target.value)}
+          placeholder={pgStr(v.placeholder, "").trim() || "Search photos"}
+          size={pgStr(v.size, "md") as SearchBarSize}
+          trailingIcons={v.trailing === true ? ["mic", "image"] : []}
+          disabled={v.disabled === true}
+          fullWidth
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = ["value={query}", "onChange={(e) => setQuery(e.target.value)}"];
+      const placeholder = pgStr(v.placeholder, "").trim() || "Search photos";
+      if (placeholder) props.push(`placeholder="${placeholder}"`);
+      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.trailing === true) props.push('trailingIcons={["mic", "image"]}');
+      if (v.disabled === true) props.push("disabled");
+      return joinCode("SearchBar", props);
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  autocomplete: {
+    id: "autocomplete",
+    component: "Autocomplete",
+    explainer:
+      "Type-ahead text field — suggestions filter as you type and fill the input on click; selection lands back in the control.",
+    defaults: { value: "", label: "Fruit", disabled: false },
+    controls: [
+      { kind: "text", key: "label", label: "Label", icon: "edit" },
+      { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
+    ],
+    render: (v, set) => (
+      <div className="w-[280px] max-w-full">
+        <Autocomplete
+          options={["Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Guava"]}
+          value={pgStr(v.value, "")}
+          onChange={(x) => set("value", x)}
+          label={pgStr(v.label, "").trim() || undefined}
+          placeholder="Type a fruit…"
+          disabled={v.disabled === true}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = ["options={fruits}", "value={value}", "onChange={setValue}"];
+      const label = pgStr(v.label, "").trim();
+      if (label) props.push(`label="${label}"`);
+      props.push('placeholder="Type a fruit…"');
+      if (v.disabled === true) props.push("disabled");
+      const open = `<Autocomplete${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { Autocomplete } from "m3-expressive-react";\n\nconst fruits = ["Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Guava"];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  tabs: {
+    id: "tabs",
+    component: "Tabs",
+    explainer:
+      "Primary or secondary navigation — the active indicator springs under the selected tab; Secondary drops to the compact 64dp row.",
+    defaults: { variant: "primary", value: "chats", badges: false, fullWidth: false },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["primary", "secondary"]),
+      },
+      { kind: "switch", key: "badges", label: "Badges", icon: "mark_chat_unread" },
+      { kind: "switch", key: "fullWidth", label: "Full width", icon: "resize_width" },
+    ],
+    stageKey: (v) => pgStr(v.variant, "primary"),
+    render: (v, set) => (
+      <div className="w-[420px] max-w-full">
+        <Tabs
+          items={[
+            { value: "home", icon: "home", label: "Home" },
+            { value: "chats", icon: "chat", label: "Chats", badge: v.badges === true ? 3 : undefined },
+            { value: "calls", icon: "call", label: "Calls" },
+          ]}
+          value={pgStr(v.value, "chats")}
+          onChange={(x) => set("value", x)}
+          variant={pgStr(v.variant, "primary") as "primary" | "secondary"}
+          fullWidth={v.fullWidth === true}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const rows = [
+        '  { value: "home", icon: "home", label: "Home" },',
+        `  { value: "chats", icon: "chat", label: "Chats"${v.badges === true ? ", badge: 3" : ""} },`,
+        '  { value: "calls", icon: "call", label: "Calls" },',
+      ];
+      const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
+      if (v.variant !== "primary") props.push(`variant="${pgStr(v.variant, "primary")}"`);
+      if (v.fullWidth === true) props.push("fullWidth");
+      const open = `<Tabs${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { Tabs } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "segmented-button": {
+    id: "segmented-button",
+    component: "SegmentedButton",
+    explainer:
+      "Connected choice set — Single picks one segment; Multiple toggles independent checkmarks with the M3E press morph.",
+    defaults: { type: "single", size: "sm", icons: true, sel: "day" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "type",
+        label: "Type",
+        icon: "category",
+        options: sizeOptions(["single", "multiple"]),
+      },
+      {
+        kind: "segmented",
+        key: "size",
+        label: "Size",
+        icon: "straighten",
+        options: sizeOptions(["sm", "md"]),
+      },
+      { kind: "switch", key: "icons", label: "Segment icons", icon: "calendar_view_day" },
+    ],
+    stageKey: (v) => `${pgStr(v.type, "single")}-${pgStr(v.size, "sm")}`,
+    render: (v, set) => {
+      const multiple = v.type === "multiple";
+      const selStr = pgStr(v.sel, "day");
+      const icon = v.icons === true;
+      return (
+        <SegmentedButton
+          type={multiple ? "multiple" : "single"}
+          size={pgStr(v.size, "sm") as SegmentedButtonSize}
+          options={[
+            { value: "day", label: "Day", icon: icon ? "calendar_view_day" : undefined },
+            { value: "week", label: "Week", icon: icon ? "calendar_view_week" : undefined },
+            { value: "month", label: "Month", icon: icon ? "calendar_view_month" : undefined },
+          ]}
+          value={multiple ? selStr.split(",").filter(Boolean) : selStr}
+          onValueChange={(next) => set("sel", Array.isArray(next) ? next.join(",") : next)}
+        />
+      );
+    },
+    code: (v) => {
+      const icon = v.icons === true;
+      const rows = [
+        `  { value: "day", label: "Day"${icon ? ', icon: "calendar_view_day"' : ""} },`,
+        `  { value: "week", label: "Week"${icon ? ', icon: "calendar_view_week"' : ""} },`,
+        `  { value: "month", label: "Month"${icon ? ', icon: "calendar_view_month"' : ""} },`,
+      ];
+      const props: string[] = [];
+      if (v.type === "multiple") props.push('type="multiple"');
+      props.push("options={options}", "value={selected}", "onValueChange={setSelected}");
+      if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
+      const open = `<SegmentedButton${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { SegmentedButton } from "m3-expressive-react";\n\nconst options = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "button-group": {
+    id: "button-group",
+    component: "ButtonGroup",
+    explainer:
+      "Merged adjacent buttons — selection modes highlight pressed items and the tonal or filled variants recolor the whole set.",
+    defaults: { variant: "outlined", selection: "single", size: "md", icons: false, sel: "bold" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["outlined", "filled", "tonal"]),
+      },
+      {
+        kind: "segmented",
+        key: "selection",
+        label: "Selection",
+        icon: "radio_button_checked",
+        options: sizeOptions(["none", "single", "multiple"]),
+      },
+      {
+        kind: "segmented",
+        key: "size",
+        label: "Size",
+        icon: "straighten",
+        options: sizeOptions(["sm", "md", "lg"]),
+      },
+      { kind: "switch", key: "icons", label: "Button icons", icon: "format_bold" },
+    ],
+    stageKey: (v) => `${pgStr(v.selection, "single")}-${pgStr(v.size, "md")}`,
+    render: (v, set) => {
+      const selection = pgStr(v.selection, "single") as ButtonGroupSelection;
+      const icon = v.icons === true;
+      return (
+        <ButtonGroup
+          buttons={[
+            { id: "bold", label: "Bold", icon: icon ? "format_bold" : undefined },
+            { id: "italic", label: "Italic", icon: icon ? "format_italic" : undefined },
+            { id: "underline", label: "Underline", icon: icon ? "format_underlined" : undefined },
+          ]}
+          variant={pgStr(v.variant, "outlined") as ButtonGroupVariant}
+          selection={selection}
+          value={selection === "none" ? undefined : pgStr(v.sel, "bold").split(",").filter(Boolean)}
+          onValueChange={(next) => set("sel", next.join(","))}
+          size={pgStr(v.size, "md") as ButtonGroupSize}
+        />
+      );
+    },
+    code: (v) => {
+      const icon = v.icons === true;
+      const rows = [
+        `  { id: "bold", label: "Bold"${icon ? ', icon: "format_bold"' : ""} },`,
+        `  { id: "italic", label: "Italic"${icon ? ', icon: "format_italic"' : ""} },`,
+        `  { id: "underline", label: "Underline"${icon ? ', icon: "format_underlined"' : ""} },`,
+      ];
+      const props: string[] = ["buttons={buttons}"];
+      if (v.variant !== "outlined") props.push(`variant="${pgStr(v.variant, "outlined")}"`);
+      if (v.selection !== "none") props.push(`selection="${pgStr(v.selection, "single")}"`, "value={selected}", "onValueChange={setSelected}");
+      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      const open = `<ButtonGroup${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { ButtonGroup } from "m3-expressive-react";\n\nconst buttons = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  list: {
+    id: "list",
+    component: "List",
+    explainer:
+      "M3 list rows at 56/72/88dp — supporting text grows rows to two lines; dividers, leading icons and trailing affordances complete the anatomy.",
+    defaults: { dividers: false, supporting: true, icons: true, trailing: true },
+    controls: [
+      { kind: "switch", key: "dividers", label: "Dividers", icon: "border_horizontal" },
+      { kind: "switch", key: "supporting", label: "Supporting text", icon: "subject" },
+      { kind: "switch", key: "icons", label: "Leading icons", icon: "image" },
+      { kind: "switch", key: "trailing", label: "Trailing icons", icon: "chevron_right" },
+    ],
+    render: (v) => {
+      const supporting = v.supporting === true;
+      const leading = v.icons === true;
+      const trailingIcon = v.trailing === true ? "chevron_right" : undefined;
+      return (
+        <div className="w-[360px] max-w-full">
+          <List dividers={v.dividers === true}>
+            <ListItem
+              headline="Inbox"
+              supporting={supporting ? "Unread messages" : undefined}
+              leading={leading ? <MaterialSymbol icon="inbox" /> : undefined}
+              trailingIcon={trailingIcon}
+              selected
+              onClick={() => undefined}
+            />
+            <ListItem
+              headline="Sent"
+              supporting={supporting ? "Messages you've sent" : undefined}
+              leading={leading ? <MaterialSymbol icon="send" /> : undefined}
+              trailingIcon={trailingIcon}
+              onClick={() => undefined}
+            />
+            <ListItem
+              headline="Drafts"
+              supporting={supporting ? "Unfinished drafts" : undefined}
+              leading={leading ? <MaterialSymbol icon="draft" /> : undefined}
+              trailingIcon={trailingIcon}
+              onClick={() => undefined}
+            />
+          </List>
+        </div>
+      );
+    },
+    code: (v) => {
+      const supporting = v.supporting === true;
+      const leading = v.icons === true;
+      const trailingIcon = v.trailing === true ? '\n    trailingIcon="chevron_right"' : "";
+      const row = (headline: string, icon: string, sup: string, selected: boolean): string => {
+        const props = [
+          `headline="${headline}"`,
+          supporting ? `supporting="${sup}"` : "",
+          leading ? `leading={<MaterialSymbol icon="${icon}" />}` : "",
+          trailingIcon,
+          selected ? "\n    selected" : "",
+          "\n    onClick={handleClick}",
+        ].filter(Boolean);
+        return `  <ListItem\n    ${props.map((p) => p.replace(/^\n\s+/, "")).join("\n    ")}\n  />`;
+      };
+      const rows = [row("Inbox", "inbox", "Unread messages", true), row("Sent", "send", "Messages you've sent", false), row("Drafts", "draft", "Unfinished drafts", false)];
+      const open = `<List${v.dividers === true ? " dividers" : ""}>`;
+      return `import { List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n${rows.join("\n")}\n</List>`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  toolbar: {
+    id: "toolbar",
+    component: "Toolbar",
+    explainer:
+      "Floating icon rail — Floating pins the pill to a positioned edge; Dockable morphs square and full-bleed the moment Docked is on.",
+    defaults: { variant: "floating", color: "surface", docked: false, position: "bottom", width: 280 },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["floating", "dockable"]),
+      },
+      {
+        kind: "segmented",
+        key: "color",
+        label: "Color",
+        icon: "palette",
+        options: sizeOptions(["surface", "primary", "secondary", "tertiary"]),
+      },
+      {
+        kind: "segmented",
+        key: "position",
+        label: "Position",
+        icon: "swap_vert",
+        options: sizeOptions(["top", "bottom"]),
+        disabledWhen: (v) => v.variant !== "floating",
+      },
+      {
+        kind: "switch",
+        key: "docked",
+        label: "Docked",
+        icon: "dock_to_bottom",
+        disabledWhen: (v) => v.variant !== "dockable",
+      },
+      {
+        kind: "slider",
+        key: "width",
+        label: "Width",
+        icon: "straighten",
+        min: 200,
+        max: 300,
+        step: 10,
+        disabledWhen: (v) => v.docked === true,
+      },
+    ],
+    stageKey: (v) => `${pgStr(v.variant, "floating")}-${pgStr(v.position, "bottom")}`,
+    render: (v) => {
+      const icons = [
+        { icon: "format_bold", label: "Bold", active: true },
+        { icon: "format_italic", label: "Italic" },
+        { icon: "format_underlined", label: "Underline" },
+        { icon: "more_horiz", label: "More" },
+      ];
+      const color = pgStr(v.color, "surface") as ToolbarColor;
+      const width = pgNum(v.width, 280);
+      if (v.variant === "dockable") {
+        return (
+          <div className="w-[320px] max-w-full">
+            <Toolbar icons={icons} variant="dockable" color={color} docked={v.docked === true} width={width} />
+          </div>
+        );
+      }
+      return (
+        <div className="relative h-[220px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+          <Toolbar icons={icons} color={color} position={pgStr(v.position, "bottom") as "top" | "bottom"} width={width} />
+        </div>
+      );
+    },
+    code: (v) => {
+      const rows = [
+        '  { icon: "format_bold", label: "Bold", active: true },',
+        '  { icon: "format_italic", label: "Italic" },',
+        '  { icon: "format_underlined", label: "Underline" },',
+        '  { icon: "more_horiz", label: "More" },',
+      ];
+      const props: string[] = ["icons={icons}"];
+      if (v.variant === "dockable") props.push('variant="dockable"');
+      if (v.color !== "surface") props.push(`color="${pgStr(v.color, "surface")}"`);
+      if (v.variant === "dockable" && v.docked === true) props.push("docked");
+      if (v.variant === "floating" && v.position === "top") props.push('position="top"');
+      const width = pgNum(v.width, 280);
+      if (width !== 280 && v.docked !== true) props.push(`width={${width}}`);
+      const open = `<Toolbar${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { Toolbar } from "m3-expressive-react";\n\nconst icons = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 };

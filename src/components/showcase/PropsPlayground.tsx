@@ -73,7 +73,7 @@ export function PropsPlayground({ spec }: { spec: PlaygroundSpec }) {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* stage — neutral dot grid over surface-container-lowest */}
         <div
           className="flex min-h-[260px] items-center justify-center p-6 sm:p-10"

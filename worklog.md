@@ -788,3 +788,26 @@ Feature-complete M3E library, now with interactive authoring depth: **41 compone
 - Hero layout ratio remains 0.66/0.34 (≈1.94:1) vs the official 3:2 illustration — documented, unchanged.
 - CI yaml still untested (no git remote); vr:check in CI needs a served app step; real npm publish blocked on registry access (build:package verified green).
 - Next candidates: date-picker min/max × range edge tests; MCP stateful SSE sessions; date-picker range selection; README badges/tag; a11y spot-audit of the 8 new playground stages at mobile widths (375px) — controls column stacks under the stage via lg: breakpoint.
+
+---
+Task ID: 9-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-9 QA + Props Playground expansion (18 → 28) + mobile layout fixes
+
+## Current project status
+All-green production state: **41 components**, **Props Playground on 28 of 41 pages** (was 18), MCP 14 tools (stdio + HTTP :3210), VR PASS, audit corpus reconciled. This round: no bugs found in the library itself; focus went to the highest-value documented candidate — playground coverage for the container/navigation family that needed stage scaffolding.
+
+## Completed this round (verification results)
+- Start-of-round QA: dev.log clean (all 200s), tsc 0 src errors (4 pre-existing in examples/skills), lint 0 errors, MCP HTTP health {"tools":14,"components":41,"status":"ok"}, 7-route browser sweep zero page errors. No fixes required — proceeded to feature work.
+- **10 new playground specs** in src/components/showcase/playground-specs.tsx: menu, dialog, banner, search-bar, autocomplete, tabs, segmented-button, button-group, list, toolbar. Patterns established for the remaining 13: (1) trigger/overlay components render a trigger button + controlled open via `set("open", …)` (menu, dialog); (2) controlled live-typing components store value in the values record even without a matching control (search-bar, autocomplete, tabs selection); (3) array-valued props stored as comma-joined strings and split in render (segmented-button multiple, button-group); (4) stage "screen mock" frames need EXPLICIT width (see bug below). Code generation emits `const items = [...]` data blocks before the JSX for data-driven components.
+- **Live interaction QA** (agent-browser, desktop): menu opens with icons/⌘E shortcuts/destructive divider + disabled item composition and code mirror; dialog opens (scrim+card), headline mirrors; search-bar live typing mirrors to code; autocomplete full flow (focus→open→filter "ch"→[Cherry]→pick→value lands→closes); tabs Calls selection + secondary variant switch; segmented-button single→multiple with checkmark toggling (preselected Day correctly toggled OFF first click); button-group tonal + single selection mirror; banner Dismiss collapses via AnimatePresence (stage-level verified); list rows 72dp→56dp on "Supporting text" off; toolbar floating pill in mock frame + dockable square morph with Docked switch.
+- **Bug found & fixed — playground mobile overflow**: at 375px the grid `lg:grid-cols-[minmax(0,1fr)_340px]` had an implicit auto-sized single column (349px in a 343px root → page scrollWidth 382). Fixed with `grid-cols-1` (minmax(0,1fr) constraint) in PropsPlayground.tsx; page overflow now exactly 375 on all 10 pages.
+- **Bug found & fixed — toolbar stage collapse**: the stage's AnimatePresence motion wrapper is fit-content, so the toolbar's `w-full` screen-mock box collapsed to ~2px (absolute floating pill contributes no intrinsic width — visible as a stray vertical line). Fixed with explicit `w-[320px] max-w-full` mock frames for both toolbar variants; width slider capped 200–300 so the pill always fits the frame.
+- Mobile 375×812 visual pass (screenshots reviewed): controls column stacks under stage cleanly, segmented controls scroll internally, zero horizontal overflow on all 10 pages.
+- Gates: tsc 0 src errors; lint 0 errors/1 documented warning; VR baselines refreshed for the 10 changed pages (--only comma list) → full vr:check **PASS: identical 38 · minor 3 · changed 0 (41/41)**; fresh-load sweep of all 10 pages zero errors; MCP health unchanged (no component/library source touched this round — showcase files only, no package rebuild needed).
+
+## Unresolved issues / risks / next-phase priorities
+- Playground covers 28/41; remaining 13 are the heaviest scaffolds: fab-menu, split-button (trigger state), bottom-sheet, side-sheet (edge-mounted), carousel, date-picker, time-picker (open+value+range state), search-view, navigation-bar, navigation-drawer, navigation-rail, top-app-bar, bottom-app-bar (app-frame mocks). The explicit-width mock-frame pattern from the toolbar fix is the template.
+- Multi-select playground state (segmented/button-group) is stored as comma-joined string — fine for controls but a future `PlaygroundValue` array variant would be cleaner.
+- Hero layout ratio 0.66/0.34 vs official 3:2 — documented, unchanged. CI yaml still untested (no git remote); npm publish still blocked on registry access.
+- Next candidates: date-picker range selection feature; MCP stateful SSE sessions; fab-menu/split-button playgrounds (trigger-state pattern now proven by menu/dialog); README badges; a11y deep-audit (keyboard roving on new playground stages).
