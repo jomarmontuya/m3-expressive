@@ -415,7 +415,7 @@ export function CarouselDemo() {
     []
   );
   return (
-    <div className="flex w-full min-w-[720px] flex-col gap-3 p-2" data-testid="carousel-demo">
+    <div className="m3-scroll w-full overflow-x-auto pb-1"><div className="flex w-full min-w-[720px] flex-col gap-3 p-2" data-testid="carousel-demo">
       {/* multi-browse — flexible widths + the M3E hover-grow */}
       <section className="flex flex-col gap-2">
         <span className="md-label-large text-m3-on-surface">
@@ -447,7 +447,7 @@ export function CarouselDemo() {
           ariaLabel="Full-bleed getaways"
         />
       </section>
-    </div>
+    </div></div>
   );
 }
 

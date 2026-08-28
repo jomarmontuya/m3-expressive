@@ -837,3 +837,38 @@ All-green production state: **41 components**, **Props Playground on 30 of 41 pa
 - Multi-select/array PlaygroundValue still string-joined (segmented/button-group) — cleaner array variant remains open.
 - Hero ratio 0.66/0.34 vs 3:2 documented; CI untested (no remote); npm publish blocked on registry access.
 - Next candidates: carousel playground (arrows variant — cheap win), search-view playground, date-picker min/max controls on the existing spec, MCP stateful SSE sessions, README badges, keyboard-roving a11y audit of playground stages.
+
+---
+Task ID: 11-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-11 QA + Props Playground completion (30 → 41/41) + demo mobile-overflow fixes
+
+## Current project status
+**PLAYGROUND COVERAGE COMPLETE: 41 of 41 components** — every component page now has a live interactive authoring playground. MCP 14 tools (stdio + HTTP :3210), VR PASS, all gates green. No library/package source changed this round (showcase only), so the npm dist stays current.
+
+## Completed this round (verification results)
+- Start-of-round QA: dev.log clean, tsc 0 src errors, 6-route sweep zero errors, MCP ok. No bugs — proceeded to feature work.
+- **11 new playground specs** closing out the remaining components:
+  - carousel (layout multi-browse/hero/inline × shape × arrows) — live-verified: inline layout switch, Next arrow advance (scrollLeft 448), code mirror.
+  - search-view (mode full-screen/docked × recents) — open overlay, recents visible, live typing, Escape close (verified after exit-animation settle).
+  - fab-menu (direction × color × docked × dockedTo) in an explicit-width mock frame — cascade opens (Camera/Gallery/Voice note), docked + code mirror.
+  - split-button (variant × size × disabled × label) with action readout chip — main action fires, chevron ("More actions for Export") opens the item menu, CSV pick lands in the readout.
+  - bottom-sheet (variant × footer × title) — scrim + title + footer Save; item pick closes (settled-state verified).
+  - side-sheet (side × variant × title) — right panel 360px, Escape close.
+  - navigation-bar (badges × fullWidth) in a bottom-anchored frame — Favorites tap moves aria-current.
+  - bottom-app-bar (fab × trailing) — FAB toggle round-trip: off → code drops `fab`, on → restores (note: FAB aria-label is the icon ligature "add").
+  - navigation-rail (badges × FAB header × menu icon × folding line) — menu icon toggles, header Fab renders, code mirrors header={<Fab …/>}.
+  - navigation-drawer (standard/modal × badges) — standard selects (Drafts → aria-current), modal opens over scrim and closes on item pick.
+  - top-app-bar (variant × actions × back × title) — small 64px root; large variant measures exactly **152px** (official M3 large top app bar height); code mirrors.
+- **date-picker spec enhanced**: minDate=today / maxDate=today+7 switches — live-verified 33 past days disabled (38% opacity) with 9 enabled, then 8 after maxDate; code emits `minDate={new Date()}` / `maxDate={addDays(new Date(), 7)}`.
+- **Two pre-existing mobile-overflow bugs fixed** (surface via the 375px sweep, both in DEMO sections, not playgrounds):
+  1. carousel demo root `min-w-[720px]` widened the whole page (sw=753) → wrapped in `m3-scroll w-full overflow-x-auto` (inner scroller clips; page sw=375).
+  2. fab-menu docked stage's two side-by-side frames (400px row) → row now `flex-wrap` (frames stack at phone width; page sw=375).
+  Note: HMR served stale widths on first re-check — verify overflow fixes from a HARD reload.
+- Gates: tsc 0 src errors; lint 0 errors/1 documented warning; VR baselines refreshed for 12 changed pages → full vr:check **PASS: identical 36 · minor 5 · changed 0 (41/41)**; fresh-load sweep of all 12 pages zero errors; MCP health ok (untouched).
+
+## Unresolved issues / risks / next-phase priorities
+- Playground milestone done; remaining work shifts to depth: array-typed PlaygroundValue (replace comma-joined multi-select), per-spec snapshot tests, keyboard-roving a11y audit of all 41 stages.
+- VR minor band now 5 pages (time-picker clock hand, carousel hover-grow, others animated) — all within threshold, documented.
+- Hero ratio 0.66/0.34 vs 3:2 documented; CI untested (no remote); npm publish blocked on registry access (build:package green).
+- Next candidates: MCP stateful SSE sessions; README badges + publish checklist; "Copy playground config as JSON" share feature; theme-builder seed → scheme round; date-picker range in the search-view pattern (query-by-range).

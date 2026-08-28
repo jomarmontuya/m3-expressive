@@ -234,7 +234,7 @@ export function FabMenuDemo() {
  */
 function DockedFabMenuStage({ onAction }: { onAction: (label: string) => void }) {
   return (
-    <div className="flex items-start gap-4">
+    <div className="flex flex-wrap items-start gap-4">
       <div
         data-testid="docked-fab-stage-screen"
         className="relative h-64 w-48 overflow-hidden rounded-lg border border-m3-outline-variant bg-m3-surface [transform:translateZ(0)]"

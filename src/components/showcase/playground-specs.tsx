@@ -64,6 +64,28 @@ import { Toolbar } from "@/components/m3/Toolbar";
 import type { ToolbarColor, ToolbarVariant } from "@/components/m3/Toolbar";
 import { DatePicker } from "@/components/m3/DatePicker";
 import { TimePicker } from "@/components/m3/TimePicker";
+import { Carousel } from "@/components/m3/Carousel";
+import type {
+  CarouselArrows,
+  CarouselItem,
+  CarouselLayout,
+  CarouselShape,
+} from "@/components/m3/Carousel";
+import { SearchView } from "@/components/m3/SearchView";
+import type { SearchViewMode } from "@/components/m3/SearchView";
+import { FabMenu } from "@/components/m3/FabMenu";
+import { SplitButton } from "@/components/m3/SplitButton";
+import type { SplitButtonSize, SplitButtonVariant } from "@/components/m3/SplitButton";
+import { BottomSheet } from "@/components/m3/BottomSheet";
+import type { BottomSheetVariant } from "@/components/m3/BottomSheet";
+import { SideSheet } from "@/components/m3/SideSheet";
+import type { SideSheetSide, SideSheetVariant } from "@/components/m3/SideSheet";
+import { NavigationBar } from "@/components/m3/NavigationBar";
+import { BottomAppBar } from "@/components/m3/BottomAppBar";
+import { NavigationRail } from "@/components/m3/NavigationRail";
+import { NavigationDrawer } from "@/components/m3/NavigationDrawer";
+import { TopAppBar } from "@/components/m3/TopAppBar";
+import type { TopAppBarVariant } from "@/components/m3/TopAppBar";
 
 /**
  * Stage Switch with an accessible name. The library Switch forwards its ref
@@ -197,8 +219,28 @@ function pgTimeLabel(h: number, m: number, use24h: boolean): string {
   return `${h12}:${mm} ${period}`;
 }
 
+/** Today at midnight — date-picker minDate control. */
+function PG_TODAY(): Date {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/** Today + 7 days — date-picker maxDate control. */
+function PG_PLUS7(): Date {
+  return new Date(PG_TODAY().getFullYear(), PG_TODAY().getMonth(), PG_TODAY().getDate() + 7);
+}
+
+/** Shared carousel items — the same content set as the containment demo. */
+const PG_CAROUSEL_ITEMS: CarouselItem[] = [
+  { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary", onClick: () => undefined },
+  { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary", onClick: () => undefined },
+  { id: "museum", label: "Museums", icon: "museum", tone: "tertiary", onClick: () => undefined },
+  { id: "food", label: "Food tours", icon: "restaurant", tone: "surface", onClick: () => undefined },
+  { id: "flight", label: "Getaways", icon: "flight_takeoff", tone: "secondary", onClick: () => undefined },
+];
+
 /* ------------------------------------------------------------------ */
-/* PLAYGROUND_SPECS — 30 components                                   */
+/* PLAYGROUND_SPECS — 41 components                                   */
 /* ------------------------------------------------------------------ */
 
 export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
@@ -1653,7 +1695,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     component: "DatePicker",
     explainer:
       "Pick live on the calendar — Range switches to the start/end band selection; Modal presents the official scrim dialog that only closes on a complete range.",
-    defaults: { presentation: "inline", mode: "single", open: false, closeOnSelect: true, value: "", start: "", end: "" },
+    defaults: { presentation: "inline", mode: "single", open: false, closeOnSelect: true, minToday: false, maxPlus7: false, value: "", start: "", end: "" },
     controls: [
       {
         kind: "segmented",
@@ -1676,6 +1718,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         icon: "logout",
         disabledWhen: (v) => v.presentation !== "modal",
       },
+      { kind: "switch", key: "minToday", label: "minDate = today", icon: "first_page" },
+      { kind: "switch", key: "maxPlus7", label: "maxDate = today+7", icon: "last_page" },
     ],
     stageKey: (v) => `${pgStr(v.presentation, "inline")}-${pgStr(v.mode, "single")}`,
     render: (v, set) => {
@@ -1712,6 +1756,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
             open={v.open === true}
             onOpenChange={(o) => set("open", o)}
             closeOnSelect={v.closeOnSelect !== false}
+            minDate={v.minToday === true ? PG_TODAY() : undefined}
+            maxDate={v.maxPlus7 === true ? PG_PLUS7() : undefined}
             value={range ? undefined : (pgIso(v.value) ?? undefined)}
             onChange={(d) => set("value", pgIsoStr(d))}
             range={range ? { start: pgIso(v.start) ?? undefined, end: pgIso(v.end) ?? undefined } : undefined}
@@ -1729,6 +1775,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         props.push('presentation="modal"', "open={open}", "onOpenChange={setOpen}");
         if (v.closeOnSelect === false) props.push("closeOnSelect={false}");
       }
+      if (v.minToday === true) props.push("minDate={new Date()}");
+      if (v.maxPlus7 === true) props.push("maxDate={addDays(new Date(), 7)}");
       if (v.mode === "range") {
         props.push('selectionMode="range"', "range={range}", "onRangeChange={setRange}");
       } else {
@@ -1766,6 +1814,617 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = ["value={time}", "onChange={setTime}"];
       if (v.use24h === true) props.push("use24h");
       return joinCode("TimePicker", props);
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  carousel: {
+    id: "carousel",
+    component: "Carousel",
+    explainer:
+      "M3E expressive carousel — Multi-browse shows 4-up with hover-grow, Hero leads large, Inline pages one item per view; arrows appear per overflow.",
+    defaults: { layout: "multi-browse", shape: "round", arrows: "auto" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "layout",
+        label: "Layout",
+        icon: "view_carousel",
+        options: sizeOptions(["multi-browse", "hero", "inline"]),
+      },
+      {
+        kind: "segmented",
+        key: "shape",
+        label: "Shape",
+        icon: "rounded_corner",
+        options: sizeOptions(["round", "square"]),
+      },
+      {
+        kind: "segmented",
+        key: "arrows",
+        label: "Arrows",
+        icon: "chevron_right",
+        options: sizeOptions(["auto", "always", "never"]),
+      },
+    ],
+    stageKey: (v) => `${pgStr(v.layout, "multi-browse")}-${pgStr(v.shape, "round")}`,
+    render: (v) => (
+      <div className="w-[440px] max-w-full">
+        <Carousel
+          items={PG_CAROUSEL_ITEMS}
+          layout={pgStr(v.layout, "multi-browse") as CarouselLayout}
+          shape={pgStr(v.shape, "round") as CarouselShape}
+          arrows={pgStr(v.arrows, "auto") as CarouselArrows}
+          ariaLabel="Playground carousel"
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = ["items={items}"];
+      if (v.layout !== "multi-browse") props.push(`layout="${pgStr(v.layout, "multi-browse")}"`);
+      if (v.shape !== "round") props.push(`shape="${pgStr(v.shape, "round")}"`);
+      if (v.arrows !== "auto") props.push(`arrows="${pgStr(v.arrows, "auto")}"`);
+      const open = `<Carousel${props.length ? " " + props.join(" ") : ""} />`;
+      const rows = PG_CAROUSEL_ITEMS.map(
+        (it) => `  { id: "${it.id}", label: "${it.label}", icon: "${it.icon}", tone: "${it.tone}", onClick: handlePick },`
+      ).join("\n");
+      return `import { Carousel } from "m3-expressive-react";\n\nconst items = [\n${rows}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "search-view": {
+    id: "search-view",
+    component: "SearchView",
+    explainer:
+      "Full-screen search takeover — Search opens the scrim view with recents; Docked drops a compact panel under the field instead.",
+    defaults: { mode: "full-screen", open: false, recents: true, q: "" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "mode",
+        label: "Mode",
+        icon: "web_asset",
+        options: sizeOptions(["full-screen", "docked"]),
+      },
+      { kind: "switch", key: "recents", label: "Recent searches", icon: "history" },
+    ],
+    stageKey: (v) => pgStr(v.mode, "full-screen"),
+    render: (v, set) => (
+      <div className="relative flex items-center justify-center">
+        <Button icon="search" onClick={() => set("open", true)}>
+          Search
+        </Button>
+        <SearchView
+          open={v.open === true}
+          onOpenChange={(o) => set("open", o)}
+          mode={pgStr(v.mode, "full-screen") as SearchViewMode}
+          value={pgStr(v.q, "")}
+          onValueChange={(q) => set("q", q)}
+          recentSearches={v.recents === true ? ["weekend getaways", "museums", "food tours"] : []}
+          placeholder="Search trips"
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = [
+        "open={open}",
+        "onOpenChange={setOpen}",
+        `mode="${pgStr(v.mode, "full-screen")}"`,
+        "value={query}",
+        "onValueChange={setQuery}",
+      ];
+      if (v.recents === true) props.push("recentSearches={recents}");
+      props.push('placeholder="Search trips"');
+      return joinCode("SearchView", props);
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "fab-menu": {
+    id: "fab-menu",
+    component: "FabMenu",
+    explainer:
+      "FAB with an action cascade — tap the FAB and the actions spring out; Docked flushes it to the bottom of the frame and squares the corners.",
+    defaults: { open: false, direction: "vertical", color: "primary", docked: false, dockedTo: "screen" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "direction",
+        label: "Direction",
+        icon: "north_east",
+        options: sizeOptions(["vertical", "horizontal"]),
+        disabledWhen: (v) => v.docked === true,
+      },
+      {
+        kind: "segmented",
+        key: "color",
+        label: "Color",
+        icon: "palette",
+        options: sizeOptions(["primary", "secondary", "tertiary", "surface"]),
+      },
+      { kind: "switch", key: "docked", label: "Docked", icon: "dock_to_bottom" },
+      {
+        kind: "segmented",
+        key: "dockedTo",
+        label: "Dock target",
+        icon: "place",
+        options: sizeOptions(["screen", "bottom-app-bar"]),
+        disabledWhen: (v) => v.docked !== true,
+      },
+    ],
+    stageKey: (v) => (v.docked === true ? `docked-${pgStr(v.dockedTo, "screen")}` : "floating"),
+    render: (v, set) => (
+      <div className="relative h-[220px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant bg-m3-surface">
+        <FabMenu
+          actions={[
+            { icon: "photo_camera", label: "Camera", onClick: () => set("open", false) },
+            { icon: "image", label: "Gallery", onClick: () => set("open", false) },
+            { icon: "mic", label: "Voice note", onClick: () => set("open", false) },
+          ]}
+          direction={pgStr(v.direction, "vertical") as "vertical" | "horizontal"}
+          color={pgStr(v.color, "primary") as FabColor}
+          open={v.open === true}
+          onOpenChange={(o) => set("open", o)}
+          docked={v.docked === true}
+          dockedTo={pgStr(v.dockedTo, "screen") as "screen" | "bottom-app-bar"}
+          className={v.docked === true ? "" : "absolute bottom-6 right-6"}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const rows = [
+        '  { icon: "photo_camera", label: "Camera", onClick: handleCamera },',
+        '  { icon: "image", label: "Gallery", onClick: handleGallery },',
+        '  { icon: "mic", label: "Voice note", onClick: handleVoice },',
+      ];
+      const props: string[] = ["actions={actions}", "open={open}", "onOpenChange={setOpen}"];
+      if (v.docked === true) {
+        props.push("docked", `dockedTo="${pgStr(v.dockedTo, "screen")}"`);
+      } else {
+        if (v.direction !== "vertical") props.push(`direction="${pgStr(v.direction, "vertical")}"`);
+      }
+      if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
+      const open = `<FabMenu${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { FabMenu } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "split-button": {
+    id: "split-button",
+    component: "SplitButton",
+    explainer:
+      "Primary action + chevron menu — the main half fires onClick, the chevron half opens the attached item list.",
+    defaults: { variant: "filled", size: "md", disabled: false, label: "Export", picked: "" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["filled", "tonal", "outlined"]),
+      },
+      {
+        kind: "segmented",
+        key: "size",
+        label: "Size",
+        icon: "straighten",
+        options: sizeOptions(["sm", "md", "lg"]),
+      },
+      { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
+      { kind: "text", key: "label", label: "Main label", icon: "edit" },
+    ],
+    render: (v, set) => {
+      const label = pgStr(v.label, "").trim() || "Export";
+      const picked = pgStr(v.picked, "").trim();
+      return (
+        <div className="flex flex-col items-center gap-4">
+          {picked && (
+            <div className="rounded-[16px] bg-m3-secondary-container px-4 py-1.5 md-label-large text-m3-on-secondary-container">
+              {picked}
+            </div>
+          )}
+          <SplitButton
+            label={label}
+            onClick={() => set("picked", `${label} (main action)`)}
+            items={[
+              { label: "Export as PDF", icon: "picture_as_pdf", onClick: () => set("picked", "PDF") },
+              { label: "Export as DOCX", icon: "description", onClick: () => set("picked", "DOCX") },
+              { label: "Export as CSV", icon: "table_view", onClick: () => set("picked", "CSV") },
+            ]}
+            variant={pgStr(v.variant, "filled") as SplitButtonVariant}
+            size={pgStr(v.size, "md") as SplitButtonSize}
+            disabled={v.disabled === true}
+          />
+        </div>
+      );
+    },
+    code: (v) => {
+      const label = pgStr(v.label, "").trim() || "Export";
+      const rows = [
+        '  { label: "Export as PDF", icon: "picture_as_pdf", onClick: handlePdf },',
+        '  { label: "Export as DOCX", icon: "description", onClick: handleDocx },',
+        '  { label: "Export as CSV", icon: "table_view", onClick: handleCsv },',
+      ];
+      const props: string[] = [`label="${label}"`, "onClick={handleMain}", "items={items}"];
+      if (v.variant !== "filled") props.push(`variant="${pgStr(v.variant, "filled")}"`);
+      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.disabled === true) props.push("disabled");
+      const open = `<SplitButton${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { SplitButton } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "bottom-sheet": {
+    id: "bottom-sheet",
+    component: "BottomSheet",
+    explainer:
+      "Modal slides up over a 32% scrim with the 24dp drag handle — Standard renders inline with no scrim (open is ignored).",
+    defaults: { variant: "modal", open: false, footer: true, title: "Choose a playlist" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["modal", "standard"]),
+      },
+      { kind: "switch", key: "footer", label: "Footer action", icon: "check_circle" },
+      { kind: "text", key: "title", label: "Title", icon: "title" },
+    ],
+    stageKey: (v) => pgStr(v.variant, "modal"),
+    render: (v, set) => {
+      const close = () => set("open", false);
+      const title = pgStr(v.title, "").trim() || "Choose a playlist";
+      return (
+        <div className="relative flex flex-col items-center justify-center gap-4">
+          <Button icon="upload" onClick={() => set("open", true)}>
+            Open bottom sheet
+          </Button>
+          <BottomSheet
+            open={v.open === true}
+            onClose={close}
+            variant={pgStr(v.variant, "modal") as BottomSheetVariant}
+            title={title}
+            footer={
+              v.footer === true ? (
+                <Button variant="filled" fullWidth onClick={close}>
+                  Save
+                </Button>
+              ) : undefined
+            }
+          >
+            <List dividers>
+              <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" onClick={close} />
+              <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" onClick={close} />
+            </List>
+          </BottomSheet>
+        </div>
+      );
+    },
+    code: (v) => {
+      const props: string[] = [
+        "open={open}",
+        "onClose={handleClose}",
+        `variant="${pgStr(v.variant, "modal")}"`,
+      ];
+      const title = pgStr(v.title, "").trim() || "Choose a playlist";
+      props.push(`title="${title}"`);
+      const open = `<BottomSheet${props.length ? " " + props.join(" ") : ""}>`;
+      const footer = v.footer === true ? '\n  <Button variant="filled" fullWidth onClick={handleClose}>Save</Button>' : "";
+      return `import { BottomSheet, List, ListItem, Button, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" />\n  <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" />${footer}\n</BottomSheet>`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "side-sheet": {
+    id: "side-sheet",
+    component: "SideSheet",
+    explainer:
+      "Detail panel docked to a viewport edge over a scrim — Standard docks inline without the scrim, Left/Right picks the edge.",
+    defaults: { side: "right", variant: "modal", open: false, title: "Filters" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "side",
+        label: "Side",
+        icon: "swap_horiz",
+        options: sizeOptions(["left", "right"]),
+      },
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["modal", "standard"]),
+      },
+      { kind: "text", key: "title", label: "Title", icon: "title" },
+    ],
+    stageKey: (v) => `${pgStr(v.side, "right")}-${pgStr(v.variant, "modal")}`,
+    render: (v, set) => {
+      const close = () => set("open", false);
+      const title = pgStr(v.title, "").trim() || "Filters";
+      return (
+        <div className="relative flex flex-col items-center justify-center gap-4">
+          <Button icon="tune" onClick={() => set("open", true)}>
+            Open side sheet
+          </Button>
+          <SideSheet
+            open={v.open === true}
+            onClose={close}
+            side={pgStr(v.side, "right") as SideSheetSide}
+            variant={pgStr(v.variant, "modal") as SideSheetVariant}
+            title={title}
+          >
+            <List dividers>
+              <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" onClick={close} selected />
+              <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" onClick={close} />
+              <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" onClick={close} />
+            </List>
+          </SideSheet>
+        </div>
+      );
+    },
+    code: (v) => {
+      const props: string[] = [
+        "open={open}",
+        "onClose={handleClose}",
+        `side="${pgStr(v.side, "right")}"`,
+        `variant="${pgStr(v.variant, "modal")}"`,
+      ];
+      const title = pgStr(v.title, "").trim() || "Filters";
+      props.push(`title="${title}"`);
+      const open = `<SideSheet${props.length ? " " + props.join(" ") : ""}>`;
+      return `import { SideSheet, List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" selected />\n  <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" />\n  <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" />\n</SideSheet>`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "navigation-bar": {
+    id: "navigation-bar",
+    component: "NavigationBar",
+    explainer:
+      "Bottom destination bar — the active indicator pill springs behind the icon and Badges add the notification dot count.",
+    defaults: { value: "home", badges: false, fullWidth: true },
+    controls: [
+      { kind: "switch", key: "badges", label: "Badges", icon: "mark_chat_unread" },
+      { kind: "switch", key: "fullWidth", label: "Full width", icon: "resize_width" },
+    ],
+    render: (v, set) => (
+      <div className="flex h-[190px] w-[320px] max-w-full flex-col justify-end overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <NavigationBar
+          items={[
+            { value: "home", icon: "home", label: "Home" },
+            { value: "search", icon: "search", label: "Search" },
+            { value: "favorites", icon: "favorite", label: "Favorites", badge: v.badges === true ? 3 : undefined },
+            { value: "profile", icon: "person", label: "Profile" },
+          ]}
+          value={pgStr(v.value, "home")}
+          onChange={(x) => set("value", x)}
+          fullWidth={v.fullWidth !== false}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const rows = [
+        '  { value: "home", icon: "home", label: "Home" },',
+        '  { value: "search", icon: "search", label: "Search" },',
+        `  { value: "favorites", icon: "favorite", label: "Favorites"${v.badges === true ? ", badge: 3" : ""} },`,
+        '  { value: "profile", icon: "person", label: "Profile" },',
+      ];
+      const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
+      if (v.fullWidth === false) props.push("fullWidth={false}");
+      const open = `<NavigationBar${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { NavigationBar } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "bottom-app-bar": {
+    id: "bottom-app-bar",
+    component: "BottomAppBar",
+    explainer:
+      "Action bar with a cutout FAB — the 56dp FAB floats half-out of the notch; trailing icons anchor the far edge.",
+    defaults: { fab: true, trailing: true },
+    controls: [
+      { kind: "switch", key: "fab", label: "Center FAB", icon: "add" },
+      { kind: "switch", key: "trailing", label: "Trailing icons", icon: "more_vert" },
+    ],
+    render: (v) => (
+      <div className="flex h-[170px] w-[320px] max-w-full flex-col justify-end overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <BottomAppBar
+          navigationIcon={{ icon: "menu", label: "Menu" }}
+          actions={[
+            { icon: "check_box", label: "Select" },
+            { icon: "edit", label: "Edit" },
+          ]}
+          trailingIcons={v.trailing === true ? ["more_vert"] : []}
+          fab={v.fab === true ? { icon: "add", onClick: () => undefined } : undefined}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = [
+        'navigationIcon={{ icon: "menu", label: "Menu" }}',
+        "actions={actions}",
+      ];
+      if (v.trailing === true) props.push('trailingIcons={["more_vert"]}');
+      if (v.fab === true) props.push('fab={{ icon: "add", onClick: handleCreate }}');
+      const rows = [
+        '  { icon: "check_box", label: "Select" },',
+        '  { icon: "edit", label: "Edit" },',
+      ];
+      const open = `<BottomAppBar${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { BottomAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "navigation-rail": {
+    id: "navigation-rail",
+    component: "NavigationRail",
+    explainer:
+      "Medium-extended side rail — the FAB header slot, menu icon and folding line are each optional anatomy.",
+    defaults: { value: "home", badges: true, header: true, menu: false, foldingLine: true },
+    controls: [
+      { kind: "switch", key: "badges", label: "Badges", icon: "mark_chat_unread" },
+      { kind: "switch", key: "header", label: "FAB header", icon: "add" },
+      { kind: "switch", key: "menu", label: "Menu icon", icon: "menu" },
+      { kind: "switch", key: "foldingLine", label: "Folding line", icon: "border_vertical" },
+    ],
+    render: (v, set) => (
+      <div className="flex h-[300px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <NavigationRail
+          items={[
+            { value: "home", icon: "home", label: "Home" },
+            { value: "search", icon: "search", label: "Search" },
+            { value: "favorites", icon: "favorite", label: "Favorites", badge: v.badges === true ? 3 : undefined },
+          ]}
+          value={pgStr(v.value, "home")}
+          onChange={(x) => set("value", x)}
+          header={v.header === true ? <Fab color="primary" size="small" icon="add" onClick={() => undefined} /> : undefined}
+          menuIcon={v.menu === true ? "menu" : undefined}
+          onMenuClick={v.menu === true ? () => undefined : undefined}
+          foldingLine={v.foldingLine === true}
+        />
+      </div>
+    ),
+    code: (v) => {
+      const rows = [
+        '  { value: "home", icon: "home", label: "Home" },',
+        '  { value: "search", icon: "search", label: "Search" },',
+        `  { value: "favorites", icon: "favorite", label: "Favorites"${v.badges === true ? ", badge: 3" : ""} },`,
+      ];
+      const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
+      if (v.header === true) props.push("header={<Fab size=\"small\" icon=\"add\" />}");
+      if (v.menu === true) props.push('menuIcon="menu"', "onMenuClick={handleMenu}");
+      if (v.foldingLine === false) props.push("foldingLine={false}");
+      const open = `<NavigationRail${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { NavigationRail, Fab } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "navigation-drawer": {
+    id: "navigation-drawer",
+    component: "NavigationDrawer",
+    explainer:
+      "Standard docks inline as a destination list — Modal slides over a scrim and closes on item pick or outside tap.",
+    defaults: { variant: "standard", open: false, badges: true, value: "inbox" },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["standard", "modal"]),
+      },
+      { kind: "switch", key: "badges", label: "Badges", icon: "mark_chat_unread" },
+    ],
+    stageKey: (v) => pgStr(v.variant, "standard"),
+    render: (v, set) => {
+      const items = [
+        { value: "inbox", icon: "inbox", label: "Inbox", badge: v.badges === true ? 24 : undefined },
+        { value: "sent", icon: "send", label: "Sent" },
+        { value: "drafts", icon: "draft", label: "Drafts" },
+      ];
+      if (v.variant === "modal") {
+        return (
+          <div className="relative flex flex-col items-center justify-center gap-4">
+            <Button icon="menu" onClick={() => set("open", true)}>
+              Open drawer
+            </Button>
+            <NavigationDrawer
+              items={items}
+              value={pgStr(v.value, "inbox")}
+              onChange={(x) => {
+                set("value", x);
+                set("open", false);
+              }}
+              variant="modal"
+              open={v.open === true}
+              onClose={() => set("open", false)}
+            />
+          </div>
+        );
+      }
+      return (
+        <div className="flex h-[280px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+          <NavigationDrawer
+            items={items}
+            value={pgStr(v.value, "inbox")}
+            onChange={(x) => set("value", x)}
+            variant="standard"
+          />
+        </div>
+      );
+    },
+    code: (v) => {
+      const rows = [
+        '  { value: "inbox", icon: "inbox", label: "Inbox", badge: 24 },',
+        '  { value: "sent", icon: "send", label: "Sent" },',
+        '  { value: "drafts", icon: "draft", label: "Drafts" },',
+      ];
+      const rowsNoBadge = [
+        '  { value: "inbox", icon: "inbox", label: "Inbox" },',
+        '  { value: "sent", icon: "send", label: "Sent" },',
+        '  { value: "drafts", icon: "draft", label: "Drafts" },',
+      ];
+      const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
+      if (v.variant === "modal") props.push('variant="modal"', "open={open}", "onClose={handleClose}");
+      const open = `<NavigationDrawer${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { NavigationDrawer } from "m3-expressive-react";\n\nconst items = [\n${(v.badges === true ? rows : rowsNoBadge).join("\n")}\n];\n\n${open}`;
+    },
+  },
+
+  /* ---------------------------------------------------------------- */
+  "top-app-bar": {
+    id: "top-app-bar",
+    component: "TopAppBar",
+    explainer:
+      "Small/Center stay fixed; Medium/Large flex their title area and collapse on scroll of the scroll target.",
+    defaults: { variant: "small", title: "Overview", actions: true, back: true },
+    controls: [
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["small", "center", "medium", "large"]),
+      },
+      { kind: "switch", key: "actions", label: "Action icons", icon: "apps" },
+      { kind: "switch", key: "back", label: "Back arrow", icon: "arrow_back" },
+      { kind: "text", key: "title", label: "Title", icon: "title" },
+    ],
+    stageKey: (v) => pgStr(v.variant, "small"),
+    render: (v) => (
+      <div className="flex h-[240px] w-[340px] max-w-full flex-col overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <TopAppBar
+          variant={pgStr(v.variant, "small") as TopAppBarVariant}
+          title={pgStr(v.title, "").trim() || "Overview"}
+          onBack={v.back === true ? () => undefined : undefined}
+          actions={
+            v.actions === true
+              ? [
+                  { icon: "favorite", label: "Like" },
+                  { icon: "more_vert", label: "More" },
+                ]
+              : []
+          }
+        />
+      </div>
+    ),
+    code: (v) => {
+      const props: string[] = [];
+      if (v.variant !== "small") props.push(`variant="${pgStr(v.variant, "small")}"`);
+      props.push(`title="${pgStr(v.title, "").trim() || "Overview"}"`);
+      if (v.back === true) props.push("onBack={handleBack}");
+      if (v.actions === true) props.push("actions={actions}");
+      const rows = ['  { icon: "favorite", label: "Like" },', '  { icon: "more_vert", label: "More" },'];
+      const open = `<TopAppBar${props.length ? " " + props.join(" ") : ""} />`;
+      return `import { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 };
