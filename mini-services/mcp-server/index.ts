@@ -29,12 +29,19 @@
  *   get_component_examples · get_component_guidelines · get_component_states ·
  *   get_component_source · search_components · list_themes · get_theme ·
  *   generate_theme · get_design_tokens
+ *
+ * Resources (read-only, agentic deepening):
+ *   m3://handbook · m3://components · m3://components/{id} (template) ·
+ *   m3://tokens · m3://themes · m3://package
+ *
+ * Prompts (task playbooks that drive the tools):
+ *   m3_screen_builder · m3_style_audit · m3_theme_seed
  */
 import { readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
@@ -49,7 +56,7 @@ import {
   checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
   tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
   topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
-  datePickerMeta, timePickerMeta,
+  datePickerMeta, timePickerMeta, carouselMeta,
 } from "../../src/lib/m3/meta";
 import type { M3ComponentMeta } from "../../src/lib/m3/types";
 import {
@@ -81,6 +88,7 @@ const FILES: Record<string, string> = {
   "navigation-rail": "NavigationRail", "top-app-bar": "TopAppBar",
   "bottom-app-bar": "BottomAppBar", toolbar: "Toolbar", menu: "Menu",
   "date-picker": "DatePicker", "time-picker": "TimePicker",
+  carousel: "Carousel",
 };
 
 const METAS: M3ComponentMeta[] = [
@@ -93,7 +101,7 @@ const METAS: M3ComponentMeta[] = [
   checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
   tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
   topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
-  datePickerMeta, timePickerMeta,
+  datePickerMeta, timePickerMeta, carouselMeta,
 ];
 
 const CATEGORIES = ["actions", "communication", "containment", "selection", "textinput", "navigation", "feedback"] as const;
@@ -125,12 +133,132 @@ function search(query: string) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Resource payloads (read-only knowledge)                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * m3://handbook — mirrors the line structure of the /llms.txt route.
+ *
+ * WHY NOT import src/app/llms.txt/route.ts directly: that route imports
+ * `@/lib/m3/registry` (the Next.js tsconfig path alias) — the mini-service
+ * runs under bun with no Next runtime and no `@/` alias mapping, so the
+ * import is not robustly resolvable here. Instead the handbook is composed
+ * from the SAME local sources of truth this server already imports (METAS
+ * + tokens/themes constants), so it always matches the live registry —
+ * including components added later — with zero Next dependencies.
+ */
+const HANDBOOK_DESCRIPTION =
+  "A complete Material 3 Expressive (M3E) React component library. Every component is built on official M3 design tokens (color roles, shape scale, Roboto Flex typography, physics-based spring motion, state layers) and ships with structured design-guideline metadata for agentic consumption.";
+
+/** Same category order as m3Registry.categories in src/lib/m3/registry.ts. */
+const HANDBOOK_CATEGORIES = [
+  "actions", "communication", "containment", "selection", "textinput", "navigation",
+] as const;
+
+function buildHandbook(): string {
+  const lines: string[] = [];
+  lines.push("# m3-expressive-react");
+  lines.push("");
+  lines.push("> " + HANDBOOK_DESCRIPTION);
+  lines.push("");
+  lines.push(`Version: 1.0.0 · Components: ${METAS.length} · Spec: https://m3.material.io`);
+  lines.push("");
+  lines.push("## How to use this library (for AI agents)");
+  lines.push("");
+  lines.push('- Import from the barrel: `import { Button, Card } from "@/components/m3";`');
+  lines.push('- Icons: Material Symbols ligature names as strings (`icon="edit"`).');
+  lines.push('- Colors: always token roles (`bg-m3-primary`, `text-m3-on-surface-variant`, `bg-m3-surface-container-high`, `border-m3-outline-variant`) — never raw hex.');
+  lines.push('- Motion: springs from `@/lib/m3/tokens` (`springs.expressive` is the signature bouncy M3E spring).');
+  lines.push('- Machine-readable docs: `GET /api/registry`, one component: `GET /api/registry?component=<id>`, tokens: `GET /api/registry?tokens=true`, themes: `GET /api/registry?themes=true`, custom scheme from a seed: `GET /api/theme-builder?seed=<hex>&variant=<tonal-spot|vibrant|expressive|content|fidelity|rainbow|fruit-salad>&contrast=<0|0.5|1>`, agent manifest: `GET /api/agent`.');
+  lines.push('- MCP server (preferred for MCP-capable agents): stdio server at `mini-services/mcp-server` exposing list_components, get_component, get_component_api, get_component_examples, get_component_guidelines, get_component_states, get_component_source, search_components, list_themes, get_theme, generate_theme, get_design_tokens, get_motion_guidance, get_accessibility_guidance. Config: `{"command":"bun","args":["run","--cwd","<abs>/mini-services/mcp-server","start"]}`. Full instructions: `mini-services/mcp-server/README.md`.');
+  lines.push('- MCP over streamable HTTP (stateless, CORS open — for browser/remote agents): `POST http://localhost:3210/mcp` with JSON-RPC 2.0 (also `tools/list`, `tools/call`); health at `GET http://localhost:3210/`; start with `cd mini-services/mcp-server && bun run dev`.');
+  lines.push('- MCP resources + prompts (this server): read-only resources `m3://handbook`, `m3://components`, `m3://components/{id}`, `m3://tokens`, `m3://themes`, `m3://package`; prompts `m3_screen_builder`, `m3_style_audit`, `m3_theme_seed`.');
+  lines.push("- Emit only props documented in the registry; all components accept `className` and native element props.");
+  lines.push("");
+  lines.push("## Package");
+  lines.push("");
+  lines.push('- npm: `m3-expressive-react` v1.0.0 — install with `npm i m3-expressive-react`. Peer deps: react >=18 <20, react-dom >=18 <20, framer-motion >=11 <13.');
+  lines.push('- Exports: `m3-expressive-react` (barrel: all 40 components + primitives + tokens/registry/types/themes re-exports), `m3-expressive-react/styles.css` (standalone `--md-*` token + primitive stylesheet), and subpaths `tokens`, `types`, `meta`, `themes`, `theme-builder`, `registry`, `hooks`.');
+  lines.push('- Without Tailwind: import `m3-expressive-react/compiled.css` — a pre-compiled stylesheet bundling the `--md-*` tokens, `.md-*`/`.m3-*` helpers, and exactly the utilities the components use (no preflight/reset; safe alongside any CSS stack).');
+  lines.push('- Tailwind 4: components style themselves with Tailwind utility classes mapped to M3 tokens — add `@source "../node_modules/m3-expressive-react";` plus the `--color-m3-*` / `--radius-m3-*` `@theme` mapping from the package README, and import `m3-expressive-react/styles.css`.');
+  lines.push('- Theming: dark mode = `.dark` class on `<html>`; curated schemes = `data-theme="ocean" | "emerald" | "coral"` (baseline violet = attribute removed); custom seed→scheme via `m3-expressive-react/theme-builder` (`generateScheme`) or the `hooks` controller (`useM3Theme`).');
+  lines.push("");
+  for (const cat of HANDBOOK_CATEGORIES) {
+    const comps = METAS.filter((m) => m.category === cat);
+    lines.push(`## ${cat} (${comps.length})`);
+    lines.push("");
+    for (const c of comps) {
+      lines.push(`### ${c.name}${c.m3e ? " (NEW in M3 Expressive)" : ""}`);
+      lines.push(`- id: \`${c.id}\``);
+      lines.push(`- ${c.description}`);
+      lines.push(`- import: ${c.importLine}`);
+      if (c.variants?.length) lines.push(`- variants: ${c.variants.join(", ")}`);
+      lines.push(`- props: ${c.props.map((p) => `${p.name}${p.default ? `=${p.default}` : ""}: ${p.type}`).join("; ")}`);
+      lines.push(`- when to use: ${(c.guidelines?.whenToUse ?? []).join(" | ")}`);
+      if (c.guidelines?.donts?.length) lines.push(`- avoid: ${c.guidelines.donts.join(" | ")}`);
+      lines.push("- example:");
+      lines.push("```tsx");
+      lines.push(c.exampleCode);
+      lines.push("```");
+      lines.push("");
+    }
+  }
+  return lines.join("\n");
+}
+
+/** m3://tokens — the raw token object (the values get_design_tokens is built on). */
+const TOKENS_RESOURCE = {
+  colorRoles,
+  motion: { springs, easings, durations },
+  shapes: { scale: shapes, morphs: shapeMorph },
+  elevations,
+  typeScale,
+  stateOpacities,
+};
+
+/** m3://themes — curated schemes + default, exactly as shipped in themes.ts. */
+const THEMES_RESOURCE = {
+  defaultThemeId,
+  count: m3Themes.length,
+  themes: m3Themes,
+};
+
+/** m3://package — npm package facts, mirroring the `package` field of /api/agent. */
+const PACKAGE_FACTS = {
+  name: "m3-expressive-react",
+  version: "1.0.0",
+  install: "npm i m3-expressive-react",
+  exports: {
+    ".": `Barrel — all ${METAS.length} components + MaterialSymbol/Ripple primitives + tokens/registry/types/themes re-exports`,
+    "./styles.css": "Standalone token + primitive stylesheet (all --md-* color roles light/dark, 4 curated [data-theme] schemes, .md-* type scale, .m3-state/.m3-focus/.m3-elevation-*/ripple/m3-scroll, Material Symbols icon CSS)",
+    "./compiled.css": "Pre-compiled stylesheet for consumers WITHOUT Tailwind: tokens + helpers + exactly the utilities the components use (no preflight/reset — safe alongside any CSS stack)",
+    "./tokens": "springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale, elevations, colorRoles",
+    "./types": "M3ComponentMeta / M3Registry contract types",
+    "./meta": "All M3ComponentMeta objects (agentic metadata)",
+    "./themes": "m3Themes, getTheme, themeIds, schemeToCssVars (curated schemes as data)",
+    "./theme-builder": "generateScheme/schemeToCssVars — seed → full light+dark scheme (@material/material-color-utilities, server-safe)",
+    "./registry": "m3Registry, getComponent, searchComponents, getComponentsByCategory (isomorphic)",
+    "./hooks": "useM3Theme — curated + custom scheme and light/dark controller (client)",
+  },
+  peerDependencies: {
+    react: ">=18 <20",
+    "react-dom": ">=18 <20",
+    "framer-motion": ">=11 <13",
+  },
+  styling: {
+    tailwind4: 'Add @source "../node_modules/m3-expressive-react"; plus the --color-m3-*/--radius-m3-* @theme mapping from the package README, then import "m3-expressive-react/styles.css".',
+    withoutTailwind: 'import "m3-expressive-react/compiled.css"; — tokens + helpers + exactly the emitted utilities, no Tailwind build step required.',
+  },
+  note: "Tailwind 4 is required for full component styling on the styles.css path; compiled.css is the no-Tailwind alternative. Both ship all curated schemes and the Material Symbols icon CSS.",
+};
+
+/* ------------------------------------------------------------------ */
 /* Server factory                                                      */
 /* ------------------------------------------------------------------ */
 const text = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] });
 
 /**
- * Build a fully-configured McpServer (14 tools).
+ * Build a fully-configured McpServer (14 tools · 6 read-only resources · 3 prompts).
  *
  * Called ONCE in stdio mode and once per request in stateless HTTP mode —
  * the SDK requires a fresh transport (and therefore a fresh server
@@ -436,6 +564,264 @@ function buildServer(): McpServer {
         aria: "Combobox/listbox, radiogroup, slider valuemin/max/now, progressbar, dialog labelledby/describedby, live regions for snackbars",
         colorContrast: "All color pairs come from M3 scheme roles, which guarantee WCAG AA contrast per official tonal pairs",
       })
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* Resources (read-only knowledge — same registry data as the tools)   */
+  /* ------------------------------------------------------------------ */
+  const jsonResource = (uri: URL, data: unknown) => ({
+    contents: [{ uri: uri.href, mimeType: "application/json", text: JSON.stringify(data, null, 2) }],
+  });
+
+  server.registerResource(
+    "handbook",
+    "m3://handbook",
+    {
+      title: "Library handbook",
+      description:
+        "The full m3-expressive-react handbook (same content the /llms.txt route serves), as markdown: usage rules, package facts, and every component with import line, variants, props, guidelines and a ready-to-paste example. Start here if you read only one resource.",
+      mimeType: "text/markdown",
+    },
+    (uri) => ({ contents: [{ uri: uri.href, mimeType: "text/markdown", text: buildHandbook() }] })
+  );
+
+  server.registerResource(
+    "components",
+    "m3://components",
+    {
+      title: "Component index",
+      description:
+        "Index of every component in the library: id, name, category, variants and M3E flag. Read m3://components/<id> for the full metadata of one component.",
+      mimeType: "application/json",
+    },
+    (uri) =>
+      jsonResource(uri, {
+        library: "m3-expressive-react",
+        version: "1.0.0",
+        count: METAS.length,
+        components: METAS.map((m) => ({ id: m.id, name: m.name, category: m.category, variants: m.variants, m3e: !!m.m3e })),
+      })
+  );
+
+  server.registerResource(
+    "component",
+    new ResourceTemplate("m3://components/{id}", {
+      list: undefined, // static template — enumerate concrete ids via m3://components
+      complete: {
+        id: (value) => {
+          const v = value.toLowerCase();
+          return METAS.map((m) => m.id).filter((id) => id.startsWith(v));
+        },
+      },
+    }),
+    {
+      title: "Component metadata",
+      description:
+        "Full metadata for one component (id from m3://components): description, variants, typed props, guidelines, example code, related components. Unknown ids return a 404-style error.",
+      mimeType: "application/json",
+    },
+    (uri, variables) => {
+      const id = String(variables.id);
+      const m = find(id);
+      if (!m) {
+        throw new Error(`404: Unknown component "${id}". Read m3://components for valid ids (or call the list_components tool).`);
+      }
+      return jsonResource(uri, m);
+    }
+  );
+
+  server.registerResource(
+    "tokens",
+    "m3://tokens",
+    {
+      title: "Design tokens",
+      description:
+        "Every design token as pretty JSON: semantic color roles, motion (springs/easings/durations), shape scale + morphs, elevations, typography scale, state-layer opacities. Components consume ONLY these tokens.",
+      mimeType: "application/json",
+    },
+    (uri) => jsonResource(uri, TOKENS_RESOURCE)
+  );
+
+  server.registerResource(
+    "themes",
+    "m3://themes",
+    {
+      title: "Curated themes",
+      description:
+        "All curated Material 3 color schemes with their full light + dark role maps, plus the default theme id. Apply via html[data-theme='<id>'] + the .dark class.",
+      mimeType: "application/json",
+    },
+    (uri) => jsonResource(uri, THEMES_RESOURCE)
+  );
+
+  server.registerResource(
+    "package",
+    "m3://package",
+    {
+      title: "Package facts",
+      description:
+        "The npm package at a glance: name, version, install command, exports map, peer dependencies, and the Tailwind-4 vs compiled.css styling paths.",
+      mimeType: "application/json",
+    },
+    (uri) => jsonResource(uri, PACKAGE_FACTS)
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* Prompts (task playbooks that drive the tools)                       */
+  /* ------------------------------------------------------------------ */
+  server.registerPrompt(
+    "m3_screen_builder",
+    {
+      title: "Build an M3 Expressive screen",
+      description:
+        "Guided playbook for building one screen with m3-expressive-react: discover components via tools, study guidelines + examples, then emit a complete compilable React file with correct imports, tokens and theme wiring.",
+      argsSchema: {
+        description: z.string().describe("The screen to build, e.g. 'a sign-in form with email, password and a remember-me switch'"),
+        framework: z
+          .enum(["react", "next"])
+          .optional()
+          .default("react")
+          .describe("Target framework: 'react' (plain React/Vite) or 'next' (Next.js app router) — default 'react'"),
+      },
+    },
+    ({ description, framework }) => ({
+      messages: [
+        {
+          role: "user" as const,
+          content: {
+            type: "text" as const,
+            text: [
+              "You are building a Material 3 Expressive screen with the m3-expressive-react library. Follow this exact workflow BEFORE writing any code:",
+              "",
+              "1. DISCOVER — call the `list_components` tool for the full component index, and `search_components` with keywords from the screen description to find the relevant components (do not guess component names).",
+              "2. STUDY — for EACH component you intend to use, call `get_component_guidelines` (when to use / anatomy / states / dos / don'ts) and `get_component_examples` (recommended JSX). If props are ambiguous, also call `get_component_api`.",
+              "3. COMPOSE — emit ONE complete, compilable React file that:",
+              "   - imports only from 'm3-expressive-react' (e.g. `import { Button, Card, TextField } from \"m3-expressive-react\";`) using the import lines from the metadata;",
+              "   - uses ONLY props documented in the metadata — never invent props;",
+              "   - uses color tokens exclusively (`bg-m3-primary`, `text-m3-on-surface-variant`, `border-m3-outline-variant`, …) — never raw hex;",
+              "   - passes icons as Material Symbols ligature strings (`icon=\"edit\"`);",
+              "   - animates with token springs from 'm3-expressive-react/tokens' — `springs.expressive` is the signature M3E spring; never hardcode durations/curves;",
+              "   - keeps every interactive element at a 48×48dp minimum touch target, keeps the built-in state layers (.m3-state) and focus rings (.m3-focus) intact, and gives icon-only controls an aria-label;",
+              "   - places exactly one filled/high-emphasis action per region, ordered by decreasing emphasis left→right.",
+              "4. THEME — wire `<html data-theme=\"<id>\">` with an id from `list_themes` (ocean | emerald | coral; baseline violet = attribute removed) and the `.dark` class for dark mode. Tell the user to `import \"m3-expressive-react/styles.css\"` — or, if they run Tailwind 4, the `@source` + `@theme` mapping from the package README. For a custom brand scheme, call `generate_theme` first and emit its --md-* CSS blocks.",
+              "5. VALIDATE — re-check every prop against the `get_component_api` output, then answer with the final file in a single ```tsx code block plus the theme/style wiring instructions.",
+            ].join("\n"),
+          },
+        },
+        {
+          role: "user" as const,
+          content: {
+            type: "text" as const,
+            text:
+              `Screen to build: ${description}\n` +
+              `Target framework: ${framework}\n` +
+              (framework === "next"
+                ? "Next.js specifics: use the app router — export a default page component, mark it 'use client' at the top because every component uses interactive M3E state/motion."
+                : "React specifics: export a default App component; keep the file self-contained (Vite-compatible)."),
+          },
+        },
+        {
+          role: "assistant" as const,
+          content: {
+            type: "text" as const,
+            text: `Understood. I will: (1) list + search components for "${description}", (2) pull guidelines and examples for each chosen id, (3) emit one compilable ${framework} file importing only documented props from 'm3-expressive-react', (4) wire data-theme + styles.css guidance, and (5) validate every prop before answering.`,
+          },
+        },
+      ],
+    })
+  );
+
+  server.registerPrompt(
+    "m3_style_audit",
+    {
+      title: "Audit M3 Expressive style",
+      description:
+        "Audit user-provided JSX against the official M3 Expressive guidelines (variant misuse, missing state layers/focus, wrong dp sizes, touch targets, token violations) and return a structured findings list with concrete fixes.",
+      argsSchema: {
+        code: z.string().describe("The user's JSX/TSX code to audit"),
+      },
+    },
+    ({ code }) => ({
+      messages: [
+        {
+          role: "user" as const,
+          content: {
+            type: "text" as const,
+            text: [
+              "Audit the following JSX against the Material 3 Expressive guidelines of the m3-expressive-react library.",
+              "",
+              "Procedure:",
+              "1. Identify every m3-expressive-react component used in the code.",
+              "2. For each one, call the `get_component_guidelines` tool with its id and check the code against when-to-use / anatomy / states / dos / don'ts. Use `get_component_api` to verify the props actually exist.",
+              "3. Check specifically for:",
+              "   - VARIANT MISUSE: multiple filled buttons competing as the primary action in one region, wrong emphasis ordering, tonal FAB/snackbar misuse;",
+              "   - MISSING STATE LAYERS / FOCUS: interactive elements must rely on the built-in .m3-state layers (hover 8% / focus 10% / pressed 10% / dragged 16%) — flag hand-rolled hover opacity, removed .m3-focus rings, or disabled focus-visible;",
+              "   - WRONG DP SIZES: non-token font sizes or corner radii that ignore the shape scale, fixed heights below the 48×48dp minimum touch target for interactive elements;",
+              "   - ACCESSIBILITY: icon-only controls without aria-label, dialogs/sheets missing Escape dismiss, focus not returned to triggers;",
+              "   - TOKEN VIOLATIONS: raw hex colors, hard-coded motion durations/curves instead of the token springs/easings.",
+              "4. Return a STRUCTURED findings list — for each finding: severity (error | warning | polish), the offending snippet (quoted), the violated guideline, and the exact corrected code. If the code is fully compliant, say so and list what you verified.",
+              "",
+              "Code to audit:",
+              "```tsx",
+              code,
+              "```",
+            ].join("\n"),
+          },
+        },
+        {
+          role: "assistant" as const,
+          content: {
+            type: "text" as const,
+            text: "I'll identify the components used, fetch each one's guidelines via get_component_guidelines, verify props via get_component_api, and return a structured findings list (severity · snippet · violated guideline · fixed code) — or a compliance confirmation with the checklist I verified.",
+          },
+        },
+      ],
+    })
+  );
+
+  server.registerPrompt(
+    "m3_theme_seed",
+    {
+      title: "Seed a custom M3 theme",
+      description:
+        "Derive a sensible seed color from a brand description, generate the full Material 3 scheme via the generate_theme tool, and emit the --md-* CSS variable blocks with data-theme wiring.",
+      argsSchema: {
+        brand: z.string().describe("Brand description to derive the seed from, e.g. 'a calm meditation app, sage green'"),
+        variant: z
+          .enum(["tonal-spot", "vibrant", "expressive", "content", "fidelity", "rainbow", "fruit-salad"])
+          .optional()
+          .describe("Palette style for the Dynamic Color engine (default 'tonal-spot')"),
+      },
+    },
+    ({ brand, variant }) => ({
+      messages: [
+        {
+          role: "user" as const,
+          content: {
+            type: "text" as const,
+            text: [
+              `Derive a Material 3 color scheme for this brand, then deliver it as ready-to-use code.`,
+              "",
+              "Steps:",
+              `1. SEED — pick the brand's dominant hue and state it as a 6-digit hex (e.g. a coffee brand → warm brown #795548; a fintech app → trust blue #0B57D0). If the description gives no usable hue, fall back to the M3 baseline seed #6750A4. Always explain your choice in one sentence.`,
+              `2. GENERATE — call the \`generate_theme\` tool with that seed (and variant "${variant ?? "tonal-spot"}", contrast 0 unless the user asked otherwise).`,
+              "3. EMIT CSS — paste the tool's returned `css` blocks verbatim: they are scoped as :root[data-theme='<id>'] and [data-theme='<id>'].dark, defining every --md-* semantic role. Present them as one CSS snippet for the user's global stylesheet.",
+              "4. WIRE — show the application wiring: `<html data-theme=\"<id>\">` (removing the attribute returns the baseline violet scheme) and the `.dark` class on <html> for dark mode. Components read ONLY the --md-* roles, so no component code changes.",
+              "5. SANITY-CHECK — report the light/dark primary and on-primary pairs from the response so the user can verify contrast at a glance.",
+              "",
+              `Brand: ${brand}`,
+            ].join("\n"),
+          },
+        },
+        {
+          role: "assistant" as const,
+          content: {
+            type: "text" as const,
+            text: `I'll derive the seed hex from "${brand}", call generate_theme with the ${variant ?? "tonal-spot"} variant, then hand back the --md-* CSS blocks plus the data-theme/.dark wiring and a contrast sanity check.`,
+          },
+        },
+      ],
+    })
   );
 
   return server;

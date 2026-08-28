@@ -212,3 +212,15 @@ readout chips are presentation-only. They inherit the fixes visually (focus trap
   List.tsx, untouched). Files NOT touched: globals.css, tokens.ts, types.ts,
   themes.ts, page/layout, index.ts, registry.ts, Card/List/Dialog demo+meta regions,
   and all other agents' components/metas.
+
+## Carousel.tsx (M3E) — added (round 7, task 7-a)
+**1. Spec/expected behavior.** m3.material.io/components/carousel: horizontal scroll-snap
+collection, three layouts (multi-browse flexible equal items; hero = one large + smaller
+items, 360:240 proportions; inline = full-width items), 8dp item gaps, shaped items
+(round 28dp / square), start/end alignment, keyboard scrollable, labeled items.
+**2. Implemented.** `layout: 'multi-browse' | 'hero' | 'inline'`, `alignment`,
+`itemCount` (1–5), `shape`, tonal `CarouselItem[]` (container role + MaterialSymbol +
+md-label), M3E signature hover/focus item width-grow animated with layout springs,
+m3-state/m3-focus on items, ARIA region/roledescription + per-item labels, arrow-key
+item snap. M3E dynamic-width hover behavior has no published dp table — growth factor
+documented in meta.

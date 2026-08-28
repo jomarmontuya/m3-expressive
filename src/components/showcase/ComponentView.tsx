@@ -7,6 +7,8 @@ import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Chip } from "@/components/m3/Chip";
 import { demoRegistry } from "./demo-registry";
 import { CodeBlock } from "./CodeBlock";
+import { PropsPlayground } from "./PropsPlayground";
+import { getPlaygroundSpec } from "./playground-specs";
 import type { Route } from "./Sidebar";
 
 export function ComponentView({ id, navigate }: { id: string; navigate: (r: Route) => void }) {
@@ -29,6 +31,7 @@ export function ComponentView({ id, navigate }: { id: string; navigate: (r: Rout
   const idx = siblings.indexOf(meta.id);
   const prev = idx > 0 ? siblings[idx - 1] : undefined;
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : undefined;
+  const playgroundSpec = getPlaygroundSpec(meta.id);
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
@@ -63,6 +66,15 @@ export function ComponentView({ id, navigate }: { id: string; navigate: (r: Rout
           )}
         </div>
       </div>
+
+      {/* props playground (only for components with a PLAYGROUND_SPECS entry) */}
+      {playgroundSpec && (
+        <section className="mt-8" aria-label="Playground">
+          <h2 className="md-title-medium text-m3-on-surface">Playground</h2>
+          <p className="mt-1 md-body-medium text-m3-on-surface-variant">{playgroundSpec.explainer}</p>
+          <PropsPlayground key={meta.id} spec={playgroundSpec} />
+        </section>
+      )}
 
       {/* example code */}
       <section className="mt-8">

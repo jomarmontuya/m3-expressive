@@ -22,6 +22,7 @@ import { cardMeta } from "@/lib/m3/meta";
 import { listMeta } from "@/lib/m3/meta";
 import { bottomSheetMeta } from "@/lib/m3/meta";
 import { sideSheetMeta } from "@/lib/m3/meta";
+import { carouselMeta } from "@/lib/m3/meta";
 import { textFieldMeta } from "@/lib/m3/meta";
 import { searchBarMeta } from "@/lib/m3/meta";
 import { searchViewMeta } from "@/lib/m3/meta";
@@ -71,6 +72,7 @@ const TABLE: RegistryRow[] = [
   { meta: listMeta, file: "List" },
   { meta: bottomSheetMeta, file: "BottomSheet" },
   { meta: sideSheetMeta, file: "SideSheet" },
+  { meta: carouselMeta, file: "Carousel" },
   { meta: textFieldMeta, file: "TextField" },
   { meta: searchBarMeta, file: "SearchBar" },
   { meta: searchViewMeta, file: "SearchView" },

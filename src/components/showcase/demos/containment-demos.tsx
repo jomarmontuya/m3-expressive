@@ -7,6 +7,7 @@ import { BottomSheet } from "@/components/m3/BottomSheet";
 import { SideSheet } from "@/components/m3/SideSheet";
 import { DatePicker } from "@/components/m3/DatePicker";
 import { TimePicker } from "@/components/m3/TimePicker";
+import { Carousel } from "@/components/m3/Carousel";
 import { Button } from "@/components/m3/Button";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 
@@ -389,6 +390,63 @@ export function TimePickerDemo() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Carousel                                                            */
+/* ------------------------------------------------------------------ */
+
+const carouselItems = [
+  { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary" },
+  { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary" },
+  { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+  { id: "food", label: "Food tours", icon: "restaurant", tone: "surface" },
+  { id: "flight", label: "Getaways", icon: "flight_takeoff", tone: "secondary" },
+  { id: "park", label: "Parks", icon: "park", tone: "tertiary" },
+  { id: "music", label: "Festivals", icon: "festival", tone: "primary" },
+  { id: "photo", label: "Photo spots", icon: "photo_camera", tone: "surface" },
+] as const;
+
+export function CarouselDemo() {
+  const [picked, setPicked] = React.useState<string | null>(null);
+  const items = React.useMemo(
+    () =>
+      carouselItems.map((it) => ({
+        ...it,
+        onClick: (item: { id: string }) => setPicked(item.id),
+      })),
+    []
+  );
+  return (
+    <div className="flex w-full min-w-[720px] flex-col gap-3 p-2" data-testid="carousel-demo">
+      {/* multi-browse — flexible widths + the M3E hover-grow */}
+      <section className="flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Multi-browse — hover or focus an item: it springs to ~1.12× while neighbors shrink
+        </span>
+        <Carousel items={items} layout="multi-browse" itemCount={4} ariaLabel="Weekend getaways" />
+        <span className="md-label-medium text-m3-on-surface-variant" data-testid="carousel-picked">
+          {picked ? `Opened: ${picked}` : "Tap an item · 4 visible + a 24px peek · Arrow keys rove focus"}
+        </span>
+      </section>
+
+      {/* hero — one large leading item, smaller rest */}
+      <section className="mt-2 flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Hero — featured item takes ~66% width; the rest are smaller (3:2 proportions)
+        </span>
+        <Carousel items={items.slice(0, 5)} layout="hero" ariaLabel="Featured getaways" />
+      </section>
+
+      {/* inline — one full-width item per view */}
+      <section className="mt-2 flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Inline — one full-width item per view, adjacent items peek 0
+        </span>
+        <Carousel items={items.slice(0, 5)} layout="inline" ariaLabel="Full-bleed getaways" />
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Demo map                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -399,4 +457,5 @@ export const containmentDemoMap: Record<string, React.ComponentType> = {
   "side-sheet": SideSheetDemo,
   "date-picker": DatePickerDemo,
   "time-picker": TimePickerDemo,
+  carousel: CarouselDemo,
 };

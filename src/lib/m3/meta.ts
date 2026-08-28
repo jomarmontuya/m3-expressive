@@ -233,6 +233,64 @@ export const sideSheetMeta: M3ComponentMeta = {
   demoName: "SideSheetDemo",
 };
 
+export const carouselMeta: M3ComponentMeta = {
+  id: "carousel",
+  name: "Carousel",
+  category: "containment",
+  description:
+    "New in Material 3 Expressive: a horizontally scrollable, scroll-snapped collection of items with three official layout strategies — multi-browse (flexible equal widths with a peek), hero (one large leading item, the rest smaller) and inline (one full-width item per view). Items sit 8dp apart, are shaped (28dp corners by default) and, in the multi-browse layout, play the signature M3E dynamic-width treatment: the hovered or focused item springs to ~1.12× its width while the neighbors give up the difference.",
+  importLine: `import { Carousel } from "@/components/m3";`,
+  variants: ["multi-browse", "hero", "inline"],
+  props: [
+    { name: "items", type: `CarouselItem[]`, description: "Snap items: id, optional label, MaterialSymbol icon, container tone ('primary' | 'secondary' | 'tertiary' | 'surface'), optional href/onClick (makes the whole item a button/link)." },
+    { name: "layout", type: `'multi-browse' | 'hero' | 'inline'`, default: `'multi-browse'`, description: "Official strategy: flexible equal widths with a 24px peek · one large (66%) + smaller (34%) items · one full-width item per view." },
+    { name: "alignment", type: `'start' | 'end'`, default: `'start'`, description: "Scroll-snap alignment of items." },
+    { name: "itemCount", type: `number`, default: `4`, description: "multi-browse only: visible-item hint, clamped to 1–5." },
+    { name: "shape", type: `'round' | 'square'`, default: `'round'`, description: "Item corners: 28dp (M3E extra-large) or square." },
+    { name: "ariaLabel", type: `string`, description: "Accessible name of the carousel region (defaults to a derived label)." },
+    { name: "className", type: `string`, description: "Extra classes for the scroller." },
+  ],
+  guidelines: {
+    whenToUse: [
+      "Use carousels to browse a small, visually rich collection of similar content (media cards, destination tiles).",
+      "Use multi-browse when items share equal importance and flexible widths should show several at once.",
+      "Use hero when one featured item deserves emphasis and the rest are secondary.",
+      "Use inline for full-bleed, one-item-per-view browsing.",
+    ],
+    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12×, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)"],
+    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12×, neighbors shrink)", "Focus (3px focus ring; same width-grow as hover)", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)"],
+    dos: [
+      "Use multi-browse for mixed or equal-importance content, hero for featured + rest, inline for full-bleed imagery",
+      "Keep 1–5 items visible (official multi-browse range)",
+      "Give every item a label (or accessible name) so the carousel is describable",
+      "Keep item heights in one carousel consistent (hero large:small ≈ 3:2)",
+    ],
+    donts: [
+      "Don't nest carousels inside carousels",
+      "Don't put primary actions inside carousel items (items are browse/navigation, not task buttons)",
+      "Don't allow tiny peeks that hide content — the 24px peek only hints that more exists",
+      "Don't use the dynamic-width grow in hero/inline — flexible widths are a multi-browse trait",
+    ],
+  },
+  exampleCode: `<Carousel
+  layout="multi-browse"
+  itemCount={4}
+  ariaLabel="Weekend getaways"
+  items={[
+    { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary", onClick: open },
+    { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary", onClick: open },
+    { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+    { id: "food", label: "Food tours", icon: "restaurant", tone: "surface" },
+  ]}
+/>
+
+<Carousel layout="hero" items={featured} />
+<Carousel layout="inline" items={fullBleed} />`,
+  m3e: true,
+  related: ["card", "list", "bottom-sheet"],
+  demoName: "CarouselDemo",
+};
+
 export const dialogMeta: M3ComponentMeta = {
   id: "dialog",
   name: "Dialog",

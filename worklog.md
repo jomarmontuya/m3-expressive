@@ -652,3 +652,70 @@ Most complete state so far: 40 components (date-range picker added), npm package
 - MCP Playground talks to :3210 via the gateway — if the MCP mini-service is not running, Playground shows a clear unreachable error (by design); document that `mini-services/mcp-server` must be up.
 - compiled.css duplicates the @theme mapping from globals.css — future token additions must update both (entry.css comment warns).
 - Next candidates: stateful MCP sessions/SSE if needed; range-picker keyboard cell-level nav polish; export CI status badge; date-picker min/max + range interplay tests; npm real publish when registry access exists.
+
+---
+Task ID: 7-b
+Agent: mcp-resources
+Task: Add MCP resources (6, incl. 1 URI template) + prompts (3) to the m3-expressive MCP server via SDK 1.30 registerResource/registerPrompt — tools untouched
+
+Work Log:
+- Read worklog tail, index.ts fully (buildServer factory, 14 registerTool calls, dual stdio+stateless-HTTP transport), README; confirmed exact SDK 1.30.0 signatures from dist/esm/server/mcp.d.ts: registerResource(name, uriOrTemplate, config, readCallback) with ResourceMetadata = Omit<Resource,'uri'|'name'>, registerPrompt(name, {title, description, argsSchema}, cb), ResourceTemplate(uriTemplate, {list, complete}) — list must be explicitly provided (undefined ok).
+- Handbook decision (documented in code + README): importing src/app/llms.txt/route.ts is NOT robust from the mini-service — it imports `@/lib/m3/registry` (Next tsconfig alias unresolvable under bun here, no Next runtime). Composed buildHandbook() in index.ts from the SAME already-imported sources of truth (METAS + tokens/themes), mirroring the route's line structure 1:1 (header/version/how-to-use/package/per-category sections with id/description/import/variants/props/when-to-use/avoid/example); extra bullet advertising the new resources+prompts. Tracks registry automatically (now shows 41 incl. 7-a's carousel).
+- Module-scope payloads: TOKENS_RESOURCE (colorRoles, motion{springs,easings,durations}, shapes{scale,morphs}, elevations, typeScale, stateOpacities), THEMES_RESOURCE (defaultThemeId + m3Themes), PACKAGE_FACTS (mirrors /api/agent package field: name/version/install/exports map/peerDeps + styling.tailwind4 vs styling.withoutTailwind).
+- In buildServer(), after the last tool, before `return server;` (separate unique-anchor Edits only, no full-file Write; no anchor conflicts with 7-a): 5 static registerResource (m3://handbook text/markdown, m3://components, m3://tokens, m3://themes, m3://package — all application/json via shared jsonResource helper) + 1 template registerResource (new ResourceTemplate("m3://components/{id}", { list: undefined, complete: { id: prefix-filter over METAS ids } })); unknown id throws Error(`404: Unknown component "x". Read m3://components …`) → JSON-RPC error preserves the 404-style text. 3 registerPrompt: m3_screen_builder (description required; framework enum react|next .default("react") — default survives the SDK zod-compat), m3_style_audit (code), m3_theme_seed (brand required, variant enum optional); all return 2–3 messages (user workflow/user task/assistant plan) with real tool-driven checklists (48dp, .m3-state/.m3-focus, token-only colors, springs.expressive, data-theme + styles.css wiring, structured findings list format).
+- Tools/transport byte-identical: 14 registerTool calls untouched, health JSON untouched (still tools:14), stdio/HTTP setup untouched; only comment/doc-line additions in the header + buildServer JSDoc.
+- README.md: added "Resources (read-only)" (URI table + curl for resources/list, resources/templates/list, resources/read ×3, unknown-id error, completion/complete with SDK 1.30 ref shape {type:"ref/resource",uri}) and "Prompts" (table + curl for prompts/list, prompts/get) sections; transports line now "14 tools · 6 resources (incl. 1 URI template) · 3 prompts".
+- Verification (service hot-reloaded, curl :3210): health → {"tools":14,"components":41,"status":"ok"}; initialize → serverInfo m3-expressive 1.0.0, capabilities [completions, prompts, resources, tools]; resources/list → 5; resources/templates/list → 1 (m3://components/{id}); resources/read m3://components/button → 3200B JSON, guidelines.whenToUse/dos/props(7) present; m3://tokens → 8120B JSON, 24 colorRoles + springs + typeScale(15) + stateOpacities{hover .08,focus .1,pressed .1,dragged .16}; m3://themes → defaultThemeId baseline, 4 themes w/ full light+dark; m3://package → exports 10 subpaths + peerDeps + styling paths; m3://components → count 41; m3://handbook → 58056B markdown, 41 `###` sections, Carousel present; m3://components/nonexistent → error code -32603 "404: Unknown component \"nonexistent\". Read m3://components …"; completion/complete "date" → ["date-picker"]; prompts/list → 3; prompts/get m3_screen_builder {description:"a settings screen"} → 3 messages [user,user,assistant], framework defaulted to react, real workflow text (DISCOVER/STUDY/COMPOSE/THEME/VALIDATE); prompts/get m3_style_audit + m3_theme_seed → 2 messages each, code/brand echoed, checklists verified; tools/list → 14 unchanged; tools/call list_components → totalCount 41 isError false; GET /mcp 405 · DELETE 204 · OPTIONS 204 unchanged; stdio smoke `bun index.ts` → "[m3-expressive-mcp] connected on stdio — 41 components, 4 themes".
+
+Stage Summary:
+- MCP server now exposes 14 tools (byte-identical behavior) + 6 read-only resources (m3://handbook, m3://components, m3://components/{id} template with completion, m3://tokens, m3://themes, m3://package) + 3 prompts (m3_screen_builder, m3_style_audit, m3_theme_seed) on both stdio and stateless streamable-HTTP.
+- bunx tsc --noEmit → 4 pre-existing errors (examples/websocket ×2, skills ×2), 0 in mini-services; bun run lint → 0 errors (1 pre-existing layout.tsx warning); only mini-services/mcp-server/{index.ts,README.md} changed.
+- Note for clients: MCP spec/SDK 1.30 keeps templates out of resources/list — 5 concrete + 1 template = the 6-entry surface (documented in README); completion ref uses the 1.30 shape {type:"ref/resource",uri:"m3://components/{id}"}.
+
+---
+Task ID: 7-a
+Agent: carousel-builder (file work complete when agent hit context deadline; orchestrator performed full live verification + audit note)
+Task: M3 Carousel component (#41) — multi-browse / hero / inline layouts with M3E dynamic-width behavior
+
+Work Log:
+- (Agent) src/components/m3/Carousel.tsx: 'use client' forwardRef Carousel + CarouselProps + carouselMeta re-export; layouts per m3.material.io: multi-browse (flexible equal slots (vw − n·GAP − PEEK)/n, 24px peek), hero (HERO_LARGE_W 0.66 / HERO_SMALL_W 0.34 of inner width, heights 360/240-scale), inline (full-width, strict snap); 8dp gaps, snap-x mandatory, hidden scrollbar; M3E signature hover/focus width-grow: hot slot ×1.12 (GROW), neighbors shrink to slot×(n−1.12)/(n−1) — exact width conservation (Σ slots constant), framer springs.defaultSpatial animate on measured vw (ResizeObserver), CSS-calc fallbacks pre-measurement/SSR; pointerType!=='touch' guard; tonal CarouselItem (tone → container role, MaterialSymbol 44dp, md-label-large), shape round/square (28dp), actionable items = button/a with Ripple + m3-state/m3-focus; ARIA: region + aria-roledescription=carousel, per-item group/slide labels "i of n: label", roving keyboard focus (ArrowLeft/Right/Home/End focusSlide + scrollIntoView snap).
+- (Agent) Wiring: meta.ts carouselMeta (category containment, m3e flag, full guidelines, demoName CarouselDemo); registry row; barrel exports; CarouselDemo (containment-demos.tsx) with 3 layout sections (Weekend/Featured/Full-bleed getaways) + captions; MCP server import+FILES+METAS (health → 41); registry totalCount 41; hero stat auto (m3Registry.totalCount).
+- (Orchestrator) audit/containment-2.md note was missing at deadline → appended "## Carousel.tsx (M3E) — added (round 7, task 7-a)".
+- (Orchestrator live verification, :3000): tsc/lint clean; zero page errors. Hover-grow: mouse move to item center → hot 194.5→217.8px (×1.12), neighbors →186.7px, data-hot set, conservation exact (217.8+3×186.7=778=4×194.5). NOTE for future QA: agent-browser hover/mouse must target in-viewport coords — first attempts failed because the item sat below the 577px fold (use scrollIntoView + fresh rect; `agent-browser mouse move x y` is the correct raw-pointer command). Keyboard: ArrowRight roved focus item0→item1, snap scrolled (scrollLeft 196), redistribution follows focus too. Layouts measured: multi-browse [187,218,187,187] during hot; hero [540,278,278,278] (~66% featured per spec); inline [834,834] full-bleed. Screenshots tool-results/carousel-multibrowse.png + carousel-hero.png. MCP get_component("carousel") → isError none, variants [multi-browse, hero, inline]. VR baseline captured (41 total).
+
+Stage Summary:
+- Library is now 41 components; the last major missing M3E component (Carousel) shipped with official layout strategies + the expressive dynamic-width signature, fully wired across meta/registry/barrel/demo/MCP/audit and verified live.
+
+---
+Task ID: 7-c
+Agent: props-playground (file work complete when agent hit adapter failure; orchestrator performed full live verification)
+Task: Props Playground — live variant/state controls + code generation on component pages (pilot, 10 components)
+
+Work Log:
+- (Agent) src/components/showcase/PropsPlayground.tsx: PLAYGROUND_SPECS typed registry + playground section (live target on neutral stage + controls column + generated code via CodeBlock w/ copy); controls = library's own segmented controls / switches; import paths match house convention (@/components/m3, same as meta exampleCode).
+- (Agent) ComponentView.tsx: renders <PropsPlayground> between live demo and Usage only when a spec exists (other 31 pages untouched — verified #/component/menu has no Playground).
+- (Orchestrator live verification, :3000): zero page errors. Button page: variant segmented filled→outlined → aria-pressed=true, live class swaps to border-m3-outline bg-transparent text-m3-primary (filled bg gone), code block mirrors variant; size xs–xl segmented; Leading icon + Disabled switches → live disabled attr + code includes disabled; Reset + copy present; controls labels include icon ligatures (match with includes(), not equality — QA gotcha). Screenshots tool-results/props-playground-button.png + props-playground-switch.png. 
+- VR impact: 7 component pages changed (icon-button, extended-fab, badge, divider, switch, slider, chip gained the Playground section) → baselines refreshed with --force; full vr:check → PASS 41 (36 identical · 5 minor animated · 0 changed).
+
+Stage Summary:
+- Showcase gained a live props playground on 10 component pages (zero impact elsewhere); code generation mirrors control state 1:1 for copy-paste.
+
+---
+Task ID: 7-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-7 integration QA + handover
+
+## Current project status
+Most complete state yet: **41 components** (Carousel added — the last major missing M3E component), MCP now exposes 14 tools + 6 resources (incl. URI-template component docs + completion) + 3 prompts, npm package dual-styling, VR suite 41/41, props playground on 10 pages, MCP Playground UI. All gates green.
+
+## Completed this round (verification results)
+- QA at start: services healthy (registry 40, MCP 40/14), browser clean.
+- 7-b MCP resources+prompts (agent mcp-resources, fully verified): m3://handbook (58KB), m3://components (+/{id} template w/ 404 + completion), m3://tokens, m3://themes, m3://package; prompts m3_screen_builder / m3_style_audit / m3_theme_seed with real instructive content; capabilities now [completions, prompts, resources, tools]; tools byte-identical; README resources/prompts sections; curl-verified end-to-end.
+- 7-a Carousel: complete implementation + wiring verified live (hover-grow ×1.12 w/ exact conservation, keyboard roving+snap, 3 official layouts measured); MCP serves it; VR baseline captured; audit note appended by orchestrator (was missing at deadline).
+- 7-c Props Playground: 10-component pilot verified live (variant/size/state controls ↔ live class/attr swap ↔ generated code, incl. disabled); non-playground pages untouched; VR baselines refreshed for the 7 changed pages.
+- Integration QA: vr:check → **identical 36 · minor 5 · changed 0 — PASS (41/41)**; tsc clean; lint 0 errors (1 documented warning); registry 41; MCP 41 components / 14 tools / 6 resources / 3 prompts; homepage hero stat auto-updated via m3Registry.totalCount.
+
+## Unresolved issues / risks / next-phase priorities
+- Hero layout ratio is 0.66/0.34 (≈1.94:1) vs the official 360:240dp (1.5:1) illustration — implemented to fill the row; flag in meta if strictness is ever needed.
+- CI yaml remains untested (no git remote); vr:check in CI needs a served app step.
+- Next candidates: date-picker min/max×range edge tests; MCP stateful SSE sessions; real npm publish when registry access exists; Carousel arrow-button affordances (M3 has optional nav arrows — could add); playground expansion to remaining 31 components (specs are data-driven — cheap per-component adds); tag/README badges.

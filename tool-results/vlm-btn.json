@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "1. **Playground Section:** Yes. The section includes a left stage with a dot-grid background displaying a \"Get started\" button, and a right column containing segmented buttons for Variant (filled, tonal, outlined, text) and Size (xs, sm, md, lg, xl), along with switches for \"Leading icon\" and \"Disabled,\" and a text field for the Label.\n2. **Generated Code Block:** Yes. The block displays JSX code that imports `Button` from `\"m3-expressive-react\"` and renders `<Button>Get started</Button>`.\n3. **Layout & Styling:** No breakage or overlapping text is visible. The design strictly follows Material 3 (M3) light theme conventions (using purple/indigo primary colors), avoiding default blue or non-M3 color schemes.\n4. **Overall Theme:** Yes, it is a clean Material 3 light theme implementation.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1787893519,
+  "id": "20260828130513d236f8e916204085",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "20260828130513d236f8e916204085",
+  "usage": {
+    "completion_tokens": 188,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1720,
+    "prompt_tokens_details": {
+      "cached_tokens": 7
+    },
+    "total_tokens": 1908
+  }
+}

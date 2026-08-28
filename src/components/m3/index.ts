@@ -29,6 +29,16 @@ export { Card, cardMeta, type CardProps } from "./Card";
 export { List, ListItem, listMeta, type ListProps, type ListItemProps } from "./List";
 export { BottomSheet, bottomSheetMeta, type BottomSheetProps } from "./BottomSheet";
 export { SideSheet, sideSheetMeta, type SideSheetProps } from "./SideSheet";
+export {
+  Carousel,
+  carouselMeta,
+  type CarouselProps,
+  type CarouselItem,
+  type CarouselLayout,
+  type CarouselAlignment,
+  type CarouselTone,
+  type CarouselShape,
+} from "./Carousel";
 export { TextField, textFieldMeta, type TextFieldProps } from "./TextField";
 export { SearchBar, searchBarMeta, type SearchBarProps } from "./SearchBar";
 export { SearchView, searchViewMeta, type SearchViewProps, type SearchViewMode } from "./SearchView";
