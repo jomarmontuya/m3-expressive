@@ -26,6 +26,11 @@ const ENDPOINTS = [
   },
   {
     method: "GET",
+    path: "/api/component-source?id=button",
+    desc: "The real .tsx implementation file for one component — same text the Source code tab and MCP get_component_source return.",
+  },
+  {
+    method: "GET",
     path: "/api/registry?summary=true",
     desc: "Lightweight index for fast discovery.",
   },

@@ -2,196 +2,196 @@
   {
     "id": "button",
     "baselineExists": true,
-    "diffPercent": 0.0009,
+    "diffPercent": 0.0026,
     "status": "identical"
   },
   {
     "id": "icon-button",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0095,
     "status": "identical"
   },
   {
     "id": "fab",
     "baselineExists": true,
-    "diffPercent": 0.0033,
+    "diffPercent": 0.0003,
     "status": "identical"
   },
   {
     "id": "extended-fab",
     "baselineExists": true,
-    "diffPercent": 0.0033,
+    "diffPercent": 0.0007,
     "status": "identical"
   },
   {
     "id": "fab-menu",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0039,
     "status": "identical"
   },
   {
     "id": "split-button",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0023,
     "status": "identical"
   },
   {
     "id": "button-group",
     "baselineExists": true,
-    "diffPercent": 0.0041,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "segmented-button",
     "baselineExists": true,
-    "diffPercent": 0.0063,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "badge",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0033,
     "status": "identical"
   },
   {
     "id": "linear-progress",
     "baselineExists": true,
-    "diffPercent": 0.1344,
-    "status": "minor",
+    "diffPercent": 0.0289,
+    "status": "identical",
     "knownAnimated": true
   },
   {
     "id": "circular-progress",
     "baselineExists": true,
-    "diffPercent": 0.0106,
+    "diffPercent": 0.0009,
     "status": "identical",
     "knownAnimated": true
   },
   {
     "id": "loading-indicator",
     "baselineExists": true,
-    "diffPercent": 0.0111,
+    "diffPercent": 0.0082,
     "status": "identical",
     "knownAnimated": true
   },
   {
     "id": "snackbar",
     "baselineExists": true,
-    "diffPercent": 0.0019,
+    "diffPercent": 0.0095,
     "status": "identical"
   },
   {
     "id": "tooltip",
     "baselineExists": true,
-    "diffPercent": 0.0081,
+    "diffPercent": 0.0007,
     "status": "identical"
   },
   {
     "id": "banner",
     "baselineExists": true,
-    "diffPercent": 0.0003,
+    "diffPercent": 0.0026,
     "status": "identical"
   },
   {
     "id": "dialog",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0087,
     "status": "identical"
   },
   {
     "id": "divider",
     "baselineExists": true,
-    "diffPercent": 0.0028,
+    "diffPercent": 0.0002,
     "status": "identical"
   },
   {
     "id": "card",
     "baselineExists": true,
-    "diffPercent": 0.0049,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "list",
     "baselineExists": true,
-    "diffPercent": 0.0002,
+    "diffPercent": 0.0049,
     "status": "identical"
   },
   {
     "id": "bottom-sheet",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0024,
     "status": "identical"
   },
   {
     "id": "side-sheet",
     "baselineExists": true,
-    "diffPercent": 0.0045,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "carousel",
     "baselineExists": true,
-    "diffPercent": 0.0053,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "checkbox",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0017,
     "status": "identical"
   },
   {
     "id": "radio",
     "baselineExists": true,
-    "diffPercent": 0.004,
+    "diffPercent": 0.0043,
     "status": "identical"
   },
   {
     "id": "switch",
     "baselineExists": true,
-    "diffPercent": 0.0083,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "slider",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0026,
     "status": "identical"
   },
   {
     "id": "chip",
     "baselineExists": true,
-    "diffPercent": 0.0019,
+    "diffPercent": 0.0094,
     "status": "identical"
   },
   {
     "id": "date-picker",
     "baselineExists": true,
-    "diffPercent": 0.0083,
+    "diffPercent": 0.0003,
     "status": "identical"
   },
   {
     "id": "time-picker",
     "baselineExists": true,
-    "diffPercent": 0.0015,
+    "diffPercent": 0.0005,
     "status": "identical"
   },
   {
     "id": "text-field",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0048,
     "status": "identical"
   },
   {
     "id": "search-bar",
     "baselineExists": true,
-    "diffPercent": 0.0056,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "search-view",
     "baselineExists": true,
-    "diffPercent": 0.0024,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
@@ -203,43 +203,43 @@
   {
     "id": "tabs",
     "baselineExists": true,
-    "diffPercent": 0.001,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "navigation-bar",
     "baselineExists": true,
-    "diffPercent": 0.0059,
+    "diffPercent": 0.0015,
     "status": "identical"
   },
   {
     "id": "navigation-drawer",
     "baselineExists": true,
-    "diffPercent": 0.0023,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "navigation-rail",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0015,
     "status": "identical"
   },
   {
     "id": "top-app-bar",
     "baselineExists": true,
-    "diffPercent": 0,
+    "diffPercent": 0.0036,
     "status": "identical"
   },
   {
     "id": "bottom-app-bar",
     "baselineExists": true,
-    "diffPercent": 0.0075,
+    "diffPercent": 0,
     "status": "identical"
   },
   {
     "id": "toolbar",
     "baselineExists": true,
-    "diffPercent": 0.0028,
+    "diffPercent": 0,
     "status": "identical"
   },
   {

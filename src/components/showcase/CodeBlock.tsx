@@ -11,15 +11,21 @@ import { cn } from "@/lib/utils";
  * the right (safely inset — never overlapping the code). Body: highlighted
  * snippet with light format normalization (no trailing whitespace, blank-line
  * runs collapsed, trimmed edges) so generated markup always prints cleanly.
+ *
+ * `maxHeight` (px) caps the <pre> and makes it scroll vertically — used by
+ * the full-file Source view so a 900-line DatePicker doesn't dominate the
+ * page. Omit it for snippets (default: grow with content).
  */
 export function CodeBlock({
   code,
   className,
   language = "tsx",
+  maxHeight,
 }: {
   code: string;
   className?: string;
   language?: string;
+  maxHeight?: number;
 }) {
   const [copied, setCopied] = React.useState(false);
 
@@ -66,7 +72,13 @@ export function CodeBlock({
           />
         </button>
       </div>
-      <pre className="m3-scroll overflow-x-auto p-4 text-[13px] leading-relaxed">
+      <pre
+        className={cn(
+          "m3-scroll overflow-x-auto p-4 text-[13px] leading-relaxed",
+          maxHeight != null && "overflow-y-auto"
+        )}
+        style={maxHeight != null ? { maxHeight } : undefined}
+      >
         <code className="font-mono text-m3-on-surface">{highlight(formatted)}</code>
       </pre>
     </div>

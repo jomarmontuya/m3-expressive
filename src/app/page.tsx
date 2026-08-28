@@ -146,7 +146,9 @@ export default function M3ExpressiveDocs() {
                 onTab={(t) => navigate({ kind: "foundations", tab: t })}
               />
             )}
-            {route.kind === "component" && <ComponentView id={route.id} navigate={navigate} />}
+            {route.kind === "component" && (
+              <ComponentView id={route.id} code={route.code} navigate={navigate} />
+            )}
             {route.kind === "agents" && <AgentView />}
           </motion.div>
         </main>

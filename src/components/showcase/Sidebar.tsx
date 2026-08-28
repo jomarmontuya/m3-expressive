@@ -12,7 +12,7 @@ export type Route =
   | { kind: "docs" }
   | { kind: "foundations"; tab?: string }
   | { kind: "agents" }
-  | { kind: "component"; id: string };
+  | { kind: "component"; id: string; code?: "source" };
 
 export function routeToHash(r: Route): string {
   switch (r.kind) {
@@ -25,13 +25,16 @@ export function routeToHash(r: Route): string {
     case "agents":
       return "#/agents";
     case "component":
-      return `#/component/${r.id}`;
+      return r.code === "source" ? `#/component/${r.id}/source` : `#/component/${r.id}`;
   }
 }
 
 export function parseHash(hash: string): Route {
   const h = hash.replace(/^#\/?/, "");
-  if (h.startsWith("component/")) return { kind: "component", id: h.slice("component/".length) };
+  if (h.startsWith("component/")) {
+    const [id, sub] = h.slice("component/".length).split("/");
+    return { kind: "component", id, code: sub === "source" ? "source" : undefined };
+  }
   if (h.startsWith("foundation")) return { kind: "foundations", tab: h.split("/")[1] };
   if (h === "agents") return { kind: "agents" };
   if (h === "docs" || h === "getting-started" || h === "install") return { kind: "docs" };

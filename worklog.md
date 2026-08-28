@@ -921,3 +921,28 @@ All previous work intact (41/41 playgrounds, CSS cascade fix, redesigned CodeBlo
 - Starter CSS is baseline-scheme only (by design); curated themes + Theme Builder linked to foundations page.
 - VR note: docs page is NOT in VR set (component registry only) — sidebar changes on it are uncovered by VR; acceptable.
 - Next candidates: MCP stateful SSE sessions; README badges; "Copy playground config as JSON"; keyboard-roving a11y audit; search-view/carousel playground depth (array-typed value).
+
+---
+Task ID: 14
+Agent: orchestrator (Z.ai Code)
+Task: Expose full component source code in the showcase (user request: "user does not have the ability to see the entire source code of the buttons or the component — we only show usage")
+
+## Current project status
+All previous work intact (41/41 playgrounds, docs page, redesigned CodeBlock). This round closed the biggest gap in the ShadCN-style "copy the code" story: the site only ever showed `exampleCode` usage snippets — the real .tsx implementation was invisible to browser users (only MCP agents could read it via get_component_source).
+
+## Completed this round (verification results)
+- **New API route GET /api/component-source?id=<id>** (src/app/api/component-source/route.ts): returns { id, name, path, lines, bytes, source } read from disk via node:fs. Security: id must exist in the registry AND the resolved path must live inside src/components/m3 (traversal guard); 400 missing id / 404 unknown id (with available list) / 403 outside lib dir / 500 unreadable; Cache-Control no-store. Verified live: button → 209 lines/8242 B, date-picker → 902 lines/36095 B, ?id=nope → 404, missing id → 400.
+- **ComponentView "Code" section with Usage | Source code SegmentedButton tabs** (replaces the old single "Usage" heading): Usage = exampleCode as before; Source = new ComponentSource panel:
+  - Loading state: spinner + "Reading <file>…" header + 4 shimmer skeleton lines, aria-busy.
+  - Error state: message + Retry (tonal button, attempt counter re-triggers fetch).
+  - Ready state: file-fact chips (mono path chip + lines + KB), full source in CodeBlock with copy, and a "This file imports — copy these too (keep the same folder layout)" dependency box parsed from the real import statements: registry components → suggestion chips that NAVIGATE (with code:"source"), local primitives (Ripple/MaterialSymbol) → static assist chips, @/lib/* → settings-icon chips, npm packages → inventory-icon chips. Plus "Also via MCP · get_component_source" pill → agents page.
+- **Deep-linkable source mode**: Route gained `code?: "source"`; hash `#/component/<id>/source` opens any component page directly in source mode (routeToHash + parseHash updated, page.tsx passes code prop, ComponentView syncs via useEffect). Dep chips navigate to { kind:"component", id, code:"source" } so source browsing chains across components (verified: fab-menu/source → click FAB chip → #/component/fab/source with FAB.tsx rendered).
+- **CodeBlock maxHeight prop**: optional px cap making <pre> scroll vertically (overflow-y-auto + m3-scroll); source view uses 560px — DatePicker's 19k-px body verified capped at 560 and scrollable; snippets unchanged (prop omitted → grow as before).
+- **DocsView Option B** now has a tip card: "Every component page has a Source code tab… Preview Button.tsx →" (navigates to #/component/button). **AgentView endpoints** gained the /api/component-source card.
+- Gates: tsc 0 src errors; lint 0 errors / 1 pre-existing warning; **full VR refresh 41/41 → PASS identical 41 · minor 0 · changed 0** (every page gained the Code tab row); mobile 375px sw=375 exact on both tabs; MCP untouched and healthy (14 tools / 41 components); dev.log clean. Existing 15-min webDevReview cron active (job 341240) — no duplicate.
+
+## Unresolved issues / risks / next-phase priorities
+- Source tab fetches lazily (only when opened) — first open shows the skeleton for ~50ms; acceptable, avoids 41 eager fetches.
+- ComponentSource reloads per component (motion.div key remount) — intentional; deep links carry the mode so dep-chip chains stay in source view.
+- parseImports covers `from "…"` specifiers only (no side-effect imports) — all 41 components use named imports, so coverage is complete in practice.
+- Next candidates: "Copy playground config as JSON"; per-component "Open source in new tab" (raw text route); MCP stateful SSE sessions; README badges; keyboard-roving a11y audit of playground stages.

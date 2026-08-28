@@ -462,6 +462,20 @@ function InstallTab({ navigate }: { navigate: (r: Route) => void }) {
               Copy the component folder plus two lib files. That&apos;s the whole
               install — there is nothing else hiding in node_modules.
             </p>
+            <div className="mb-3 flex items-start gap-2 rounded-xl bg-m3-surface-container p-3">
+              <MaterialSymbol icon="visibility" size={18} className="mt-0.5 shrink-0 text-m3-primary" />
+              <p className="md-body-small text-m3-on-surface-variant">
+                Every component page has a{" "}
+                <strong className="text-m3-on-surface">Source code</strong> tab with the complete
+                file — preview it in the browser and copy it in one click.{" "}
+                <button
+                  onClick={() => navigate({ kind: "component", id: "button" })}
+                  className="m3-focus rounded-full text-m3-primary underline underline-offset-2 hover:opacity-80"
+                >
+                  Preview Button.tsx →
+                </button>
+              </p>
+            </div>
             <div className="mt-auto">
               <CodeBlock language="text" code={FILE_TREE} />
             </div>

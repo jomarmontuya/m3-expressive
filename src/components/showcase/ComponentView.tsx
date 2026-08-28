@@ -5,15 +5,32 @@ import { getComponent, m3Registry } from "@/lib/m3/registry";
 import { categoryLabels, type M3RegistryEntry } from "@/lib/m3/types";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Chip } from "@/components/m3/Chip";
+import { Button } from "@/components/m3/Button";
+import { SegmentedButton } from "@/components/m3/SegmentedButton";
 import { demoRegistry } from "./demo-registry";
 import { CodeBlock } from "./CodeBlock";
 import { PropsPlayground } from "./PropsPlayground";
 import { getPlaygroundSpec } from "./playground-specs";
 import type { Route } from "./Sidebar";
 
-export function ComponentView({ id, navigate }: { id: string; navigate: (r: Route) => void }) {
+export function ComponentView({
+  id,
+  code,
+  navigate,
+}: {
+  id: string;
+  code?: "source";
+  navigate: (r: Route) => void;
+}) {
   const meta: M3RegistryEntry | undefined = getComponent(id);
   const Demo = demoRegistry[id];
+  const [codeTab, setCodeTab] = React.useState<"usage" | "source">(code === "source" ? "source" : "usage");
+
+  // Deep links (#/component/<id>/source) and dep-chip jumps land here —
+  // honor the route even when only the hash suffix changed (no remount).
+  React.useEffect(() => {
+    if (code === "source") setCodeTab("source");
+  }, [code]);
 
   if (!meta) {
     return (
@@ -76,10 +93,28 @@ export function ComponentView({ id, navigate }: { id: string; navigate: (r: Rout
         </section>
       )}
 
-      {/* example code */}
-      <section className="mt-8">
-        <h2 className="md-title-large mb-3">Usage</h2>
-        <CodeBlock code={meta.exampleCode} />
+      {/* usage + full source code (ShadCN-style: you own the implementation) */}
+      <section className="mt-8" aria-label="Code">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="md-title-large">Code</h2>
+          <SegmentedButton
+            type="single"
+            size="sm"
+            value={codeTab}
+            onValueChange={(v) => {
+              if (typeof v === "string" && v !== "") setCodeTab(v as "usage" | "source");
+            }}
+            options={[
+              { value: "usage", label: "Usage", icon: "code_blocks" },
+              { value: "source", label: "Source code", icon: "folder_open" },
+            ]}
+          />
+        </div>
+        {codeTab === "usage" ? (
+          <CodeBlock code={meta.exampleCode} />
+        ) : (
+          <ComponentSource key={meta.id} id={meta.id} file={meta.file} navigate={navigate} />
+        )}
       </section>
 
       {/* guidelines */}
@@ -247,4 +282,189 @@ function GuidelineBlock({ title, icon, children }: { title: string; icon: string
 function m3SortedIds(): string[] {
   // stable order from the registry
   return m3Registry.components.map((c) => c.id);
+}
+
+/* ------------------------------------------------------------------ */
+/* Source code tab — the real .tsx file, fetched from                  */
+/* /api/component-source (same text MCP's get_component_source reads). */
+/* ------------------------------------------------------------------ */
+
+type SourceState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; source: string; path: string; lines: number; bytes: number };
+
+function ComponentSource({
+  id,
+  file,
+  navigate,
+}: {
+  id: string;
+  file: string;
+  navigate: (r: Route) => void;
+}) {
+  const [state, setState] = React.useState<SourceState>({ status: "loading" });
+  const [attempt, setAttempt] = React.useState(0);
+
+  React.useEffect(() => {
+    let alive = true;
+    setState({ status: "loading" });
+    fetch(`/api/component-source?id=${encodeURIComponent(id)}`)
+      .then(async (res) => {
+        const json = await res.json().catch(() => null);
+        if (!res.ok || !json?.source) throw new Error(json?.error ?? `HTTP ${res.status}`);
+        return json as { source: string; path: string; lines: number; bytes: number };
+      })
+      .then((json) => {
+        if (alive) setState({ status: "ready", source: json.source, path: json.path, lines: json.lines, bytes: json.bytes });
+      })
+      .catch((e: unknown) => {
+        if (alive) setState({ status: "error", message: e instanceof Error ? e.message : String(e) });
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id, attempt]);
+
+  const deps = React.useMemo(() => (state.status === "ready" ? parseImports(state.source) : null), [state]);
+
+  if (state.status === "loading") {
+    return (
+      <div
+        className="overflow-hidden rounded-xl border border-m3-outline-variant bg-m3-surface-container-lowest"
+        aria-busy="true"
+        aria-label="Loading source code"
+      >
+        <div className="flex items-center gap-3 border-b border-m3-outline-variant bg-m3-surface-container-low px-4 py-3">
+          <MaterialSymbol icon="progress_activity" size={18} className="animate-spin text-m3-primary" />
+          <span className="md-label-medium text-m3-on-surface-variant">Reading {file}…</span>
+        </div>
+        <div className="space-y-3 p-4">
+          {[92, 76, 84, 58].map((w, i) => (
+            <div key={i} className="h-3 animate-pulse rounded-md bg-m3-surface-container" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="flex flex-col items-start gap-3 rounded-xl border border-m3-outline-variant bg-m3-surface-container-lowest p-5">
+        <div className="flex items-center gap-2 md-title-medium text-m3-error">
+          <MaterialSymbol icon="error" size={22} fill />
+          Couldn&apos;t load source
+        </div>
+        <p className="md-body-medium text-m3-on-surface-variant">{state.message}</p>
+        <Button variant="tonal" size="sm" icon="refresh" onClick={() => setAttempt((n) => n + 1)}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* file facts + MCP cross-link */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-surface-container-low px-3 py-1.5 font-mono text-[12px] text-m3-on-surface-variant">
+          <MaterialSymbol icon="description" size={14} className="text-m3-primary" />
+          {state.path}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-surface-container-low px-3 py-1.5 md-label-small text-m3-on-surface-variant">
+          <MaterialSymbol icon="format_list_numbered" size={14} />
+          {state.lines} lines
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-surface-container-low px-3 py-1.5 md-label-small text-m3-on-surface-variant">
+          <MaterialSymbol icon="hard_drive" size={14} />
+          {(state.bytes / 1024).toFixed(1)} KB
+        </span>
+        <button
+          onClick={() => navigate({ kind: "agents" })}
+          className="m3-state m3-focus ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 md-label-small text-m3-primary"
+        >
+          <MaterialSymbol icon="smart_toy" size={14} />
+          Also via MCP · get_component_source
+        </button>
+      </div>
+
+      <CodeBlock code={state.source} maxHeight={560} />
+
+      {/* what else must be copied alongside this file */}
+      {deps && (deps.m3.length > 0 || deps.libs.length > 0 || deps.externals.length > 0) && (
+        <div className="rounded-xl border border-m3-outline-variant bg-m3-surface-container-lowest p-4">
+          <div className="mb-2 flex items-center gap-2 md-label-medium text-m3-on-surface-variant">
+            <MaterialSymbol icon="account_tree" size={16} className="text-m3-primary" />
+            This file imports — copy these too (keep the same folder layout)
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {deps.m3.map(({ base, entry }) =>
+              entry ? (
+                <Chip
+                  key={base}
+                  variant="suggestion"
+                  trailingIcon="arrow_outward"
+                  onSelect={() => navigate({ kind: "component", id: entry.id, code: "source" })}
+                >
+                  {entry.name}
+                </Chip>
+              ) : (
+                <Chip key={base} variant="assist" size="xs" leadingIcon="widgets">
+                  {base}
+                </Chip>
+              )
+            )}
+            {deps.libs.map((l) => (
+              <Chip key={l} variant="assist" size="xs" leadingIcon="settings">
+                {l}
+              </Chip>
+            ))}
+            {deps.externals.map((x) => (
+              <Chip key={x} variant="assist" size="xs" leadingIcon="inventory_2">
+                {x}
+              </Chip>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface SourceDeps {
+  /** Local m3 files this component imports; `entry` set when it is a registry component */
+  m3: { base: string; entry?: M3RegistryEntry }[];
+  /** @/lib/* imports (tokens, utils, …) */
+  libs: string[];
+  /** npm packages (react, framer-motion, …) */
+  externals: string[];
+}
+
+/** Pull every `from "…"` specifier out of a source file and group it. */
+function parseImports(source: string): SourceDeps {
+  const m3 = new Set<string>();
+  const libs = new Set<string>();
+  const externals = new Set<string>();
+  const re = /from\s+["']([^"']+)["']/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    const spec = m[1];
+    if (spec.startsWith(".")) {
+      m3.add(spec.replace(/^\.\.?\//, "").replace(/\.(tsx|ts)$/, ""));
+    } else if (spec.startsWith("@/components/m3/")) {
+      m3.add(spec.slice("@/components/m3/".length).replace(/\.(tsx|ts)$/, ""));
+    } else if (spec.startsWith("@/lib/")) {
+      libs.add(spec.replace(/^@\//, ""));
+    } else {
+      externals.add(spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0]);
+    }
+  }
+  return {
+    m3: [...m3].sort().map((base) => ({
+      base,
+      entry: m3Registry.components.find((c) => c.file === `src/components/m3/${base}.tsx`),
+    })),
+    libs: [...libs].sort(),
+    externals: [...externals].sort(),
+  };
 }
