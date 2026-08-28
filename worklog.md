@@ -897,3 +897,27 @@ Stable at 41/41 playground coverage; this round was triggered by direct user scr
 - md-* type-scale and m3-elevation-* classes remain unlayered by design (no known utility conflicts; minimal-change principle).
 - Unchanged constraints: hero ratio 0.66/0.34 documented; CI untested (no remote); npm publish blocked on registry access.
 - Next candidates: MCP stateful SSE sessions; README badges + publish checklist; "Copy playground config as JSON" share feature; keyboard-roving a11y audit of playground stages; array-typed PlaygroundValue.
+
+---
+Task ID: 13
+Agent: orchestrator (Z.ai Code)
+Task: Installation guide + Getting started docs (user request, ShadCN-style copy-the-source flow)
+
+## Current project status
+All previous work intact (41/41 playgrounds, CSS cascade fix, redesigned CodeBlock). This round added the missing front-door: a dedicated Installation + Getting-started documentation page at #/docs, wired into every navigation surface.
+
+## Completed this round (verification results)
+- **New DocsView** (src/components/showcase/DocsView.tsx) with two SegmentedButton tabs:
+  - **Installation** — philosophy strip (Install → Copy → Own it), prerequisite chips, Step 01 package-manager switcher (SegmentedButton bun/npm/pnpm/yarn → live `bash` snippet `add framer-motion clsx tailwind-merge` + Tailwind-4 note), Step 02 two copy routes side by side (Option A: MCP agent — .mcp.json pointer + paste-ready install prompt + "Full MCP setup" button → #/agents; Option B: manual copy — accurate file tree: src/components/m3/* + src/lib/m3/tokens.ts + src/lib/utils.ts + globals.css), Step 03 complete starter stylesheet (`css` block: @theme inline mapping of all 33 color roles + shape scale, baseline light+dark schemes, state layer + focus ring inside @layer base, full md-* type scale, elevation 1–5, material-symbols block, ripple keyframes, m3-scroll), Step 04 font links (Roboto Flex + Material Symbols Rounded CDN + self-host note referencing /public/fonts), Step 05 verify (snippet + live Button mirror on dot-grid).
+  - **Getting started** — first component (live buttons + TSX), theming in 10 seconds (four LIVE ThemeProbe cards: Baseline/Dark/Ocean Blue/Warm Coral — same components re-rendered under data-theme/.dark scopes proving CSS-var cascade), motion (springs.expressive snippet + clickable SpringDemo with real overshoot), icons (snippet + live icon row), "Where to next" navigation cards (verified click → #/component/button).
+- **Routing & nav wiring**: Route kind "docs" (+ #/docs, #/getting-started, #/install aliases), sidebar NavItem "Getting started" (rocket_launch) after Overview, mobile drawer item + activeDrawer handling, footer link (first position), home hero CTA ladder re-ordered Get started (filled) → Browse components (tonal) → Agent API (outlined) → Design foundations (text). All verified live: tab switch, card nav, CTA nav, footer link.
+- **Mobile-overflow fix during QA**: docs grids used auto tracks (no explicit template) at phone width — wide code blocks expanded intrinsic width to sw=745 @ 375px. Added explicit `grid-cols-1` to all 8 grids → sw=375 exact.
+- **Small polish**: doc tabs whitespace-nowrap (label no longer wraps); ThemeProbe chip fixed (was flex-shrunk to 3px — row now flex-wrap, chip 27px).
+- Dependency facts audited against real imports before writing copy (m3 components import only: react, framer-motion, cn(clsx+tailwind-merge), @/lib/m3/tokens; helper classes md-*, m3-state/focus/elevation/scroll/ripple confirmed by grep).
+- Gates: tsc 0 src errors; lint 0 errors / 1 documented warning; **full VR refresh 41/41 → PASS identical 40 · minor 1 · changed 0** (sidebar nav item changed every page); mobile 375 zero overflow; MCP healthy 14 tools/41 components; dev.log clean (2 stale pre-existing Fast Refresh notes). Existing 15-min webDevReview cron (job 341883) already active — no duplicate created.
+
+## Unresolved issues / risks / next-phase priorities
+- Install docs describe manual copy honestly (no public repo/CLI yet). If the npm package publishes later, add a "npm install m3-expressive-react" alternative card in Step 02 and a shadcn-style `npx` one-liner.
+- Starter CSS is baseline-scheme only (by design); curated themes + Theme Builder linked to foundations page.
+- VR note: docs page is NOT in VR set (component registry only) — sidebar changes on it are uncovered by VR; acceptable.
+- Next candidates: MCP stateful SSE sessions; README badges; "Copy playground config as JSON"; keyboard-roving a11y audit; search-view/carousel playground depth (array-typed value).

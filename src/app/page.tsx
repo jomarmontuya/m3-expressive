@@ -7,6 +7,7 @@ import { HomeView } from "@/components/showcase/HomeView";
 import { FoundationsView } from "@/components/showcase/FoundationsView";
 import { ComponentView } from "@/components/showcase/ComponentView";
 import { AgentView } from "@/components/showcase/AgentView";
+import { DocsView } from "@/components/showcase/DocsView";
 import { NavigationDrawer } from "@/components/m3/NavigationDrawer";
 import { IconButton } from "@/components/m3/IconButton";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
@@ -16,6 +17,7 @@ import { springs } from "@/lib/m3/tokens";
 
 const DRAWER_ITEMS = [
   { value: "home", icon: "home", label: "Overview" },
+  { value: "docs", icon: "rocket_launch", label: "Getting started" },
   { value: "foundations", icon: "palette", label: "Design foundations" },
   { value: "agents", icon: "smart_toy", label: "For AI agents" },
   { value: "actions", icon: "smart_button", label: "Actions" },
@@ -54,7 +56,15 @@ export default function M3ExpressiveDocs() {
   }, [route]);
 
   const activeDrawer =
-    route.kind === "home" ? "home" : route.kind === "foundations" ? "foundations" : route.kind === "agents" ? "agents" : "";
+    route.kind === "home"
+      ? "home"
+      : route.kind === "docs"
+        ? "docs"
+        : route.kind === "foundations"
+          ? "foundations"
+          : route.kind === "agents"
+            ? "agents"
+            : "";
 
   return (
     <MotionConfig reducedMotion="user">
@@ -129,6 +139,7 @@ export default function M3ExpressiveDocs() {
             transition={springs.defaultSpatial}
           >
             {route.kind === "home" && <HomeView navigate={navigate} />}
+            {route.kind === "docs" && <DocsView navigate={navigate} />}
             {route.kind === "foundations" && (
               <FoundationsView
                 tab={route.tab}
@@ -156,6 +167,7 @@ export default function M3ExpressiveDocs() {
             </div>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 md-body-medium text-m3-on-surface-variant">
+            <a href="#/docs" className="m3-state rounded px-1 hover:text-m3-primary">Getting started</a>
             <a href="/api/registry" className="m3-state rounded px-1 hover:text-m3-primary">Registry API</a>
             <a href="/api/agent" className="m3-state rounded px-1 hover:text-m3-primary">Agent manifest</a>
             <a href="/llms.txt" className="m3-state rounded px-1 hover:text-m3-primary">llms.txt</a>
@@ -180,6 +192,7 @@ export default function M3ExpressiveDocs() {
         value={activeDrawer}
         onChange={(v) => {
           if (v === "home") navigate({ kind: "home" });
+          else if (v === "docs") navigate({ kind: "docs" });
           else if (v === "foundations") navigate({ kind: "foundations" });
           else if (v === "agents") navigate({ kind: "agents" });
           else navigate({ kind: "foundations", tab: "color" });

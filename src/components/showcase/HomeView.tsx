@@ -65,13 +65,21 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
             <Button
               variant="filled"
               size="lg"
+              icon="rocket_launch"
+              onClick={() => navigate({ kind: "docs" })}
+            >
+              Get started
+            </Button>
+            <Button
+              variant="tonal"
+              size="lg"
               icon="grid_view"
               onClick={() => navigate({ kind: "component", id: "button" })}
             >
               Browse components
             </Button>
             <Button
-              variant="tonal"
+              variant="outlined"
               size="lg"
               icon="smart_toy"
               onClick={() => navigate({ kind: "agents" })}

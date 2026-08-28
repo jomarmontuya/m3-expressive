@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 export type Route =
   | { kind: "home" }
+  | { kind: "docs" }
   | { kind: "foundations"; tab?: string }
   | { kind: "agents" }
   | { kind: "component"; id: string };
@@ -17,6 +18,8 @@ export function routeToHash(r: Route): string {
   switch (r.kind) {
     case "home":
       return "#/";
+    case "docs":
+      return "#/docs";
     case "foundations":
       return r.tab ? `#/foundation/${r.tab}` : "#/foundation";
     case "agents":
@@ -31,6 +34,7 @@ export function parseHash(hash: string): Route {
   if (h.startsWith("component/")) return { kind: "component", id: h.slice("component/".length) };
   if (h.startsWith("foundation")) return { kind: "foundations", tab: h.split("/")[1] };
   if (h === "agents") return { kind: "agents" };
+  if (h === "docs" || h === "getting-started" || h === "install") return { kind: "docs" };
   return { kind: "home" };
 }
 
@@ -48,6 +52,7 @@ export function Sidebar({ route, navigate }: SidebarProps) {
     .filter((g) => g.items.length > 0);
 
   const isHome = route.kind === "home";
+  const isDocs = route.kind === "docs";
   const isFoundations = route.kind === "foundations";
   const isAgents = route.kind === "agents";
 
@@ -68,6 +73,12 @@ export function Sidebar({ route, navigate }: SidebarProps) {
           icon="home"
           label="Overview"
           onClick={() => navigate({ kind: "home" })}
+        />
+        <NavItem
+          active={isDocs}
+          icon="rocket_launch"
+          label="Getting started"
+          onClick={() => navigate({ kind: "docs" })}
         />
         <NavItem
           active={isFoundations}
