@@ -242,6 +242,7 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
         {showRecents && (
           <ul id={listId} role="listbox" aria-label="Recent searches" className="py-1">
             {recentSearches.map((q, i) => (
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- combobox pattern: keyboard interaction lives on the search input (arrows move `active`, Enter selects)
               <li
                 key={q}
                 id={`${listId}-${i}`}

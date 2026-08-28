@@ -925,7 +925,7 @@ if (!HTTP_REQUESTED) {
     }
   }
 
-  const httpServer = createServer(async (req, res) => {
+  const handleHttpRequest = async (req: IncomingMessage, res: ServerResponse) => {
     const url = new URL(req.url ?? "/", "http://localhost");
 
     try {
@@ -964,6 +964,7 @@ if (!HTTP_REQUESTED) {
             applyCors(res);
             res.statusCode = 204;
             return res.end();
+          case undefined:
           default:
             applyCors(res);
             res.setHeader("Allow", "POST, GET, DELETE, OPTIONS");
@@ -978,6 +979,10 @@ if (!HTTP_REQUESTED) {
       if (!res.headersSent) sendJson(res, 500, { error: `${e}` });
       else res.end();
     }
+  };
+
+  const httpServer = createServer((req, res) => {
+    void handleHttpRequest(req, res);
   });
 
   // Survive `bun --hot` auto-restarts: drop the previous listener, if any.

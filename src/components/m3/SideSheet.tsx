@@ -126,7 +126,7 @@ export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(functi
           <BaseDialog.Portal>
             <BaseDialog.Backdrop render={<motion.div {...scrimMotion} />} className="fixed inset-0 z-[85] bg-m3-scrim/32" />
             <BaseDialog.Popup
-              aria-label={title}
+              aria-label={title ?? "Side sheet"}
               ref={ref}
               render={<motion.div {...sheetMotion} />}
               className={cn(

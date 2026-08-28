@@ -418,14 +418,14 @@ export function MCPPlayground() {
           <StatusChip status={status} serverInfo={serverInfo} message={connectError} />
           <div className="ml-auto">
             {status === "connected" ? (
-              <Button variant="outlined" icon="refresh" onClick={connect} disabled={running}>
+              <Button variant="outlined" icon="refresh" onClick={() => void connect()} disabled={running}>
                 Refresh tools
               </Button>
             ) : (
               <Button
                 variant="filled"
                 icon="cable"
-                onClick={connect}
+                onClick={() => void connect()}
                 loading={status === "connecting"}
                 disabled={status === "connecting"}
               >
@@ -458,9 +458,18 @@ export function MCPPlayground() {
                   : "Connect to browse the 14 tools and run live calls — initialize → notifications/initialized → tools/list → tools/call, exactly what your coding agent does."}
               </p>
               {status === "error" && (
-                <Button variant="outlined" icon="refresh" onClick={connect}>
-                  Retry connection
-                </Button>
+                <>
+                  <Button variant="outlined" icon="refresh" onClick={() => void connect()}>
+                    Retry connection
+                  </Button>
+                  <p className="max-w-xl md-body-small text-m3-on-surface-variant">
+                    Start the server first, then retry:{" "}
+                    <code className="rounded bg-m3-surface-container-highest px-1.5 py-1 font-mono text-[12px]">
+                      cd mini-services/mcp-server && bun install && bun run dev
+                    </code>{" "}
+                    — HTTP transport listens on port 3210.
+                  </p>
+                </>
               )}
             </motion.div>
           ) : (
@@ -580,7 +589,7 @@ export function MCPPlayground() {
                           icon="play_arrow"
                           loading={running}
                           disabled={running}
-                          onClick={runTool}
+                          onClick={() => void runTool()}
                         >
                           Run tool
                         </Button>
@@ -629,7 +638,7 @@ export function MCPPlayground() {
                                 {response.latencyMs} ms
                               </span>
                               {response.isError && (
-                                <Button variant="text" size="xs" icon="refresh" onClick={runTool}>
+                                <Button variant="text" size="xs" icon="refresh" onClick={() => void runTool()}>
                                   Retry
                                 </Button>
                               )}

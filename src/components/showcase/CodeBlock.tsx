@@ -59,10 +59,9 @@ export function CodeBlock({
           {language}
         </div>
         <button
-          onClick={copy}
-          aria-label="Copy code"
-          aria-pressed={copied}
-          className="m3-state m3-focus flex h-8 w-8 items-center justify-center rounded-full text-m3-on-surface-variant"
+          onClick={() => void copy()}
+          aria-label={copied ? "Copied" : "Copy code"}
+          className="m3-state m3-focus flex h-10 w-10 items-center justify-center rounded-full text-m3-on-surface-variant"
         >
           <MaterialSymbol
             icon={copied ? "check" : "content_copy"}
@@ -71,10 +70,14 @@ export function CodeBlock({
             className={copied ? "text-m3-primary" : undefined}
           />
         </button>
+        <span role="status" aria-live="polite" className="sr-only">
+          {copied ? "Code copied to clipboard" : ""}
+        </span>
       </div>
       <pre
+        aria-label={`${language} code block`}
         className={cn(
-          "m3-scroll overflow-x-auto p-4 text-[13px] leading-relaxed",
+          "m3-scroll m3-focus overflow-x-auto p-4 text-[13px] leading-relaxed",
           maxHeight != null && "overflow-y-auto"
         )}
         style={maxHeight != null ? { maxHeight } : undefined}

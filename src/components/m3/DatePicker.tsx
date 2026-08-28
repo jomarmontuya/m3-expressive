@@ -196,7 +196,8 @@ function DatePickerCalendar({
     );
   };
 
-  const today = new Date();
+  // Stable per mount: the useMemo below (activeIso) depends on `today`.
+  const today = React.useMemo(() => new Date(), []);
   // Range mode anchors on the range start (the first picked day)
   const anchor = rangeOn ? rangeSel?.start : selected;
   const highlightYear = (anchor ?? cursor).getFullYear();
@@ -224,7 +225,7 @@ function DatePickerCalendar({
 
   /** Arrow-key day navigation: ←/→ ±1 day, ↑/↓ ±7, Home/End week bounds */
   const handleDayKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
-    let delta = 0;
+    let delta: number;
     if (e.key === "ArrowLeft") delta = -1;
     else if (e.key === "ArrowRight") delta = 1;
     else if (e.key === "ArrowUp") delta = -7;
@@ -542,7 +543,7 @@ const DatePickerModal = React.forwardRef<HTMLDivElement, DatePickerModalProps>(
       range,
       onRangeChange,
     },
-    ref
+    _ref
   ) {
     const panelRef = React.useRef<HTMLDivElement | null>(null);
     const restoreFocusRef = React.useRef<HTMLElement | null>(null);

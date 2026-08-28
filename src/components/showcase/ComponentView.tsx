@@ -25,6 +25,18 @@ export function ComponentView({
   const meta: M3RegistryEntry | undefined = getComponent(id);
   const Demo = demoRegistry[id];
   const [codeTab, setCodeTab] = React.useState<"usage" | "source">(code === "source" ? "source" : "usage");
+  const [importCopied, setImportCopied] = React.useState(false);
+
+  const copyImportLine = async () => {
+    if (!meta) return;
+    try {
+      await navigator.clipboard.writeText(meta.importLine);
+    } catch {
+      /* clipboard unavailable — the text stays selectable */
+    }
+    setImportCopied(true);
+    setTimeout(() => setImportCopied(false), 1600);
+  };
 
   // Deep links (#/component/<id>/source) and dep-chip jumps land here —
   // honor the route even when only the hash suffix changed (no remount).
@@ -38,8 +50,11 @@ export function ComponentView({
         <MaterialSymbol icon="missing_controller" size={64} className="text-m3-on-surface-variant" />
         <h1 className="md-headline-medium">Component not found</h1>
         <p className="md-body-large text-m3-on-surface-variant">
-          No component with id “{id}”. Try the sidebar.
+          No component with id “{id}”.
         </p>
+        <Button variant="filled" icon="grid_view" onClick={() => navigate({ kind: "components" })}>
+          Browse all components
+        </Button>
       </div>
     );
   }
@@ -50,10 +65,42 @@ export function ComponentView({
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : undefined;
   const playgroundSpec = getPlaygroundSpec(meta.id);
 
+  // Fully copy-runnable usage snippet: package import (+ hooks import when
+  // the example keeps local state) + the example itself.
+  const usageCode = (() => {
+    const lines: string[] = [];
+    if (/React\.useState/.test(meta.exampleCode)) lines.push(`import * as React from "react";`);
+    else if (/\buseState\(/.test(meta.exampleCode)) lines.push(`import { useState } from "react";`);
+    lines.push(meta.importLine);
+    return lines.join("\n") + "\n\n" + meta.exampleCode;
+  })();
+
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-      {/* header */}
-      <div className="md-label-large text-m3-primary">{categoryLabels[meta.category]}</div>
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+      {/* breadcrumb */}
+      <nav aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-1.5 md-label-large">
+          <li>
+            <button
+              onClick={() => navigate({ kind: "components" })}
+              className="m3-state m3-focus rounded-full px-2 py-1 text-m3-on-surface-variant hover:text-m3-primary"
+            >
+              Components
+            </button>
+          </li>
+          <li aria-hidden="true" className="text-m3-on-surface-variant/60">/</li>
+          <li>
+            <button
+              onClick={() => navigate({ kind: "components", cat: meta.category })}
+              className="m3-state m3-focus rounded-full px-2 py-1 text-m3-on-surface-variant hover:text-m3-primary"
+            >
+              {categoryLabels[meta.category]}
+            </button>
+          </li>
+          <li aria-hidden="true" className="text-m3-on-surface-variant/60">/</li>
+          <li aria-current="page" className="px-2 py-1 text-m3-primary">{meta.name}</li>
+        </ol>
+      </nav>
       <div className="mt-1 flex flex-wrap items-center gap-3">
         <h1 className="md-display-small font-semibold text-m3-on-surface">{meta.name}</h1>
         {meta.m3e && (
@@ -65,13 +112,32 @@ export function ComponentView({
       <p className="mt-3 max-w-3xl md-body-large text-m3-on-surface-variant">{meta.description}</p>
 
       {/* live demo */}
-      <div className="mt-8 rounded-[28px] border border-m3-outline-variant bg-m3-surface-container-lowest">
-        <div className="flex items-center justify-between rounded-t-[27px] border-b border-m3-outline-variant bg-m3-surface-container-low px-5 py-3">
+      <section className="mt-8" aria-label="Live demo">
+        <h2 className="sr-only">Live demo</h2>
+        <div className="rounded-[28px] border border-m3-outline-variant bg-m3-surface-container-lowest">
+        <div className="flex items-center justify-between gap-3 rounded-t-[27px] border-b border-m3-outline-variant bg-m3-surface-container-low px-5 py-3">
           <div className="flex items-center gap-2 md-label-medium text-m3-on-surface-variant">
-            <span className="h-2.5 w-2.5 rounded-full bg-m3-primary" />
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-m3-primary" />
             Live demo — interact with it
           </div>
-          <code className="hidden font-mono text-[12px] text-m3-on-surface-variant sm:block">{meta.importLine}</code>
+          <button
+            onClick={() => void copyImportLine()}
+            title="Copy import line"
+            className="m3-state m3-focus flex min-w-0 items-center gap-1.5 rounded-full px-2 py-1 font-mono text-[12px] text-m3-on-surface-variant"
+          >
+            <MaterialSymbol
+              icon={importCopied ? "check" : "content_copy"}
+              size={14}
+              fill={importCopied}
+              className={importCopied ? "shrink-0 text-m3-primary" : "shrink-0"}
+            />
+            <span className={importCopied ? "shrink-0 text-m3-primary" : "truncate"}>
+              {importCopied ? "Copied!" : meta.importLine}
+            </span>
+          </button>
+          <span role="status" aria-live="polite" className="sr-only">
+            {importCopied ? "Import line copied to clipboard" : ""}
+          </span>
         </div>
         <div className="p-4 sm:p-8">
           {Demo ? (
@@ -82,12 +148,13 @@ export function ComponentView({
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </section>
 
       {/* props playground (only for components with a PLAYGROUND_SPECS entry) */}
       {playgroundSpec && (
         <section className="mt-8" aria-label="Playground">
-          <h2 className="md-title-medium text-m3-on-surface">Playground</h2>
+          <h2 className="md-title-large text-m3-on-surface">Playground</h2>
           <p className="mt-1 md-body-medium text-m3-on-surface-variant">{playgroundSpec.explainer}</p>
           <PropsPlayground key={meta.id} spec={playgroundSpec} />
         </section>
@@ -105,13 +172,13 @@ export function ComponentView({
               if (typeof v === "string" && v !== "") setCodeTab(v as "usage" | "source");
             }}
             options={[
-              { value: "usage", label: "Usage", icon: "code_blocks" },
-              { value: "source", label: "Source code", icon: "folder_open" },
+              { value: "usage", label: "Usage" },
+              { value: "source", label: "Source" },
             ]}
           />
         </div>
         {codeTab === "usage" ? (
-          <CodeBlock code={meta.exampleCode} />
+          <CodeBlock code={usageCode} />
         ) : (
           <ComponentSource key={meta.id} id={meta.id} file={meta.file} navigate={navigate} />
         )}
@@ -141,7 +208,7 @@ export function ComponentView({
 
         {meta.guidelines.states && (
           <div className="mt-4">
-            <div className="mb-2 md-title-medium">States</div>
+            <h3 className="mb-2 md-title-medium">States</h3>
             <div className="flex flex-wrap gap-2">
               {meta.guidelines.states.map((s) => (
                 <Chip key={s} variant="assist" size="xs">
@@ -156,10 +223,10 @@ export function ComponentView({
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {meta.guidelines.dos && (
               <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container-lowest p-5">
-                <div className="mb-3 flex items-center gap-2 md-title-medium text-m3-on-surface">
+                <h3 className="mb-3 flex items-center gap-2 md-title-medium text-m3-on-surface">
                   <MaterialSymbol icon="check_circle" size={22} fill className="text-[#1b7f4d]" />
                   Do
-                </div>
+                </h3>
                 <ul className="space-y-2">
                   {meta.guidelines.dos.map((d, i) => (
                     <li key={i} className="flex gap-2 md-body-medium text-m3-on-surface-variant">
@@ -172,10 +239,10 @@ export function ComponentView({
             )}
             {meta.guidelines.donts && (
               <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container-lowest p-5">
-                <div className="mb-3 flex items-center gap-2 md-title-medium text-m3-on-surface">
+                <h3 className="mb-3 flex items-center gap-2 md-title-medium text-m3-on-surface">
                   <MaterialSymbol icon="cancel" size={22} fill className="text-m3-error" />
                   Don&apos;t
-                </div>
+                </h3>
                 <ul className="space-y-2">
                   {meta.guidelines.donts.map((d, i) => (
                     <li key={i} className="flex gap-2 md-body-medium text-m3-on-surface-variant">
@@ -193,22 +260,47 @@ export function ComponentView({
       {/* props */}
       <section className="mt-10">
         <h2 className="md-title-large mb-4">Props</h2>
-        <div className="overflow-x-auto rounded-2xl border border-m3-outline-variant">
+        {/* phone: stacked cards — the 4-column table does not fit and horizontal
+            scroll hides the type/description. sm+: the classic table. */}
+        <div className="space-y-3 sm:hidden">
+          {meta.props.map((p) => (
+            <div key={p.name} className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container-lowest p-4">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <code className="font-mono text-[13px] font-medium text-m3-primary">{p.name}</code>
+                {p.default ? (
+                  <code className="rounded-full bg-m3-surface-container-low px-2 py-0.5 font-mono text-[11px] text-m3-on-surface-variant">
+                    default: {p.default}
+                  </code>
+                ) : null}
+              </div>
+              <p className="mt-1.5 break-words font-mono text-[12px] leading-relaxed text-m3-on-surface">{p.type}</p>
+              <p className="mt-2 md-body-medium text-m3-on-surface-variant">{p.description}</p>
+            </div>
+          ))}
+          <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container-lowest p-4">
+            <code className="font-mono text-[13px] font-medium text-m3-primary">…rest</code>
+            <p className="mt-1.5 font-mono text-[12px] text-m3-on-surface">native props</p>
+            <p className="mt-2 md-body-medium text-m3-on-surface-variant">
+              All native element props + <code>className</code> are forwarded.
+            </p>
+          </div>
+        </div>
+        <div className="hidden overflow-x-auto rounded-2xl border border-m3-outline-variant sm:block">
           <table className="w-full min-w-[640px] text-left">
             <thead>
               <tr className="bg-m3-surface-container-low">
                 {["Prop", "Type", "Default", "Description"].map((h) => (
-                  <th key={h} className="px-4 py-3 md-label-medium text-m3-on-surface-variant">{h}</th>
+                  <th key={h} scope="col" className="px-4 py-3 md-label-medium text-m3-on-surface-variant">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {meta.props.map((p, i) => (
                 <tr key={p.name} className={i % 2 ? "bg-m3-surface-container-lowest/60" : "bg-m3-surface-container-lowest"}>
-                  <td className="px-4 py-3 font-mono text-[13px] text-m3-primary">{p.name}</td>
-                  <td className="px-4 py-3 font-mono text-[12px] text-m3-on-surface">{p.type}</td>
-                  <td className="px-4 py-3 font-mono text-[12px] text-m3-on-surface-variant">{p.default ?? "—"}</td>
-                  <td className="px-4 py-3 md-body-medium text-m3-on-surface-variant">{p.description}</td>
+                  <td className="px-4 py-3 align-top font-mono text-[13px] text-m3-primary">{p.name}</td>
+                  <td className="max-w-[300px] break-words px-4 py-3 align-top font-mono text-[12px] text-m3-on-surface">{p.type}</td>
+                  <td className="px-4 py-3 align-top font-mono text-[12px] text-m3-on-surface-variant">{p.default ?? "—"}</td>
+                  <td className="w-[38%] max-w-[52ch] px-4 py-3 align-top md-body-medium text-m3-on-surface-variant">{p.description}</td>
                 </tr>
               ))}
               <tr className="bg-m3-surface-container-lowest">
@@ -270,10 +362,10 @@ export function ComponentView({
 function GuidelineBlock({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
     <div className="mb-4 rounded-2xl bg-m3-surface-container-low p-5">
-      <div className="mb-3 flex items-center gap-2 md-title-medium">
+      <h3 className="mb-3 flex items-center gap-2 md-title-medium">
         <MaterialSymbol icon={icon} size={22} fill className="text-m3-primary" />
         {title}
-      </div>
+      </h3>
       {children}
     </div>
   );

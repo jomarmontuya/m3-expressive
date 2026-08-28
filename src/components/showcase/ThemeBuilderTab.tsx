@@ -130,10 +130,10 @@ export function ThemeBuilderTab() {
     showSnack("Restored the curated theme", "restart_alt");
   };
 
-  const copyText = async (text: string, label: string) => {
+  const copyText = async (text: string, label: string, doneLabel?: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      showSnack(`${label} copied to clipboard`, "content_copy");
+      showSnack(doneLabel ?? `${label} copied to clipboard`, "content_copy");
     } catch {
       // Clipboard API unavailable (permissions/insecure context) — textarea fallback.
       const ta = document.createElement("textarea");
@@ -144,7 +144,7 @@ export function ThemeBuilderTab() {
       ta.select();
       try {
         document.execCommand("copy");
-        showSnack(`${label} copied to clipboard`, "content_copy");
+        showSnack(doneLabel ?? `${label} copied to clipboard`, "content_copy");
       } catch {
         showSnack(`Could not copy ${label}`, "error");
       }
@@ -334,7 +334,13 @@ export function ThemeBuilderTab() {
           <Button
             variant="outlined"
             icon="content_copy"
-            onClick={() => copyText(schemeToCssText(generated!), "CSS")}
+            onClick={() =>
+              void copyText(
+                schemeToCssText(generated!),
+                "CSS",
+                "CSS variables copied — paste into your global stylesheet (app/globals.css)"
+              )
+            }
             disabled={!generated}
           >
             Copy CSS
@@ -342,7 +348,7 @@ export function ThemeBuilderTab() {
           <Button
             variant="outlined"
             icon="data_object"
-            onClick={() => copyText(json, "JSON")}
+            onClick={() => void copyText(json, "JSON")}
             disabled={!generated}
           >
             Copy JSON
@@ -353,6 +359,10 @@ export function ThemeBuilderTab() {
         </div>
 
         <p className="mt-4 max-w-3xl md-body-small text-m3-on-surface-variant">
+          <strong className="text-m3-on-surface">Copy CSS</strong> gives you the same{" "}
+          <code className="font-mono">--md-*</code> blocks as a stylesheet — paste them into your
+          global CSS (e.g. <code className="font-mono">app/globals.css</code>) and activate with{" "}
+          <code className="font-mono">data-theme=&quot;custom&quot;</code>.{" "}
           Applying injects all 34 <code className="font-mono">--md-*</code> roles as{" "}
           <code className="font-mono">:root[data-theme=&quot;custom&quot;]</code> /{" "}
           <code className="font-mono">[data-theme=&quot;custom&quot;].dark</code> blocks, persists the scheme
@@ -370,7 +380,6 @@ export function ThemeBuilderTab() {
 /* Preview band — mini UI mock + swatch grid for one mode              */
 /* ------------------------------------------------------------------ */
 function PreviewBand({ scheme, mode }: { scheme: M3SchemeRecord; mode: string }) {
-  const bg = (role: string) => ({ backgroundColor: scheme[role as keyof M3SchemeRecord] }) as React.CSSProperties;
   return (
     <motion.section
       aria-label={`${mode} scheme preview`}

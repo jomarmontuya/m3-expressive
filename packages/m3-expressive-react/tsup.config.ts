@@ -1,6 +1,4 @@
 import { defineConfig } from "tsup";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 /**
  * tsup config for m3-expressive-react.
@@ -20,9 +18,6 @@ import { fileURLToPath } from "node:url";
  * themes/theme-builder/registry) must stay directive-free so RSC/API code
  * can import them.
  */
-const here = path.dirname(fileURLToPath(import.meta.url));
-
-
 const external = [
   "react",
   "react-dom",

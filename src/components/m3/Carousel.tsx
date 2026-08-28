@@ -193,7 +193,9 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
        a scroll event — observing the slides catches those morphs too. */
     const ro = new ResizeObserver(updateOverflow);
     ro.observe(el);
-    el.querySelectorAll("[data-carousel-item]").forEach((node) => ro.observe(node));
+    el.querySelectorAll("[data-carousel-item]").forEach((node) => {
+      ro.observe(node);
+    });
     return () => {
       el.removeEventListener("scroll", updateOverflow);
       ro.disconnect();
@@ -345,12 +347,12 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
       onFocus={() => setKbWithin(true)}
       onBlur={() => setKbWithin(false)}
     >
-      <div
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex, jsx-a11y/no-noninteractive-element-interactions -- WAI-ARIA APG carousel pattern: the slide region is deliberately focusable so keyboard users can scroll it with arrow keys */}
+      <div tabIndex={0}
       ref={setScrollerRef}
       role="region"
       aria-roledescription="carousel"
       aria-label={ariaLabel ?? `Carousel, ${items.length} items`}
-      tabIndex={0}
       onKeyDown={handleKeyDown}
       className={cn(
         "m3-focus flex w-full select-none gap-2 outline-none",

@@ -61,7 +61,7 @@ import type {
 } from "@/components/m3/ButtonGroup";
 import { List, ListItem } from "@/components/m3/List";
 import { Toolbar } from "@/components/m3/Toolbar";
-import type { ToolbarColor, ToolbarVariant } from "@/components/m3/Toolbar";
+import type { ToolbarColor } from "@/components/m3/Toolbar";
 import { DatePicker } from "@/components/m3/DatePicker";
 import { TimePicker } from "@/components/m3/TimePicker";
 import { Carousel } from "@/components/m3/Carousel";

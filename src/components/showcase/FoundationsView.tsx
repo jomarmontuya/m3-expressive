@@ -8,7 +8,7 @@ import { Slider } from "@/components/m3/Slider";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
-import { colorRoles, springs, shapes, typeScale, stateOpacities } from "@/lib/m3/tokens";
+import { colorRoles, springs, shapes, stateOpacities } from "@/lib/m3/tokens";
 import { m3Themes } from "@/lib/m3/themes";
 import { useM3Theme } from "@/hooks/use-m3-theme";
 import { ThemeBuilderTab } from "@/components/showcase/ThemeBuilderTab";
@@ -25,10 +25,10 @@ const TABS = [
   { value: "icons", label: "Icons", icon: "interests" },
 ];
 
-export function FoundationsView({ tab = "color", onTab }: { tab?: string; onTab: (t: string) => void }) {
+export function FoundationsView({ tab = "themes", onTab }: { tab?: string; onTab: (t: string) => void }) {
   const activeTab = TABS.some((t) => t.value === tab) ? tab : "themes";
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       <div className="md-label-large text-m3-primary">Design foundations</div>
       <h1 className="mt-1 md-display-small font-semibold">The M3 Expressive system</h1>
       <p className="mt-3 max-w-3xl md-body-large text-m3-on-surface-variant">
@@ -148,6 +148,16 @@ function ThemesTab() {
 
 /* ================= COLOR ================= */
 function ColorTab() {
+  // Label each swatch with its paired content color (on-primary on primary, …)
+  // so the token name stays legible on any role — the pairing the page teaches.
+  const roleTokens = new Set<string>(colorRoles.map((r) => r.token));
+  const pairFor = (token: string): string => {
+    if (token.startsWith("on-")) {
+      const base = token.slice(3);
+      return roleTokens.has(base) ? base : "on-surface";
+    }
+    return roleTokens.has(`on-${token}`) ? `on-${token}` : "on-surface";
+  };
   return (
     <div>
       <SectionTitle
@@ -163,7 +173,7 @@ function ColorTab() {
             >
               <span
                 className="md-label-large"
-                style={{ color: `var(--md-on-surface)` }}
+                style={{ color: `var(--md-${pairFor(role.token)})` }}
               >
                 {role.token}
               </span>
@@ -359,7 +369,8 @@ function MotionTab() {
             <button
               key={s.name}
               onClick={() => setSpringName(s.name)}
-              className={`m3-state rounded-full px-3 py-1.5 md-label-medium transition-colors ${
+              aria-pressed={springName === s.name}
+              className={`m3-state m3-focus rounded-full px-3 py-2 md-label-medium transition-colors ${
                 springName === s.name
                   ? "bg-m3-primary text-m3-on-primary"
                   : "bg-m3-surface-container-highest text-m3-on-surface-variant"

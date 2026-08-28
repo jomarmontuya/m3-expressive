@@ -12,6 +12,7 @@ export type Route =
   | { kind: "docs" }
   | { kind: "foundations"; tab?: string }
   | { kind: "agents" }
+  | { kind: "components"; cat?: M3Category }
   | { kind: "component"; id: string; code?: "source" };
 
 export function routeToHash(r: Route): string {
@@ -24,6 +25,8 @@ export function routeToHash(r: Route): string {
       return r.tab ? `#/foundation/${r.tab}` : "#/foundation";
     case "agents":
       return "#/agents";
+    case "components":
+      return r.cat ? `#/components/${r.cat}` : "#/components";
     case "component":
       return r.code === "source" ? `#/component/${r.id}/source` : `#/component/${r.id}`;
   }
@@ -37,6 +40,10 @@ export function parseHash(hash: string): Route {
   }
   if (h.startsWith("foundation")) return { kind: "foundations", tab: h.split("/")[1] };
   if (h === "agents") return { kind: "agents" };
+  if (h.startsWith("components")) {
+    const cat = h.split("/")[1] as M3Category | undefined;
+    return { kind: "components", cat: cat || undefined };
+  }
   if (h === "docs" || h === "getting-started" || h === "install") return { kind: "docs" };
   return { kind: "home" };
 }
@@ -96,9 +103,18 @@ export function Sidebar({ route, navigate }: SidebarProps) {
           badge="API"
           onClick={() => navigate({ kind: "agents" })}
         />
+        <NavItem
+          active={route.kind === "components"}
+          icon="grid_view"
+          label="All components"
+          onClick={() => navigate({ kind: "components" })}
+        />
 
         <div className="px-3 pb-1 pt-5 md-label-medium text-m3-on-surface-variant">
           Components · {results.length}
+          <span role="status" aria-live="polite" className="sr-only">
+            {results.length} components shown
+          </span>
         </div>
 
         {groups.map(({ cat, items }) => (
@@ -114,7 +130,7 @@ export function Sidebar({ route, navigate }: SidebarProps) {
                   onClick={() => navigate({ kind: "component", id: c.id })}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "m3-state m3-focus flex h-10 w-full items-center gap-2 rounded-full px-4 text-left md-label-large transition-colors",
+                    "m3-state m3-focus relative flex h-10 w-full items-center gap-2 rounded-full px-4 text-left md-label-large transition-colors before:absolute before:-inset-y-1 before:left-2 before:right-2 before:content-['']",
                     active
                       ? "bg-m3-secondary-container text-m3-on-secondary-container"
                       : "text-m3-on-surface-variant"
@@ -122,10 +138,13 @@ export function Sidebar({ route, navigate }: SidebarProps) {
                 >
                   <span className="truncate">{c.name}</span>
                   {c.m3e && (
-                    <span
-                      title="New in Material 3 Expressive"
-                      className="ml-auto h-2 w-2 shrink-0 rounded-full bg-m3-tertiary"
-                    />
+                    <span className="ml-auto flex shrink-0 items-center gap-1.5">
+                      <span className="sr-only">New in Material 3 Expressive</span>
+                      <span
+                        title="New in Material 3 Expressive"
+                        className="h-2 w-2 rounded-full bg-m3-tertiary"
+                      />
+                    </span>
                   )}
                 </button>
               );

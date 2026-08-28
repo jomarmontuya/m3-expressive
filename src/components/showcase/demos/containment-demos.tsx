@@ -50,11 +50,15 @@ export function CardDemo() {
         <p className="md-body-medium text-m3-on-surface-variant">
           Outlined card with a press shape morph, state layer and ripple.
         </p>
-        <span
-          onClick={(e) => e.stopPropagation()}
-          className="mt-3 inline-block"
-        >
-          <Button size="sm" variant={joined ? "filled" : "tonal"} onClick={() => setJoined((j) => !j)}>
+        <span className="mt-3 inline-block">
+          <Button
+            size="sm"
+            variant={joined ? "filled" : "tonal"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setJoined((j) => !j);
+            }}
+          >
             {joined ? "Joined" : "Join"}
           </Button>
         </span>

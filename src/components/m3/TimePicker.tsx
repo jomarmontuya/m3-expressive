@@ -169,7 +169,7 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
   };
 
   /** Arrow keys move the meridiem selection (radio-group pattern) */
-  const handleMeridiemKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, m: "AM" | "PM") => {
+  const handleMeridiemKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, _m: "AM" | "PM") => {
     const toAM = e.key === "ArrowUp" || e.key === "ArrowLeft";
     const toPM = e.key === "ArrowDown" || e.key === "ArrowRight";
     if (!toAM && !toPM) return;

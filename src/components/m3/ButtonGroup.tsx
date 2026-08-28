@@ -131,12 +131,15 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(fu
               "m3-state m3-focus relative inline-flex select-none items-center justify-center gap-2 rounded-full md-label-large",
               "transition-colors duration-150",
               "before:absolute before:-inset-y-1 before:content-['']",
-              s.padding,
               disabled ? disabledStyles[variant] : variantStyles[variant],
               !disabled && isSelected && selectedStyles,
               disabled && "pointer-events-none"
             )}
-            style={variableWidths ? { height: s.height, flexBasis: 0, minWidth: 0 } : { height: s.height }}
+            style={
+              variableWidths
+                ? { height: s.height, padding: s.padding, flexBasis: 0, minWidth: 0 }
+                : { height: s.height, padding: s.padding }
+            }
             render={
               <motion.button
                 onHoverStart={variableWidths ? () => setHoveredId(btn.id) : undefined}

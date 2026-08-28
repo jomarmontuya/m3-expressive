@@ -24,7 +24,7 @@ const fadeUp = {
 
 export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       {/* ---------------- HERO ---------------- */}
       <section className="relative overflow-hidden rounded-[36px] bg-m3-primary-container px-6 py-14 text-m3-on-primary-container sm:px-12 sm:py-20">
         {/* floating expressive shapes */}
@@ -74,7 +74,7 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
               variant="tonal"
               size="lg"
               icon="grid_view"
-              onClick={() => navigate({ kind: "component", id: "button" })}
+              onClick={() => navigate({ kind: "components" })}
             >
               Browse components
             </Button>
@@ -185,13 +185,20 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
       <section className="mt-16">
         <h2 className="md-headline-large font-medium">Quick start</h2>
         <p className="mt-2 md-body-large text-m3-on-surface-variant">
-          Copy any component into your React project — everything lives in
+          Install the npm package — or copy the source into
           <code className="mx-1 rounded bg-m3-surface-container-highest px-1.5 py-0.5 text-[13px]">src/components/m3/</code>
-          with zero dependencies beyond <code className="rounded bg-m3-surface-container-highest px-1.5 py-0.5 text-[13px]">framer-motion</code>.
+          and own the code (runtime deps: Base UI, framer-motion, clsx, tailwind-merge).
         </p>
+        <div className="mt-6 max-w-xl">
+          <CodeBlock
+            language="bash"
+            code={`npm install m3-expressive-react framer-motion`}
+          />
+        </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <CodeBlock
-            code={`import { Button, Card, Dialog } from "@/components/m3";
+            code={`import { Button, Card, Dialog } from "m3-expressive-react";
+import "m3-expressive-react/styles.css";
 
 export function Checkout() {
   return (

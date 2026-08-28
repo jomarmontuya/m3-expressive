@@ -23,15 +23,19 @@ export function ThemeSwitcher() {
   const { colorTheme, setColorTheme, mode, setMode, customScheme, clearCustomTheme } = useM3Theme();
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
-  // Close on outside pointerdown + Escape.
+  // Close on outside pointerdown + Escape (returning focus to the trigger).
   React.useEffect(() => {
     if (!open) return;
     const onPointerDown = (e: PointerEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -41,11 +45,41 @@ export function ThemeSwitcher() {
     };
   }, [open]);
 
+  // On open, move focus to the checked radio (first one if none is checked).
+  React.useEffect(() => {
+    if (!open || !rootRef.current) return;
+    const id = window.requestAnimationFrame(() => {
+      const radios = rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+      if (!radios?.length) return;
+      const checked = Array.from(radios).find((r) => r.getAttribute("aria-checked") === "true");
+      (checked ?? radios[0]).focus();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [open]);
+
+  // Radiogroup keyboard pattern: arrows/Home/End move focus and selection.
+  const onRadiogroupKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const keys = ["ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", "Home", "End"];
+    if (!keys.includes(e.key)) return;
+    const radios = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+    if (!radios.length) return;
+    e.preventDefault();
+    const i = radios.indexOf(document.activeElement as HTMLButtonElement);
+    let next: number;
+    if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = radios.length - 1;
+    else if (e.key === "ArrowDown" || e.key === "ArrowRight") next = (i + 1 + radios.length) % radios.length;
+    else next = (i - 1 + radios.length) % radios.length;
+    radios[next].focus();
+    radios[next].click();
+  };
+
   const activeTheme = m3Themes.find((t) => t.id === colorTheme) ?? m3Themes[0];
 
   return (
     <div ref={rootRef} className="relative">
       <IconButton
+        ref={triggerRef}
         icon="palette"
         variant="tonal"
         selected={open}
@@ -65,13 +99,18 @@ export function ThemeSwitcher() {
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
             transition={springs.fastVisual}
             style={{ transformOrigin: "top right" }}
-            className="absolute right-0 top-12 z-50 w-[264px] rounded-xl border border-m3-outline-variant/50 bg-m3-surface-container m3-elevation-2 p-2"
+            className="absolute right-0 top-12 z-50 w-[300px] max-w-[calc(100vw-1.5rem)] rounded-xl border border-m3-outline-variant/50 bg-m3-surface-container m3-elevation-2 p-2"
           >
             <div className="px-2 pb-1.5 pt-1.5 md-label-medium text-m3-on-surface-variant">
               Color scheme
             </div>
 
-            <div role="radiogroup" aria-label="Color schemes">
+            <div
+              role="radiogroup"
+              aria-label="Color schemes"
+              tabIndex={-1}
+              onKeyDown={onRadiogroupKeyDown}
+            >
               {/* Active custom (Theme Builder) scheme — shown only while active */}
               {customScheme && (
                 <div className="m3-state flex w-full items-center gap-3 rounded-lg bg-m3-secondary-container px-2 py-2 text-left text-m3-on-secondary-container">
@@ -98,6 +137,7 @@ export function ThemeSwitcher() {
                     key={theme.id}
                     role="radio"
                     aria-checked={selected}
+                    tabIndex={selected ? 0 : -1}
                     onClick={() => setColorTheme(theme.id)}
                     className={`m3-state m3-focus flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left ${
                       selected ? "bg-m3-secondary-container text-m3-on-secondary-container" : "text-m3-on-surface"
@@ -124,9 +164,9 @@ export function ThemeSwitcher() {
                 value={mode}
                 onValueChange={(v) => setMode(((v as M3Mode) || "system") ?? "system")}
                 options={[
-                  { value: "light", icon: "light_mode", label: "Day" },
-                  { value: "system", icon: "brightness_auto" },
-                  { value: "dark", icon: "dark_mode", label: "Night" },
+                  { value: "light", label: "Light" },
+                  { value: "system", label: "Auto" },
+                  { value: "dark", label: "Dark" },
                 ]}
                 aria-label="Light, system or dark mode"
               />

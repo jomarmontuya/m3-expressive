@@ -43,7 +43,7 @@ import {
   toolbarMeta,
   tooltipMeta,
   topAppBarMeta
-} from "./chunk-3RIJSGJ5.js";
+} from "./chunk-6N442FSG.js";
 
 // ../../src/lib/m3/registry.ts
 var COMPONENT_DIR = "src/components/m3";

@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { m3Registry } from "@/lib/m3/registry";
 import { CodeBlock } from "./CodeBlock";
+import { EndpointRow } from "./EndpointRow";
 import { MCPPlayground } from "./MCPPlayground";
 
 const ENDPOINTS = [
@@ -62,7 +62,7 @@ const ENDPOINTS = [
 ];
 
 const MCP_TOOLS = [
-  ["list_components", "All 39 components with ids, categories, variants, import lines"],
+  ["list_components", `All ${m3Registry.totalCount} components with ids, categories, variants, import lines`],
   ["search_components", "Full-text search across descriptions, guidance and props"],
   ["get_component", "Complete structured knowledge for one component"],
   ["get_component_api", "Typed props reference (name / type / default / description)"],
@@ -80,7 +80,7 @@ const MCP_TOOLS = [
 
 export function AgentView() {
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       <div className="md-label-large text-m3-primary">Agentic compatibility</div>
       <h1 className="mt-1 md-display-small font-semibold">Built for AI coding agents</h1>
       <p className="mt-3 max-w-3xl md-body-large text-m3-on-surface-variant">
@@ -92,20 +92,29 @@ export function AgentView() {
       <div className="mt-6 flex flex-wrap gap-3">
         <Button
           variant="filled"
+          icon="cable"
+          onClick={() =>
+            document.getElementById("mcp-server")?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+        >
+          Connect an MCP client
+        </Button>
+        <Button
+          variant="outlined"
           icon="smart_toy"
           onClick={() => window.open("/api/agent", "_blank")}
         >
-          View agent manifest
+          Agent manifest
         </Button>
         <Button
-          variant="tonal"
+          variant="outlined"
           icon="data_object"
           onClick={() => window.open("/api/registry", "_blank")}
         >
           Registry JSON
         </Button>
         <Button
-          variant="outlined"
+          variant="text"
           icon="description"
           onClick={() => window.open("/llms.txt", "_blank")}
         >
@@ -118,17 +127,7 @@ export function AgentView() {
         <h2 className="md-headline-small font-medium">Endpoints</h2>
         <div className="mt-4 space-y-3">
           {ENDPOINTS.map((e) => (
-            <Card key={e.path} variant="outlined" className="p-0">
-              <div className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center">
-                <span className="rounded-md bg-m3-primary-container px-2 py-1 font-mono text-[11px] font-semibold text-m3-on-primary-container">
-                  {e.method}
-                </span>
-                <code className="font-mono text-[13px] font-medium text-m3-on-surface">{e.path}</code>
-                <span className="md-body-small text-m3-on-surface-variant sm:ml-auto sm:max-w-md sm:text-right">
-                  {e.desc}
-                </span>
-              </div>
-            </Card>
+            <EndpointRow key={e.path} method={e.method} path={e.path} desc={e.desc} />
           ))}
         </div>
       </section>
@@ -137,7 +136,7 @@ export function AgentView() {
       <MCPPlayground />
 
       {/* MCP server */}
-      <section className="mt-10">
+      <section id="mcp-server" className="mt-10 scroll-mt-20">
         <h2 className="md-headline-small font-medium">MCP server</h2>
         <p className="mt-2 max-w-3xl md-body-medium text-m3-on-surface-variant">
           MCP-capable agents (Claude Code, Cursor, Windsurf, Zed…) get the whole library as
@@ -149,11 +148,13 @@ export function AgentView() {
               <MaterialSymbol icon="cable" fill className="text-m3-primary" />
               Connect (stdio)
             </div>
+            <p className="mt-2 md-body-small text-m3-on-surface-variant">
+              Prerequisite (once): <code className="font-mono">cd mini-services/mcp-server && bun install</code>
+            </p>
             <div className="mt-3">
               <CodeBlock
                 language="json"
-                code={`// .mcp.json — repo root
-{
+                code={`{
   "mcpServers": {
     "m3-expressive": {
       "command": "bun",
@@ -166,7 +167,10 @@ export function AgentView() {
               />
             </div>
             <p className="mt-3 md-body-small text-m3-on-surface-variant">
-              14 tools · full instructions in <code className="font-mono">mini-services/mcp-server/README.md</code>
+              Save as <code className="font-mono">.mcp.json</code> in your repo root. Replace{" "}
+              <code className="font-mono">/ABS/PATH</code> with the absolute path to this project
+              (run <code className="font-mono">pwd</code> inside the repo). 14 tools · full
+              instructions in <code className="font-mono">mini-services/mcp-server/README.md</code>.
             </p>
           </Card>
           <Card variant="outlined" className="p-0">
@@ -201,7 +205,7 @@ export function AgentView() {
 2. Otherwise fetch component docs: GET /api/registry?summary=true
 3. Get full component spec: GET /api/registry?component=<id>
    (props schema, variants, guidelines, example)
-4. Emit imports exactly:    import { Button } from "@/components/m3";
+4. Emit imports exactly:    import { Button } from "m3-expressive-react";
 5. Rules:
    - Icons are Material Symbols strings: icon="edit"
    - Colors are token roles: bg-m3-primary, text-m3-on-surface
@@ -223,7 +227,7 @@ export function AgentView() {
   "id": "button",
   "name": "Button",
   "category": "actions",
-  "importLine": "import { Button } from \\"@/components/m3\\";",
+  "importLine": "import { Button } from \\"m3-expressive-react\\";",
   "variants": ["filled", "tonal", "outlined", "text", "elevated"],
   "props": [
     { "name": "variant", "type": "'filled' | 'tonal' | …", "default": "'filled'", "description": "Visual emphasis." }

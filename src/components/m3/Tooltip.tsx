@@ -79,6 +79,7 @@ export function Tooltip({
             React.isValidElement(children) ? (
               children
             ) : (
+              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- fallback focus target when children is plain text; Base UI Trigger needs a focusable element
               <span tabIndex={0} className="inline-flex">
                 {children}
               </span>

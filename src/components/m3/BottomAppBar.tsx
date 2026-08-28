@@ -52,10 +52,14 @@ export interface BottomAppBarProps {
  * center FAB is intentionally not a toolbar item — it is a distinct
  * express-press action and keeps its normal tab position.
  */
+// Shared stable defaults — a literal `[]` default is re-created per render.
+const EMPTY_ACTIONS: BottomAppBarAction[] = [];
+const EMPTY_TRAILING_ICONS: string[] = [];
+
 export function BottomAppBar({
   navigationIcon,
-  actions = [],
-  trailingIcons = [],
+  actions = EMPTY_ACTIONS,
+  trailingIcons = EMPTY_TRAILING_ICONS,
   fab,
   fullWidth = true,
   className,

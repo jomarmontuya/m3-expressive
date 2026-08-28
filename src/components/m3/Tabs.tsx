@@ -121,9 +121,11 @@ export function Tabs({
   React.useLayoutEffect(() => {
     measureLabels();
     const ro = new ResizeObserver(measureLabels);
-    labelRefs.current.forEach((el) => ro.observe(el));
+    labelRefs.current.forEach((el) => {
+      ro.observe(el);
+    });
     let cancelled = false;
-    document.fonts?.ready.then(() => {
+    void document.fonts?.ready.then(() => {
       if (!cancelled) measureLabels();
     });
     return () => {

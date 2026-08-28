@@ -1075,3 +1075,135 @@ MIGRATION COMPLETE. All 41 registry components are now Base UI-backed or custom-
 - aria-modal is absent on Dialog.Popup in rc.0 (Base UI uses modern outside-aria semantics instead) — behavior verified correct (focus trap + Escape); no action.
 - Menus/popups now portal to body: token CSS vars cascade from :root/.dark/[data-theme] so styling works, but any future selector that assumes DOM ancestry inside .m3-* containers will not cross portals.
 - Next candidates: bump-watch @base-ui-components/react stable; keyboard-roving a11y audit; "Copy playground config as JSON"; MCP stateful SSE sessions.
+
+---
+Task ID: 16-eslint-port
+Agent: orchestrator (Z.ai Code)
+Task: Port fastpromos ESLint config (tooling/eslint-config base+react+nextjs) into this repo
+
+## Work Log
+- Replaced `eslint.config.mjs` (was eslint-config-next with nearly all rules off) with the fastpromos ruleset inlined into one file: @eslint/js + typescript-eslint recommended, type-checked rules (no-floating-promises, no-misused-promises, etc.), core JS correctness rules, react + react-hooks + jsx-a11y recommended, @next/eslint-plugin-next recommended + core-web-vitals, eslint-config-prettier last in base. max-lines 250 (skipBlankLines/skipComments) with fastpromos' exemption categories.
+- Adaptations (marked `m3:` in the config): dropped fastpromos' `process.env` ban (their src/env.ts Zod-validation module has no equivalent here); dropped Payload-migration/generated paths; contentDataModules = `src/lib/m3/meta.ts`, `themes.ts`, `playground-specs.tsx` (catalogue files that grow with the library); ignores merged with this repo's prior list (.qa4b, examples, skills, packages/**/dist).
+- Seeded `maxLinesBaseline` with the 18 files already over the ceiling (257–841 lines) per fastpromos' rollout mechanism — list only shrinks, new violations must be fixed.
+- devDeps added: @eslint/js, typescript-eslint, eslint-config-prettier, eslint-plugin-jsx-a11y, eslint-plugin-react, eslint-plugin-react-hooks, globals, @next/eslint-plugin-next. bun.lock updated. (bun was missing from the machine — installed 1.4.0 to ~/.bun.)
+
+## Stage Summary
+Config loads and lints the full repo. `bun run lint` now reports 34 errors + 3 warnings, all pre-existing code findings surfaced by the stricter ruleset (9 no-misused-promises, 7 no-unused-vars, 7 jsx-a11y, 3 react/no-object-type-as-default-prop, rest singles) — CI lint gate (AGENTS.md #1) will fail until these are fixed. 0 config errors; max-lines at 0 via baseline.
+
+---
+Task ID: 16b-lint-fixes
+Agent: orchestrator (Z.ai Code)
+Task: Fix all 34 lint errors surfaced by the ported fastpromos ESLint config
+
+## Work Log
+- Mechanical: removed unused vars/imports (`FoundationsView` typeScale, `playground-specs` ToolbarVariant, `ThemeBuilderTab` PreviewBand bg, tsup.config `here`+imports), `_`-prefixed unused params (TimePicker `_m`, DatePicker `_ref`), `import type` in toggle-group, `forEach` block bodies (Carousel, Tabs), promise-executor block body (vr-lib sleep), exported `actionTypes` in use-toast.
+- Real fixes: `void`-wrapped floating/misused promises (Tabs fonts.ready, ThemeBuilderTab copyText ×2, CodeBlock copy, MCPPlayground connect/runTool ×5, mcp-server extracted `handleHttpRequest` from the createServer callback — same body, same try/catch semantics); explicit `case "segmented"` in PropsPlayground summary switch (+ unreachable `default: return ""` to satisfy both switch-exhaustiveness and array-callback-return); `case undefined:` before the 405 default in mcp-server; `let delta: number` (DatePicker, was `= 0` never read); module-level `EMPTY_ACTIONS`/`EMPTY_TRAILING_ICONS` stable array defaults (BottomAppBar, TopAppBar — literal `[]` defaults risk infinite re-render); DatePicker `today` wrapped in useMemo (fixes exhaustive-deps warning, activeIso dep stable).
+- a11y: containment-demos — moved `stopPropagation` from wrapper span onto the Button's onClick (span keeps layout role only; fixes both jsx-a11y errors, DOM structure unchanged); documented `eslint-disable-next-line` with justification where the rule conflicts with official patterns: Carousel (WAI-ARIA APG focusable slide region), SearchView (combobox — keyboard lives on the input), Tooltip (fallback focus target for text children), pagination (children arrive via `{...props}` spread).
+- Left as warnings (deliberate): `layout.tsx` no-css-tags (known pre-existing, documented in AGENTS.md), `Ripple.tsx` exhaustive-deps `disabled` (fixing changes ripple detach behavior on disable-toggle — separate decision).
+- Environment: bun was missing → installed 1.4.0; `agent-browser` (VR tooling) missing → installed 0.35.1 globally; ran `db:generate` for the fresh node_modules.
+
+## Stage Summary
+All four CI gates pass: `bun run lint` 0 errors / 2 known warnings; `bunx tsc --noEmit` 0 errors outside exempt `examples/`; `bun run build:package` exit 0; `bun run vr:check` PASS — 41/41, changed 0. Note: VR shows a uniform `minor` drift on all 41 vs the previous run's 40-identical — environmental (fresh agent-browser 0.35.1 Chromium build renders slightly differently), not code; baselines NOT refreshed.
+
+---
+Task ID: 16c-personas
+Agent: orchestrator (Z.ai Code)
+Task: Target-user persona research for m3-expressive-react (user-persona skill)
+
+## Work Log
+- Grounded personas in repo artifacts (package README positioning, "For AI agents" docs section, MCP server, audit/ docs, Theme Builder) + market research: Google officially does not implement M3 Expressive on Web (Material Web Components in maintenance mode); 90% of pro devs use coding agents weekly (JetBrains 2026); 84% use/plan AI tools, only ~29% trust output (SO 2025 / Uvik).
+- Wrote 3 personas to `docs/personas.md`: Marco — AI-first builder (PRIMARY; the agent workflow the MCP/llms.txt/meta infrastructure serves), Aira — agency product engineer (Medianeth-shaped; Theme Builder seed→scheme per client), Priya — design-engineer seeking web parity with an Android M3 app (audit docs as trust asset). Each with goals, frustrations, behaviors, day-in-the-life, design implications. Plus prioritization rationale, the "agent is not a persona, it's Marco's hands" note, and research gaps (no primary interviews, no install analytics, MCP-connection assumption unvalidated).
+
+## Stage Summary
+Docs-only change: `docs/personas.md` (new). No code touched, no gates affected.
+
+---
+Task ID: 17-release-research
+Agent: orchestrator (Z.ai Code)
+Task: Research shadcn-style open-source release for m3-expressive-react (3-agent fan-out + UX skill)
+
+## Work Log
+- Fanned out 3 background research agents (web): (1) shadcn mechanics — registry.json/registry-item schema, third-party consumption syntax (URL/GitHub/#tags/namespaces), no-semver weakness, MIT "Open Source. Open Code"; (2) ecosystem + gap — CONFIRMED: no established M3/M3-Expressive shadcn-style registry exists (registry.directory's 82+ entries: zero Material); Google web components in maintenance; MUI has no M3; closest threats are @bug-on/m3-expressive (npm, 121 dl/wk) and react-material-3-pure (26 stars, "shadcn-style CLI coming soon"); Base UI hit v1.0 stable Feb 2026 and became shadcn's default primitive Jul 2026 (we're already on Base UI = near-zero dependency friction); (3) agent-native landscape — shadcn ships official MCP + llms.txt + skills; `npx shadcn registry:mcp` makes any registry MCP-compatible; NO major library claims "agent-first" positioning (category open); MCP state of art = sampling/elicitation/draft Tasks, fan-out lives client-side.
+- ui-ux-pro-max skill pass: docs-site pattern = search-first documentation landing; anti-patterns to avoid = "poor documentation", "no live preview"; landing = feature-rich showcase; dogfood rule (site renders with our own components, reject generic dev-tool look).
+- Local inventory: registry TABLE (41 ids → files), meta.ts fields, /api/registry route, MCP server, generated llms.txt, audit/ docs, Theme Builder — registry track is a codegen step, not a rewrite.
+- Wrote docs/open-source-release-plan.md: dual-track recommendation (shadcn-style registry primary + npm kept for semver), "first agent-first M3 Expressive design system" positioning, release architecture (build-registry.ts, /r/{name}.json + GitHub-root registry), fan-out productized as plan_screen/audit_page MCP tools + elicitation, docs-site UX plan, launch checklist, risks (Base UI rc.0→v1 migration as Phase 0, dual-channel drift, solo-competitor clock), phased plan.
+
+## Stage Summary
+Docs-only: docs/open-source-release-plan.md (new), this worklog. No code changed, no gates affected. Plan awaits Jomar's approval before any implementation.
+
+---
+Task ID: 16-ux
+Agent: orchestrator (Claude Code + 4 parallel audit agents)
+Task: Full UX audit + enhancement pass over the showcase app — app flow, wayfinding, component-page UX, a11y; driven by the owner's goal "make it clear for the user what to do".
+
+Work Log:
+- Audited via 4 parallel read-only agents (first-visit flow, component page UX, foundations/theming/MCP, a11y sweep) + live DOM checks on the running dev server. Findings: 3 P0s (mobile drawer misrouted 6/10 items to #/foundation/color; no focus-move/title/skip-link on route change; ThemeSwitcher radios had no arrow-key support), plus P1s (no components index, non-runnable usage code, invalid-json MCP copy, color-only state markers, no copy feedback for SRs).
+- src/app/page.tsx: skip-to-content button; <main id tabIndex=-1> focused on route change; document.title per route; scroll restore on back/forward (positions map) with reduced-motion-aware smooth scroll; mobile drawer now renders the full Sidebar inside m3 SideSheet (search + guides + all 41 components + active highlight — kills the misroute); footer links got m3-focus; app-bar search button + ⌘K/Ctrl-K opens the new CommandPalette.
+- src/components/showcase/Sidebar.tsx: Route gains {kind:"components", cat?} → #/components[/<cat>]; "All components" nav item; M3E dot now has sr-only text; component rows extend their vertical hit area (before:-inset-y-1); search announces result count (aria-live).
+- src/components/showcase/ComponentsIndexView.tsx (NEW): grouped 41-card catalog at #/components with sticky category jump chips (scrollIntoView, not hash anchors) and cat deep-link scrolling.
+- src/components/showcase/ComponentView.tsx: breadcrumb nav (Components / Category / Name, category deep-links to index section); Usage code is now fully copy-runnable (hooks import when exampleCode keeps state + package importLine + example); demo-header import chip is copyable and visible on mobile; "Live demo" gets sr-only h2; Playground h2 unified to md-title-large; When-to-use/Anatomy/States/Do/Don't titles → h3; props table th scope=col + type cells max-w/break-words + description column capped; not-found state gained a "Browse all components" button.
+- src/lib/m3/meta.ts: all 41 importLines switched from "@/components/m3" to "m3-expressive-react" — fixes consumer-facing import docs across the showcase, /api/registry, /llms.txt AND the MCP server (they all read these metas). AgentView system-prompt + metadata-shape snippets updated to match.
+- src/components/showcase/CodeBlock.tsx: copy announces via aria-live status, aria-label swaps Copy/Copied, button 32→40px.
+- src/components/showcase/ThemeSwitcher.tsx: radiogroup keyboard pattern (roving tabindex, arrows/Home/End move focus+selection, focus-on-open, Escape returns to trigger); mode labels unified Light/Auto/Dark (was Day/icon-only/Night).
+- src/components/showcase/AgentView.tsx + EndpointRow.tsx (NEW): .mcp.json payload is now valid JSON on copy (comment moved to caption, prereq bun install line, /ABS/PATH explained); primary CTA is "Connect an MCP client" (scrolls to MCP section); endpoint cards have copy buttons; tool-list count derived from registry; file split for the new 250-line lint ceiling.
+- src/components/showcase/MCPPlayground.tsx: connection-error state now shows the actual start command (cd mini-services/mcp-server && bun install && bun run dev, port 3210).
+- src/components/showcase/FoundationsView.tsx: ColorTab labels use each role's paired on-*/content token (was on-surface on every swatch — ~2:1 contrast on primary); landing tab default aligned to "themes"; spring chips got m3-focus + aria-pressed + taller target.
+- src/components/showcase/ThemeBuilderTab.tsx: Copy CSS snackbar names the paste destination; caption explains data-theme="custom" wiring.
+- src/components/showcase/HomeView.tsx: "Browse components" → #/components; Quick start now leads with npm install + package-import snippet (styles.css line) and names the 4 runtime deps (was "zero dependencies beyond framer-motion").
+- src/components/showcase/DocsView.tsx: install tab defaults to npm (was bun); "Three runtime deps" copy corrected to the four packages step 01 installs.
+- Container width (earlier same session): all view containers + footer max-w-5xl/6xl → max-w-7xl.
+- Environment note: `agent-browser` (VR driver) was absent locally — installed via `bunx agent-browser --version` (caches to ~/.bun/bin); the earlier vr:check ENOENT is explained by that, not by a script bug.
+
+Stage Summary:
+- All 4 CI gates green locally: tsc 0 errors in src/scripts; lint 0 errors (2 pre-existing warnings: layout.tsx CSS tag for Material Symbols, Ripple exhaustive-deps); build:package OK; VR refreshed 41/41 --force then PASS (identical 40 · minor 1 · changed 0).
+- Live-verified on the dev server: per-route titles, focus-to-main, skip link, mobile drawer (search + 41 components + correct navigation), breadcrumb, runnable usage code, ⌘K palette (search/arrow/enter navigation), theme-popover arrow keys.
+- Known deferred (P2 backlog, not done): docs install/start tab not hash-routed; prev/next still registry-order (not category-aware); ComponentView codeTab not forwarded through prev/next; Foundations endpoint rows lack copy buttons (Agent page has them); IconsTab sliders lack programmatic labels; README link on Agent page not clickable (no canonical repo URL exists yet); search-as-you-type announcements on Foundations; KNOWN_ANIMATED unchanged.
+- Files touched: src/app/page.tsx, src/lib/m3/meta.ts, showcase/{Sidebar,ComponentView,CodeBlock,ThemeSwitcher,AgentView,EndpointRow(new),MCPPlayground,FoundationsView,ThemeBuilderTab,HomeView,DocsView,ComponentsIndexView(new),CommandPalette(new)}.tsx. Not committed — owner reviews first.
+
+---
+Task ID: 16-ux-mobile
+Agent: orchestrator (Claude Code)
+Task: Mobile-width fix round from owner screenshot feedback (wrapping, drawer positioning, clipped theme options, props readability, copy feedback).
+
+Work Log:
+- App bar (src/app/page.tsx): logo block now min-w-0 + truncate (subtitle "React component library" wrapped to 2 lines at 375px).
+- Mobile drawer (src/app/page.tsx + src/components/m3/SideSheet.tsx): replaced the -m-6 padding-cancel hack (nav bled 8px off-screen left and overlapped the sheet title by 11px) with SideSheet className="p-0" (tailwind-merge cancels the 24dp padding) and no title; SideSheet Popup aria-label now falls back to "Side sheet" so the dialog stays labeled without a visible header. Verified: navLeftBleed=0, navRightBleed=0, contained vertically.
+- ThemeSwitcher popover (src/components/showcase/ThemeSwitcher.tsx): widened to w-[300px] max-w-[calc(100vw-1.5rem)] and dropped icons from the Appearance segmented options — Light/Auto/Dark labels alone fit; previously "Dark" was clipped ~40px past the popover edge at 375px.
+- Props on phones (src/components/showcase/ComponentView.tsx): table is now hidden below sm and replaced by stacked prop cards (name + default chip, type on its own wrapping line, description); …rest keeps its own card. No page-level horizontal scroll (verified scrollWidth == 375).
+- Import chip feedback (ComponentView.tsx): copying the demo-header import line now swaps the icon to a check and the text to "Copied!" for 1.6s + sr-only aria-live announcement (was silent).
+
+Stage Summary:
+- Gates: tsc 0 src errors; lint 0 errors (2 pre-existing warnings); vr:check after the round → 41/41 identical, 0 changed (all fixes mobile-scoped; desktop pixel-identical).
+- Live-verified at 375x740: subtitle 1 line, drawer geometry clean, popover fits with all 3 options, 8 stacked prop cards on Button page, import chip feedback fires.
+- Owner screenshots #2/#3/#4/#6/#7 mapped to fixes above; #5 ("let's improve this") not yet identified — asked owner for the target surface.
+
+---
+Task ID: 17-buttongroup-padding
+Agent: Claude Code
+Task: Fix ButtonGroup segments rendering without horizontal padding (pills collapsed to content width and visually overlapped) — from owner screenshot.
+
+Work Log:
+- Root cause: src/components/m3/ButtonGroup.tsx passed sizeStyles padding ("0 20px" etc.) through cn() into className — not a real Tailwind utility, so no padding ever applied. Measured live: "Day" button 25px wide, icon-only buttons 20px (icon edge-to-edge). Button.tsx and SplitButton.tsx were unaffected (they set padding via inline style).
+- Fix: moved s.padding from the cn() class list into the existing style object (height was already there), matching the Button/SplitButton pattern.
+
+Stage Summary:
+- Verified live: Day 25→65px, icon-only 20→60px, computed padding 20px, 4px gutters intact, no overlap.
+- Gates: lint 0 errors (2 pre-existing warnings); tsc clean in src/scripts; build:package OK; button-group baseline refreshed --force and passes vr:check.
+- Caveat: full vr:check runs flaked on unrelated components (different set each run — badge/card/slider/navigation-rail vs button/icon-button/fab/snackbar/tooltip) because the shared agent-browser session was being driven concurrently during captures; button-group itself passed in both runs. Re-run vr:check when the browser session is idle.
+- Files touched: src/components/m3/ButtonGroup.tsx (+ rebuilt packages/m3-expressive-react/dist).
+- Correction to the caveat above: follow-up stability test showed the unrelated vr:check diffs are NOT flaky — two back-to-back `button` captures differ 0.004% (stable) while capture-vs-baseline differs 7.08%. Cause: a concurrent session's uncommitted edits to the showcase shell (page.tsx, ComponentView, Sidebar, Tooltip, TopAppBar, + new CommandPalette/ComponentsIndexView; ~30 dirty files, growing during this task). The failing set (button/icon-button/fab/extended-fab/snackbar) are short pages where the shell change is most visible. Baselines for those belong to the other session's intent — not refreshed here. Only the earlier eval-vs-page mismatches were true shared-browser racing; the VR diffs are real.
+
+---
+Task ID: 18-oss-prep
+Agent: orchestrator (Z.ai Code)
+Task: Phase 0 open-source preparation — security audit + OSS basics
+
+## Work Log
+- Security audit: `.env` tracked since initial commit but contents always the benign local DATABASE_URL (verified via git history); db/custom.db tracked (tables Post/User, empty scaffold); upload/pasted_image_*.png tracked (dev artifacts); node_modules NOT tracked (0 files); no git remote configured (repo local-only — nothing ever published); no secret patterns in tracked source; CI has no secrets; Caddyfile is a local :81 dev proxy (harmless); z-ai-web-dev-sdk declared but unused anywhere.
+- Untracked from index (files kept on disk): .env, db/custom.db, upload/pasted_image_*.png. .gitignore hardened: /db/, /upload/*, /download/* (README kept).
+- Removed orphaned dependency z-ai-web-dev-sdk (bun remove; lock updated).
+- Added LICENSE (MIT, Jomar Montuya / Medianeth), public root README.md (positioning: "the design system Google never shipped to the web", install, MCP section, repo map, gates), CONTRIBUTING.md (setup, component contract pointer to AGENTS.md, the 4 gates, style rules).
+- Root package.json: renamed nextjs_tailwind_shadcn_ts → m3-expressive, added description/license/author. Package manifest (packages/m3-expressive-react) already publish-quality.
+
+## Stage Summary
+Verification: git ls-files confirms no sensitive files tracked; bun run lint 0 errors (2 known warnings). NOT committed — awaits Jomar. Open decisions flagged to Jomar: publish strategy (recommend fresh clean public repo over pushing this history), worklog.md keep-private vs publish, Base UI rc.0→v1 spike (remaining Phase 0 item).

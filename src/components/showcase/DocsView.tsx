@@ -319,7 +319,7 @@ export function DocsView({ navigate }: { navigate: (r: Route) => void }) {
   const [tab, setTab] = React.useState<"install" | "start">("install");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       {/* header */}
       <div className="md-label-large text-m3-primary">Documentation</div>
       <h1 className="mt-1 md-display-small font-semibold text-m3-on-surface">
@@ -360,14 +360,14 @@ export function DocsView({ navigate }: { navigate: (r: Route) => void }) {
 /* ------------------------------------------------------------------ */
 
 function InstallTab({ navigate }: { navigate: (r: Route) => void }) {
-  const [pm, setPm] = React.useState("bun");
+  const [pm, setPm] = React.useState("npm");
 
   return (
     <div className="space-y-6">
       {/* philosophy strip */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { icon: "download", title: "1 · Install", body: "Three runtime deps: framer-motion, clsx, tailwind-merge." },
+          { icon: "download", title: "1 · Install", body: "Four runtime deps: @base-ui-components/react, framer-motion, clsx, tailwind-merge." },
           { icon: "content_copy", title: "2 · Copy", body: "The source lands in your repo — by hand or via your AI agent." },
           { icon: "key", title: "3 · Own it", body: "No version lock. Fork, restyle, delete — it's your code." },
         ].map((s) => (
@@ -410,7 +410,7 @@ function InstallTab({ navigate }: { navigate: (r: Route) => void }) {
             aria-label="Package manager"
           />
         </div>
-        <CodeBlock language="bash" code={INSTALL_CMD[pm] ?? INSTALL_CMD.bun} />
+        <CodeBlock language="bash" code={INSTALL_CMD[pm] ?? INSTALL_CMD.npm} />
         <div className="mt-3 flex gap-2.5 rounded-2xl bg-m3-surface-container-low p-4">
           <MaterialSymbol icon="info" size={18} className="mt-0.5 shrink-0 text-m3-primary" />
           <p className="md-body-small text-m3-on-surface-variant">

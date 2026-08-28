@@ -53,8 +53,12 @@ export function PropsPlayground({ spec }: { spec: PlaygroundSpec }) {
           return `${c.label} ${typeof v === "number" ? v : pgNumberOf(v, c.min)}`;
         case "text":
           return `${c.label} ${typeof v === "string" && v.trim() !== "" ? `"${v}"` : "(empty)"}`;
-        default:
+        case "segmented":
           return `${c.label} ${typeof v === "string" ? v : "(default)"}`;
+        default:
+          // Unreachable — every control kind has a case above. Returning here
+          // keeps ESLint satisfied that the map callback always returns.
+          return "";
       }
     });
     return `${spec.component} playground — ${parts.join("; ")}`;
@@ -73,7 +77,7 @@ export function PropsPlayground({ spec }: { spec: PlaygroundSpec }) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]">
         {/* stage — neutral dot grid over surface-container-lowest */}
         <div
           className="flex min-h-[260px] items-center justify-center p-6 sm:p-10"
@@ -139,7 +143,7 @@ function Control({
     return (
       <div>
         <ControlHeading label={c.label} icon={c.icon ?? "category"} />
-        <div className="m3-scroll max-w-full overflow-x-auto pb-1">
+        <div className="max-w-full pb-1">
           <SegmentedButton
             type="single"
             size="sm"
@@ -150,7 +154,10 @@ function Control({
             options={c.options}
             disabled={disabled}
             aria-label={c.label}
-            className="whitespace-nowrap"
+            /* fixed 3-up grid rows: every option always visible and at a
+               deterministic position — flex-wrap put wrap points on font-metric
+               boundaries and made the VR captures non-deterministic */
+            className="grid w-full grid-cols-3 [&>button]:min-w-0 [&>button]:truncate"
           />
         </div>
       </div>

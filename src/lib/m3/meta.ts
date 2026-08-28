@@ -13,7 +13,7 @@ export const buttonGroupMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: a connected group of pill buttons that share a 4px gutter and act or select together. M3E's variable-width treatment lets the hovered segment playfully grow with a layout spring.",
-  importLine: `import { ButtonGroup } from "@/components/m3";`,
+  importLine: `import { ButtonGroup } from "m3-expressive-react";`,
   variants: ["outlined", "filled", "tonal"],
   props: [
     { name: "buttons", type: `{ id: string; label?: string; icon?: string; onClick?: () => void }[]`, description: "Segments of the group, keyed by id." },
@@ -67,7 +67,7 @@ export const dividerMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "A divider is a 1dp thin line that groups content in lists and layouts, separating content into clear groups.",
-  importLine: `import { Divider } from "@/components/m3";`,
+  importLine: `import { Divider } from "m3-expressive-react";`,
   variants: ["full-width", "inset-start", "inset-middle", "inset-end", "vertical"],
   props: [
     { name: "inset", type: `'none' | 'start' | 'middle' | 'end'`, default: `'none'`, description: "Horizontal 'start' uses the official M3 list divider insets: 16dp left / 24dp right (the 72dp start inset is the legacy M2 value). 'middle' = 16dp equal indents per the M3 divider guideline; 'end' is a library extension." },
@@ -107,7 +107,7 @@ export const datePickerMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker — 328×512dp portrait / 568×368dp landscape (viewport ≥ 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons. selectionMode='range' adds the official M3 date-range selection (androidx DateRangePicker conventions): tap start then end, in-between days carry a continuous primary-container band behind 40dp start/end circles, hover previews the tentative range, and the modal header shows Start/End date placeholders until the pair is complete.",
-  importLine: `import { DatePicker } from "@/components/m3";`,
+  importLine: `import { DatePicker } from "m3-expressive-react";`,
   variants: ["month-view", "year-view", "modal", "range · inline", "range · modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
@@ -191,7 +191,7 @@ export const sideSheetMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Side sheets are surfaces anchored to the left or right edge used for secondary content like filters or details; modal variants overlay a 32% scrim, standard variants sit inline with the layout on surface. The official 16dp radius rounds the inner (docked) edge only.",
-  importLine: `import { SideSheet } from "@/components/m3";`,
+  importLine: `import { SideSheet } from "m3-expressive-react";`,
   variants: ["modal", "standard"],
   props: [
     { name: "open", type: `boolean`, description: "Controls modal visibility. Ignored by the standard variant." },
@@ -239,7 +239,7 @@ export const carouselMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "New in Material 3 Expressive: a horizontally scrollable, scroll-snapped collection of items with three official layout strategies — multi-browse (flexible equal widths with a peek), hero (one large leading item, the rest smaller) and inline (one full-width item per view). Items sit 8dp apart, are shaped (28dp corners by default) and, in the multi-browse layout, play the signature M3E dynamic-width treatment: the hovered or focused item springs to ~1.12× its width while the neighbors give up the difference.",
-  importLine: `import { Carousel } from "@/components/m3";`,
+  importLine: `import { Carousel } from "m3-expressive-react";`,
   variants: ["multi-browse", "hero", "inline"],
   props: [
     { name: "items", type: `CarouselItem[]`, description: "Snap items: id, optional label, MaterialSymbol icon, container tone ('primary' | 'secondary' | 'tertiary' | 'surface'), optional href/onClick (makes the whole item a button/link)." },
@@ -298,7 +298,7 @@ export const dialogMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Dialogs inform users about a task and can contain critical information or require decisions — a modal surface over a 32% scrim that blocks interaction until resolved. Focus is trapped inside while open and returns to the trigger on close.",
-  importLine: `import { Dialog } from "@/components/m3";`,
+  importLine: `import { Dialog } from "m3-expressive-react";`,
   variants: ["basic", "fullscreen", "dismissible", "non-dismissible"],
   props: [
     { name: "open", type: `boolean`, description: "Controls visibility." },
@@ -354,7 +354,7 @@ export const snackbarMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Snackbars inform users of a process that an app has performed or will perform, appearing briefly at the bottom of the screen on an inverse surface.",
-  importLine: `import { Snackbar } from "@/components/m3";`,
+  importLine: `import { Snackbar } from "m3-expressive-react";`,
   variants: ["with-action", "with-icon", "sticky"],
   props: [
     { name: "open", type: `boolean`, description: "Controls visibility." },
@@ -402,7 +402,7 @@ export const navigationDrawerMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Navigation drawers provide ergonomic access to destinations in an app. The modal variant slides over a scrim on compact screens; the standard variant docks as a static panel. Active items carry a spring-animated tonal pill.",
-  importLine: `import { NavigationDrawer } from "@/components/m3";`,
+  importLine: `import { NavigationDrawer } from "m3-expressive-react";`,
   variants: ["modal", "standard"],
   props: [
     { name: "items", type: `NavItem[]`, description: "Destinations: value, label, optional icon, optional trailing badge." },
@@ -455,7 +455,7 @@ export const listMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Lists are continuous, vertical indexes of text or images, composed of one-line, two-line, or three-line items with optional leading icons, avatars and trailing metadata.",
-  importLine: `import { List, ListItem } from "@/components/m3";`,
+  importLine: `import { List, ListItem } from "m3-expressive-react";`,
   variants: ["single-line", "two-line", "three-line"],
   props: [
     { name: "dividers", type: `boolean`, default: `false`, description: "Full-width outline-variant dividers between rows; the official list divider inset (16dp start / 24dp end) is available via <Divider inset=\"start\" />." },
@@ -511,7 +511,7 @@ export const cardMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Cards contain content and actions about a single subject, elevated with a shadow, a filled container, or an outline. M3 Expressive cards morph their shape and scale on press with a springy bounce.",
-  importLine: `import { Card } from "@/components/m3";`,
+  importLine: `import { Card } from "m3-expressive-react";`,
   variants: ["elevated", "filled", "outlined"],
   props: [
     { name: "variant", type: `'elevated' | 'filled' | 'outlined'`, default: `'elevated'`, description: "Visual treatment: shadowed, tonal, or stroked." },
@@ -558,7 +558,7 @@ export const segmentedButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Segmented buttons help people select options, switch views, or sort elements inside one connected pill outline. Selected segments fill with a tonal color and reveal a check with a springy width animation. Each segment expands its touch target to ≥48dp vertically via an invisible ::before hit area (vertical-only, so adjacent segments never overlap).",
-  importLine: `import { SegmentedButton } from "@/components/m3";`,
+  importLine: `import { SegmentedButton } from "m3-expressive-react";`,
   variants: ["single", "multiple"],
   props: [
     { name: "options", type: `{ value: string; label?: string; icon?: string }[]`, description: "Segments, keyed by value." },
@@ -614,7 +614,7 @@ export const sliderMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Sliders let users pick a value from a continuous or discrete range by dragging a tall thin handle along a thick track.",
-  importLine: `import { Slider } from "@/components/m3";`,
+  importLine: `import { Slider } from "m3-expressive-react";`,
   variants: ["continuous", "discrete"],
   props: [
     { name: "value", type: `number`, description: "Controlled value." },
@@ -666,7 +666,7 @@ export const textFieldMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "Text fields let users enter and edit a single line of text, with a floating label and a filled or outlined container.",
-  importLine: `import { TextField } from "@/components/m3";`,
+  importLine: `import { TextField } from "m3-expressive-react";`,
   variants: ["outlined", "filled"],
   props: [
     { name: "variant", type: `'outlined' | 'filled'`, default: `'outlined'`, description: "Container style: outlined stroke or filled surface with a bottom indicator." },
@@ -724,7 +724,7 @@ export const autocompleteMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "An autocomplete is a text field that presents a filterable list of suggestions, selecting a value from a known set.",
-  importLine: `import { Autocomplete } from "@/components/m3";`,
+  importLine: `import { Autocomplete } from "m3-expressive-react";`,
   variants: ["outlined"],
   props: [
     { name: "options", type: `string[]`, description: "All selectable options." },
@@ -771,7 +771,7 @@ export const navigationRailMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Navigation rails provide ergonomic access to primary destinations on medium screens like tablets and foldables. The active destination gets a tonal capsule that springs between icons; a header slot above hosts a FAB or branding.",
-  importLine: `import { NavigationRail } from "@/components/m3";`,
+  importLine: `import { NavigationRail } from "m3-expressive-react";`,
   variants: ["3 destinations", "4 destinations", "5 destinations", "with header", "folding-line"],
   props: [
     { name: "items", type: `NavItem[]`, description: "Destinations (3–7): value, label, optional icon, optional badge." },
@@ -818,7 +818,7 @@ export const chipMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Chips are compact elements that represent an input, attribute, or action — assist, filter, input, and suggestion variants.",
-  importLine: `import { Chip } from "@/components/m3";`,
+  importLine: `import { Chip } from "m3-expressive-react";`,
   variants: ["assist", "filter", "input", "suggestion"],
   props: [
     { name: "variant", type: `'assist' | 'filter' | 'input' | 'suggestion'`, default: `'assist'`, description: "Chip semantics and affordances." },
@@ -867,7 +867,7 @@ export const bannerMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Banners display a prominent, screen-wide message with optional actions. They sit at the top of a screen or section and stay until dismissed by the user.",
-  importLine: `import { Banner } from "@/components/m3";`,
+  importLine: `import { Banner } from "m3-expressive-react";`,
   variants: ["with-icon", "with-actions", "dismissible"],
   props: [
     { name: "icon", type: `string`, description: "Leading Material Symbol name." },
@@ -913,7 +913,7 @@ export const checkboxMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Checkboxes let users select one or more items from a set, toggling each option on or off (or to an indeterminate state).",
-  importLine: `import { Checkbox } from "@/components/m3";`,
+  importLine: `import { Checkbox } from "m3-expressive-react";`,
   variants: ["checked", "unchecked", "indeterminate"],
   props: [
     { name: "checked", type: `boolean`, default: `false`, description: "Whether the box is checked." },
@@ -957,7 +957,7 @@ export const fabMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "A floating action button (FAB) represents the primary or most common action on a screen, floating above content with a tonal container and shadow. M3 Expressive adds small to extra-large sizes and a bouncy press spring.",
-  importLine: `import { Fab } from "@/components/m3";`,
+  importLine: `import { Fab } from "m3-expressive-react";`,
   variants: ["primary", "secondary", "tertiary", "surface"],
   props: [
     { name: "color", type: `'primary' | 'secondary' | 'tertiary' | 'surface'`, default: `'primary'`, description: "Tonal color role of the FAB container." },
@@ -1000,7 +1000,7 @@ export const tabsMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Tabs organize content across different screens, data sets, and other interactions. Primary tabs are 64dp icon+label columns with a spring-animated 3dp underline sized to the active label's measured text width (ResizeObserver + fonts.ready); the M3 Expressive secondary style slides a tonal pill between 48dp destinations. Scroll arrows appear when tabs overflow.",
-  importLine: `import { Tabs } from "@/components/m3";`,
+  importLine: `import { Tabs } from "m3-expressive-react";`,
   variants: ["primary", "secondary"],
   props: [
     { name: "items", type: `NavItem[]`, description: "Tab definitions: value, label, optional Material Symbol icon and badge." },
@@ -1049,7 +1049,7 @@ export const loadingIndicatorMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "The M3 Expressive loading indicator is a shape-morphing container with counter-spinning dashed arcs — a playful, branded way to hold attention during longer waits.",
-  importLine: `import { LoadingIndicator } from "@/components/m3";`,
+  importLine: `import { LoadingIndicator } from "m3-expressive-react";`,
   variants: ["primary", "secondary", "tertiary", "error"],
   props: [
     { name: "size", type: `number`, default: `48`, description: "Square container size in px (official 48dp container)." },
@@ -1089,7 +1089,7 @@ export const menuMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Menus display a list of choices on a temporary surface, anchored to a trigger. Items support icons, keyboard shortcuts, section labels, dividers and destructive styling; the panel springs open from its top origin. Arrow keys move between items; Escape or Tab closes and returns focus to the trigger.",
-  importLine: `import { Menu } from "@/components/m3";`,
+  importLine: `import { Menu } from "m3-expressive-react";`,
   variants: ["bottom-start", "bottom-end", "with icons", "with shortcuts", "with sections"],
   props: [
     { name: "trigger", type: `ReactNode`, description: "Clickable element the menu anchors to; cloned with the open handler." },
@@ -1136,7 +1136,7 @@ export const bottomAppBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Bottom app bars provide access to a bottom navigation drawer and up to four actions, including an optional center-docked FAB that notches the bar. The M3 Expressive FAB morphs its corner shape on press.",
-  importLine: `import { BottomAppBar } from "@/components/m3";`,
+  importLine: `import { BottomAppBar } from "m3-expressive-react";`,
   variants: ["actions only", "with center-docked FAB", "with trailing icons"],
   props: [
     { name: "navigationIcon", type: `{ icon: string; label?: string; onClick?: () => void }`, description: "Optional leading navigation icon (official anatomy item; typically the hamburger menu)." },
@@ -1179,7 +1179,7 @@ export const extendedFabMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "An extended floating action button is a wider FAB that pairs an icon with a short text label, making the primary action unmistakable on wide screens and content-heavy layouts.",
-  importLine: `import { ExtendedFab } from "@/components/m3";`,
+  importLine: `import { ExtendedFab } from "m3-expressive-react";`,
   variants: ["primary", "secondary", "tertiary", "surface"],
   props: [
     { name: "color", type: `'primary' | 'secondary' | 'tertiary' | 'surface'`, default: `'primary'`, description: "Tonal color role of the container." },
@@ -1221,7 +1221,7 @@ export const circularProgressMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Circular progress indicators display progress by animating an arc along a circular track, for compact or inline loading states.",
-  importLine: `import { CircularProgress } from "@/components/m3";`,
+  importLine: `import { CircularProgress } from "m3-expressive-react";`,
   variants: ["determinate", "indeterminate"],
   props: [
     { name: "value", type: `number`, description: "0–100 progress. Omit for indeterminate." },
@@ -1262,7 +1262,7 @@ export const badgeMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Badges are small status descriptors for UI elements — a count or dot anchored to an icon, avatar, or navigation item that indicates it requires attention.",
-  importLine: `import { Badge } from "@/components/m3";`,
+  importLine: `import { Badge } from "m3-expressive-react";`,
   variants: ["error", "primary", "tertiary", "dot"],
   props: [
     { name: "value", type: `number | string`, description: "Count or short label to show. Numbers above `max` collapse to \"{max}+\"." },
@@ -1307,7 +1307,7 @@ export const searchBarMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "A search bar is a rounded text field dedicated to search queries, elevating on focus and offering quick trailing actions.",
-  importLine: `import { SearchBar } from "@/components/m3";`,
+  importLine: `import { SearchBar } from "m3-expressive-react";`,
   variants: ["sm", "md", "lg"],
   props: [
     { name: "value", type: `string`, description: "Controlled query text." },
@@ -1356,7 +1356,7 @@ export const searchViewMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "The expanded companion of the search bar: a persistent search surface for larger, richer search that expands over the UI with a 56dp input row, recent-search suggestion rows and a full results area.",
-  importLine: `import { SearchView } from "@/components/m3";`,
+  importLine: `import { SearchView } from "m3-expressive-react";`,
   variants: ["full-screen", "docked"],
   props: [
     { name: "open", type: `boolean`, description: "Whether the search view is shown." },
@@ -1419,7 +1419,7 @@ export const splitButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: a split button joins a primary action with an arrow segment that opens a dropdown of related actions, saving space while keeping the default action one tap away.",
-  importLine: `import { SplitButton } from "@/components/m3";`,
+  importLine: `import { SplitButton } from "m3-expressive-react";`,
   variants: ["filled", "tonal", "outlined"],
   props: [
     { name: "label", type: `string`, description: "Label of the primary action segment." },
@@ -1467,7 +1467,7 @@ export const switchMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "A switch toggles the state of a single setting on or off, committing the change immediately.",
-  importLine: `import { Switch } from "@/components/m3";`,
+  importLine: `import { Switch } from "m3-expressive-react";`,
   variants: ["checked", "unchecked"],
   props: [
     { name: "checked", type: `boolean`, default: `false`, description: "Whether the switch is on." },
@@ -1507,7 +1507,7 @@ export const timePickerMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Time pickers let users select a time using an analog clock dial with a digital readout; the readout segments switch between hour and minute editing, AM/PM toggles meridiem, and arrow keys step the dial. In 24-hour mode the dial switches to the official double-ring face — outer ring 00–11, inner ring 12–23 — with the selection handle traveling between rings; only 5-minute marks are labelled in minute mode.",
-  importLine: `import { TimePicker } from "@/components/m3";`,
+  importLine: `import { TimePicker } from "m3-expressive-react";`,
   variants: ["12-hour", "24-hour-double-ring"],
   props: [
     { name: "value", type: `{ hour: number; minute: number }`, description: "Selected time (hour 0–23, minute 0–59). Defaults to 10:30 when uncontrolled." },
@@ -1552,7 +1552,7 @@ export const radioMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Radio buttons let users select exactly one option from a set of mutually exclusive choices.",
-  importLine: `import { Radio } from "@/components/m3";`,
+  importLine: `import { Radio } from "m3-expressive-react";`,
   variants: ["checked", "unchecked"],
   props: [
     { name: "checked", type: `boolean`, default: `false`, description: "Whether this radio is selected." },
@@ -1591,7 +1591,7 @@ export const toolbarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "New in Material 3 Expressive: a compact, dismissible pill of contextual actions that floats over content. Four container-color roles; the dockable variant morphs between a floating pill and a square full-width docked bar.",
-  importLine: `import { Toolbar } from "@/components/m3";`,
+  importLine: `import { Toolbar } from "m3-expressive-react";`,
   m3e: true,
   variants: ["floating", "dockable", "surface", "primary", "secondary", "tertiary"],
   props: [
@@ -1643,7 +1643,7 @@ export const iconButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Icon buttons let people take a compact action with a single tap, using an icon as the label. Toggleable icon buttons flip between unselected and selected states with a springy M3 Expressive pop.",
-  importLine: `import { IconButton } from "@/components/m3";`,
+  importLine: `import { IconButton } from "m3-expressive-react";`,
   variants: ["standard", "filled", "tonal", "outlined"],
   props: [
     { name: "variant", type: `'standard' | 'filled' | 'tonal' | 'outlined'`, default: `'standard'`, description: "Visual emphasis of the icon button." },
@@ -1695,7 +1695,7 @@ export const tooltipMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Tooltips display informative text when users hover over, focus on, or long-press an element — a compact plain label or a rich card with title and action.",
-  importLine: `import { Tooltip } from "@/components/m3";`,
+  importLine: `import { Tooltip } from "m3-expressive-react";`,
   variants: ["plain", "rich"],
   props: [
     { name: "content", type: `React.ReactNode`, description: "Tooltip text or body content." },
@@ -1741,7 +1741,7 @@ export const fabMenuMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: a FAB that expands into a playful, staggered cascade of related quick actions. The main icon rotates into a close affordance, keeping one entry point for a small action cluster. The docked variant anchors flush to the bottom edge — the screen edge or directly above a bottom app bar — and squares the FAB's bottom corners when open so the menu visually connects to the edge.",
-  importLine: `import { FabMenu } from "@/components/m3";`,
+  importLine: `import { FabMenu } from "m3-expressive-react";`,
   variants: ["primary", "secondary", "tertiary", "surface", "docked · screen", "docked · bottom app bar"],
   props: [
     { name: "actions", type: `{ icon: string; label?: string; onClick?: () => void }[]`, description: "Quick actions revealed on open." },
@@ -1805,7 +1805,7 @@ export const navigationBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Navigation bars let people switch between primary destinations in an app. The active destination is highlighted with a tonal pill behind the icon that springs into place — the signature M3 Expressive shared-layout motion.",
-  importLine: `import { NavigationBar } from "@/components/m3";`,
+  importLine: `import { NavigationBar } from "m3-expressive-react";`,
   variants: ["3 destinations", "4 destinations", "5 destinations"],
   props: [
     { name: "items", type: `NavItem[]`, description: "Destinations (3–5): value, label, optional icon, optional badge (dot or count)." },
@@ -1852,7 +1852,7 @@ export const topAppBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Top app bars display information and actions at the top of a screen. Small and center-aligned are fixed 64dp rows; medium (112dp) and large (152dp) are flexible — on scroll the bar gains a surface-container color fill (M3 replaces the M2 shadow with tonal color) while the headline collapses into the top row with a spring.",
-  importLine: `import { TopAppBar } from "@/components/m3";`,
+  importLine: `import { TopAppBar } from "m3-expressive-react";`,
   m3e: true,
   variants: ["small", "center", "medium", "large"],
   props: [
@@ -1901,7 +1901,7 @@ export const bottomSheetMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Bottom sheets are surfaces anchored to the bottom of the screen that present supplementary content with a drag handle for pull-to-dismiss; the modal variant overlays a 32% scrim, the standard variant renders inline without one.",
-  importLine: `import { BottomSheet } from "@/components/m3";`,
+  importLine: `import { BottomSheet } from "m3-expressive-react";`,
   variants: ["modal", "standard"],
   props: [
     { name: "open", type: `boolean`, description: "Controls modal visibility (animated with AnimatePresence)." },
@@ -1945,7 +1945,7 @@ export const buttonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Buttons trigger actions or events, such as submitting a form or opening a dialog. M3 Expressive adds a bouncy shape-morph press interaction and five emphasis sizes.",
-  importLine: `import { Button } from "@/components/m3";`,
+  importLine: `import { Button } from "m3-expressive-react";`,
   variants: ["filled", "tonal", "outlined", "text", "elevated"],
   props: [
     { name: "variant", type: `'filled' | 'tonal' | 'outlined' | 'text' | 'elevated'`, default: `'filled'`, description: "Visual emphasis of the button." },
@@ -1990,7 +1990,7 @@ export const linearProgressMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Linear progress indicators express an unspecified wait time or display the length of a process. Material 3 Expressive adds a signature wavy indicator that slides and pulses.",
-  importLine: `import { LinearProgress } from "@/components/m3";`,
+  importLine: `import { LinearProgress } from "m3-expressive-react";`,
   variants: ["determinate", "indeterminate", "wavy-determinate", "wavy-indeterminate"],
   props: [
     { name: "value", type: `number`, description: "0–100 progress. Omit for indeterminate." },

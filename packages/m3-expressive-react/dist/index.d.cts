@@ -127,6 +127,11 @@ declare const linearProgressMeta: M3ComponentMeta;
 type ButtonVariant = "filled" | "tonal" | "outlined" | "text" | "elevated";
 type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 type ButtonShape = "full" | "large" | "medium" | "small";
+/**
+ * Button attributes minus the handlers framer-motion re-defines with its own
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
+ */
 interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd" | "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop"> {
     variant?: ButtonVariant;
     size?: ButtonSize;
@@ -145,9 +150,15 @@ interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>
 }
 /**
  * M3 Expressive Button.
- * Press morphs the corner shape (full → 20dp) with the bouncy expressive
- * spring — the hallmark M3E interaction. Plays for keyboard presses too
- * (Space/Enter), via the shared shapeMorph token pair.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — press scale, the M3E shape
+ * morph, springs and the M3 state layer. Press morphs the corner shape
+ * (full → 20dp) with the bouncy expressive spring — the hallmark M3E
+ * interaction. Plays for keyboard presses too (Space/Enter), via the shared
+ * shapeMorph token pair.
  */
 declare const Button: React.ForwardRefExoticComponent<ButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -155,8 +166,8 @@ type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
 type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd"> {
     variant?: IconButtonVariant;
@@ -171,8 +182,14 @@ interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElem
 }
 /**
  * M3 Icon button — a compact pressable icon with a state layer and ripple.
- * When `toggleable`, the selected state recolors the icon to the primary
- * role (standard/outlined) and pops it in with the expressive spring.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type` default and disabled/focus handling (it guards click + pointer
+ * events while disabled); the `render` prop composes it with a framer-motion
+ * element so WE keep the visuals — press scale spring, M3 state layer and
+ * the selected pop. When `toggleable`, the selected state recolors the icon
+ * to the primary role (standard/outlined) and pops it in with the expressive
+ * spring (`aria-pressed` stays wired for assistive tech).
  */
 declare const IconButton: React.ForwardRefExoticComponent<IconButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -180,8 +197,8 @@ type FabColor = "primary" | "secondary" | "tertiary" | "surface";
 type FabSize = "small" | "medium" | "large" | "extra-large";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 interface FabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd"> {
     color?: FabColor;
@@ -193,16 +210,21 @@ interface FabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "
 }
 /**
  * M3 Floating action button (FAB) — the highest-emphasis action on a screen.
- * Official elevation: level 3 at rest → level 4 on hover/pressed (lowered:
- * 1 → 2). Press squeezes with the expressive spring. Disabled drops to the
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — the expressive hover/tap
+ * springs and the M3 state layer. Official elevation: level 3 at rest →
+ * level 4 on hover/pressed (lowered: 1 → 2). Disabled drops to the
  * on-surface 12%/38% disabled tokens with no elevation.
  */
 declare const Fab: React.ForwardRefExoticComponent<FabProps & React.RefAttributes<HTMLButtonElement>>;
 
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 interface ExtendedFabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd"> {
     color?: FabColor;
@@ -216,10 +238,15 @@ interface ExtendedFabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEle
 /**
  * M3 Extended FAB — a wider floating action button with an icon and
  * text label, for the primary action when an icon alone is not clear.
- * Official anatomy: 56dp height, 16dp corners, 24dp icon, 8dp icon-label
- * gap, 20dp horizontal padding, label-large text. Elevation 3 → 4 on
- * hover/pressed (lowered: 1 → 2); disabled uses the on-surface 12%/38%
- * tokens with no elevation.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — the expressive hover/tap
+ * springs and the M3 state layer. Official anatomy: 56dp height, 16dp
+ * corners, 24dp icon, 8dp icon-label gap, 20dp horizontal padding,
+ * label-large text. Elevation 3 → 4 on hover/pressed (lowered: 1 → 2);
+ * disabled uses the on-surface 12%/38% tokens with no elevation.
  */
 declare const ExtendedFab: React.ForwardRefExoticComponent<ExtendedFabProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -261,15 +288,16 @@ type FabMenuDockTarget = "screen" | "bottom-app-bar";
  * M3 Expressive FabMenu — a small FAB that expands into a staggered row or
  * column of related action FABs. The main 'edit' icon rotates 45° into a
  * close affordance while the actions spring in one after another
- * (50ms stagger = durations.short1 token). Dismisses on Escape and
- * outside-pointerdown like any transient menu surface.
+ * (50ms stagger = durations.short1 token).
  *
- * Docked (`docked`): the closed FAB is flush at the bottom-center of its
- * positioning context; when open its bottom corners square off (shape morph
- * from the shape tokens on springs.expressiveEffects) and the actions cascade
- * above it — see `dockedTo` for the screen vs bottom-app-bar targets. The
- * anchor uses `right: calc(50% - 20px)` so the widening cascade never shifts
- * the FAB horizontally.
+ * Built on Base UI's headless Menu: Root owns the open state, outside
+ * pointerdown + Escape dismissal and focus restoration; Trigger wraps the
+ * main FAB (aria-haspopup/expanded) while keeping the hover/tap springs and
+ * docked shape morph; the action cascade stays a custom in-flow flex layout
+ * (a floating popup positioner cannot express the docked screen / bottom
+ * app bar modes) with each action as a Menu.Item for roving focus and
+ * Enter/Space activation. The menu is kept mounted while the staggered
+ * exit plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
 declare const FabMenu: React.ForwardRefExoticComponent<FabMenuProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -293,7 +321,14 @@ interface SplitButtonProps {
  * M3 Expressive Split button — two joined pill segments: the left one fires
  * the default action, the right one opens a dropdown of related actions.
  * The menu is a standard M3 menu surface: 4dp corners, elevation 2,
- * 48dp menu items with Arrow/Home/End keyboard navigation.
+ * 48dp menu items.
+ *
+ * Built on Base UI's headless Menu: the dropdown segment is a Menu.Trigger
+ * (aria-haspopup/expanded + ArrowDown keyboard open), and the popup owns
+ * roving focus, Arrow/Home/End navigation, typeahead, outside-press and
+ * Escape dismissal with focus restore. The joined pill, press squash and
+ * rotating chevron stay ours. The menu is kept mounted while the exit
+ * spring plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
 declare const SplitButton: React.ForwardRefExoticComponent<SplitButtonProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -324,6 +359,13 @@ interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
  * signature M3E variable-width treatment where the hovered segment grows.
  * The 40dp small size exposes an expanded 48dp touch target via an
  * invisible ::before hit-area extension.
+ *
+ * No Base UI primitive for a connected button group in v1.0.0-rc.0 — custom
+ * container retained. The container stays a plain semantic group
+ * (`role="group"`; `aria-label` reaches it through the `...props` spread).
+ * Each segment is our M3 Button layer (Base UI `Button` + framer-motion
+ * `render` composition), so segments inherit the same native-<button>
+ * disabled/focus handling as the standalone buttons.
  */
 declare const ButtonGroup: React.ForwardRefExoticComponent<ButtonGroupProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -334,7 +376,7 @@ interface SegmentedButtonOption {
     label?: string;
     icon?: string;
 }
-interface SegmentedButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SegmentedButtonProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "defaultChecked"> {
     options: SegmentedButtonOption[];
     type?: SegmentedButtonType;
     /** Controlled value: string for single, string[] for multiple; omit for uncontrolled */
@@ -347,6 +389,11 @@ interface SegmentedButtonProps extends React.HTMLAttributes<HTMLDivElement> {
  * M3 Segmented buttons — connected segments inside one pill outline for
  * selecting between 2–5 choices. Selected segments fill with the
  * secondary-container color and a check icon springs open.
+ *
+ * Built on Base UI's headless ToggleGroup/Toggle: the group owns the pressed
+ * state, `aria-pressed`, roving arrow-key focus and disabled propagation,
+ * while this layer keeps the M3 Expressive visuals (connected pill outline,
+ * 48dp touch expanders, springy check icon, ripple).
  */
 declare const SegmentedButton: React.ForwardRefExoticComponent<SegmentedButtonProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -365,6 +412,10 @@ interface BadgeProps {
     className?: string;
 }
 /**
+ * No Base UI primitive for badge in v1.0.0-rc.0 — custom implementation retained.
+ * (Base UI added `badge` only after 1.0.0-rc.0 — it is absent from the installed
+ * package's exports — and our anchored/count/dot API is richer anyway.)
+ *
  * M3 Badge — a small status marker for another element.
  * With `children` it pins to the anchor's top-right corner using the official
  * offsets (content badge overhangs 4px right / 2px top; the 6px dot sits flush
@@ -391,8 +442,13 @@ interface LinearProgressProps {
 }
 /**
  * M3 Linear progress indicator — flat (baseline) or Expressive wavy.
- * Determinate mode animates the active indicator with a spring and leaves a
- * 4px gap before the trailing stop indicator dot, per the M3E spec.
+ * Semantics come from Base UI's Progress parts: `Root` renders the
+ * `role="progressbar"` element (aria-valuenow/min/max + a valuetext, and
+ * `data-indeterminate`/`data-progressing`/`data-complete` state attributes),
+ * `Track` is the visible rail and `Indicator` is the value-sliced bar (Base UI
+ * applies `inset-inline-start: 0` + the percentage `width` inline when
+ * determinate, and nothing while indeterminate). All M3 visuals stay ours via
+ * className; no buffer/range styling exists in the M3 spec or the current API.
  */
 declare function LinearProgress({ value, wavey, color, height, fullWidth, label, className, }: LinearProgressProps): react_jsx_runtime.JSX.Element;
 
@@ -415,6 +471,11 @@ interface CircularProgressProps {
  * before the fixed 4px stop indicator dot at 12 o'clock (official M3E track
  * gap + stop dot). Indeterminate: the M3 arc grows to ~270° and contracts
  * while the ring rotates.
+ *
+ * No radial primitive — custom SVG retained; Progress.Root donates the
+ * `role="progressbar"` semantics (aria-valuenow/min/max + valuetext, and the
+ * `data-indeterminate`/`data-progressing`/`data-complete` states) from a
+ * wrapper element while the ring itself stays a plain `aria-hidden` SVG.
  */
 declare function CircularProgress({ value, size, thickness, color, ariaLabel, className, }: CircularProgressProps): react_jsx_runtime.JSX.Element;
 
@@ -428,6 +489,8 @@ interface LoadingIndicatorProps {
     className?: string;
 }
 /**
+ * No Base UI primitive for the expressive loading indicator in v1.0.0-rc.0 — custom implementation retained.
+ *
  * M3 EXPRESSIVE Loading indicator (2025) — the signature shape-morphing loader.
  * The container rotates continuously one full turn (official 4666ms global
  * rotation) while its corner shape morphs in 650ms steps, with two dashed
@@ -439,7 +502,7 @@ interface LoadingIndicatorProps {
 declare function LoadingIndicator({ size, active, color, className, }: LoadingIndicatorProps): react_jsx_runtime.JSX.Element;
 
 interface SnackbarProps {
-    /** Controls visibility (rendered through AnimatePresence). */
+    /** Controls visibility (rendered through the Base UI toast manager). */
     open: boolean;
     message: string;
     /** Optional leading Material Symbol name. */
@@ -447,7 +510,7 @@ interface SnackbarProps {
     /** Trailing text action, e.g. "Undo". */
     actionLabel?: string;
     onAction?: () => void;
-    /** Called by auto-dismiss and the trailing close icon. */
+    /** Called by auto-dismiss, swipe, Escape and the trailing close icon. */
     onClose?: () => void;
     /** Auto-dismiss in ms. 0 keeps the snackbar sticky. Default 4000. */
     duration?: number;
@@ -456,9 +519,19 @@ interface SnackbarProps {
 /**
  * M3 Snackbar — brief confirmation feedback at the bottom of the screen on an
  * inverse surface (4dp corners, elevation 3, 344–672px per the official web
- * spec), with a text action and close control. Per M3 it is swipe-dismissable
- * in any direction (80px drag or 500px/s flick). The optional leading icon is a
+ * spec), with a text action and close control. The optional leading icon is a
  * documented extension beyond the base M3 anatomy (text + action + close).
+ *
+ * Migrated onto the Base UI Toast primitive (rc.0), which now owns the toast
+ * lifecycle: auto-dismiss timers (paused on hover, keyboard focus and window
+ * blur), Escape-to-close, F6 viewport focus, ARIA wiring (the viewport is the
+ * polite live region; the card is a focusable `role="dialog"` — replacing the
+ * old `role="status"` on the card itself) and swipe-to-dismiss in any
+ * direction (40px threshold, replacing the framer-motion drag handler with
+ * its 80px/500px-per-second gesture rules). framer-motion was dropped here
+ * because Base UI freezes the card's `transform` inline while swiping — a
+ * motion-driven transform would fight it, and JS springs cannot participate
+ * in Base UI's transition-end detection.
  */
 declare function Snackbar({ open, message, icon, actionLabel, onAction, onClose, duration, className, }: SnackbarProps): react_jsx_runtime.JSX.Element;
 
@@ -478,12 +551,21 @@ interface TooltipProps {
     className?: string;
 }
 /**
- * M3 Tooltip — a text label that appears on hover, keyboard focus, or touch
- * long-press. Plain tooltips are 4dp-cornered inverse-surface labels (4/8px
- * padding, 200px max, 8dp caret); rich tooltips add a title and optional
- * action on a surface-container card (12dp corners, level-2 elevation,
- * outline border). Shows after a 500ms delay and hides after 600ms, and the
- * trigger receives aria-describedby while the tooltip is visible.
+ * M3 Tooltip — a text label that appears on hover or keyboard focus.
+ * Plain tooltips are 4dp-cornered inverse-surface labels (4/8px padding,
+ * 200px max, 8dp caret); rich tooltips add a title and optional action on
+ * a surface-container card (12dp corners, level-2 elevation, outline
+ * border). Shows after a 500ms delay and hides after 600ms; the trigger
+ * receives aria-describedby from Base UI while the tooltip is visible.
+ *
+ * Built on Base UI's headless Tooltip: Provider owns the shared
+ * show/hide delays, Root the open lifecycle, Trigger the hover/focus
+ * listeners and aria wiring, Positioner the anchored placement with
+ * collision avoidance, and Popup stays hoverable so rich-tooltip actions
+ * remain clickable across the 4px anchor gap. Portals + `role="tooltip"`
+ * + aria-describedby are handled for us; only the M3 surface visuals and
+ * the fastVisual entrance spring are ours. (Touch long-press toggling from
+ * the hand-rolled version is replaced by Base UI's touch/focus behavior.)
  */
 declare function Tooltip({ content, rich, title, actionLabel, onAction, placement, children, className, }: TooltipProps): react_jsx_runtime.JSX.Element;
 
@@ -533,10 +615,17 @@ interface DialogProps {
  * M3 Dialog — a modal window that blocks the page underneath with a 32%
  * scrim. Basic dialogs center on screen on surface-container-high with
  * 28dp corners, elevation 3 and the official 280–560dp width range;
- * fullscreen dialogs cover the viewport edge-to-edge. The headline and
- * body are wired via aria-labelledby / aria-describedby, focus is trapped
- * inside while open, Escape/scrim dismiss when dismissible, and focus
- * returns to the triggering element on close.
+ * fullscreen dialogs cover the viewport edge-to-edge.
+ *
+ * Built on Base UI's headless Dialog: Root owns the focus trap, page
+ * scroll lock, focus restore to the trigger, Escape/outside-press
+ * dismissal and aria-modal wiring; Backdrop is the scrim and Popup the
+ * panel. Our `open`/`onClose` API stays the public contract — Base UI's
+ * `onOpenChange` reasons are filtered through `dismissible` (non-dismissible
+ * dialogs ignore escape/outside reasons). The M3 entrance (scale 0.9 → 1
+ * on the expressive spring, scrim fade) is framer-motion composed via the
+ * element-form `render` prop; Base UI defers unmounting until the exit
+ * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
 declare function Dialog({ open, onClose, icon, headline, children, actions, fullscreen, dismissible, className, }: DialogProps): react_jsx_runtime.JSX.Element;
 
@@ -560,6 +649,12 @@ interface DividerProps {
 /**
  * M3 Divider — a 1dp line that groups content in lists and layouts.
  * Supports start/middle/end insets and a vertical orientation.
+ *
+ * Built on the Base UI Separator primitive: it owns the `role="separator"`
+ * element, `aria-orientation` and orientation defaults; the M3 visuals
+ * (inset, thickness, color role) are applied on top via className/style.
+ * A future labeled-divider variant would render this separator plus a
+ * text span; no label prop exists in the public API yet.
  */
 declare function Divider({ inset, thickness, color, orientation, className, }: DividerProps): react_jsx_runtime.JSX.Element;
 
@@ -654,6 +749,14 @@ interface BottomSheetProps {
  * downward fling), close on Escape, lock body scroll, trap Tab focus and
  * restore focus to the trigger on close. Standard sheets render inline
  * without a scrim.
+ *
+ * The modal variant is built on Base UI's headless Dialog: Root owns the
+ * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
+ * Backdrop is the scrim; Popup is the sheet — kept mounted while the
+ * framer-motion slide/drag exit plays via `preventUnmountOnClose` +
+ * `actionsRef.unmount`. Drag-to-dismiss stays a framer-motion gesture on
+ * the sheet (a Base UI primitive for swipeable sheets does not exist in
+ * v1.0.0-rc.0).
  */
 declare const BottomSheet: React.ForwardRefExoticComponent<BottomSheetProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -682,6 +785,13 @@ interface SideSheetProps {
  * trigger on close; standard sheets render inline as a persistent
  * surface-toned panel with no scrim. Content padding is 24dp with 12dp
  * between top elements.
+ *
+ * The modal variant is built on Base UI's headless Dialog: Root owns the
+ * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
+ * Backdrop is the scrim; Popup is the sheet — kept mounted while the
+ * framer-motion slide exit plays via `preventUnmountOnClose` +
+ * `actionsRef.unmount`. (No Base UI primitive for docked side surfaces
+ * exists in v1.0.0-rc.0; the standard variant stays a custom panel.)
  */
 declare const SideSheet: React.ForwardRefExoticComponent<SideSheetProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -781,6 +891,16 @@ interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * M3 Text field — outlined (default) and filled containers with the
  * floating label animation (label docks into the outlined border gap
  * or rises inside the filled container, on the fast spatial spring).
+ *
+ * Built on Base UI `Field` + `Input` (v1.0.0-rc.0): `Field.Root` owns the
+ * disabled/invalid state and wires `aria-labelledby` (label), `aria-invalid`
+ * and `aria-describedby` (supporting text) onto the input for free. The
+ * floating motion label is rendered through `Field.Label`'s `render` prop so
+ * the label↔control association stays automatic while the M3E dock/rise
+ * animation stays ours. `Field.Error` is intentionally unused: M3 recolors
+ * the supporting text in the error state instead of swapping in a distinct
+ * error message, so `helperText` always maps to `Field.Description` and the
+ * error state flows through `Field.Root`'s `invalid` prop.
  */
 declare const TextField: React.ForwardRefExoticComponent<TextFieldProps & React.RefAttributes<HTMLInputElement>>;
 
@@ -802,6 +922,13 @@ interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 /**
  * M3 Search bar — a rounded-full pill that elevates and lightens its
  * surface when focused. Enter triggers `onSubmit`.
+ *
+ * The underlying element is Base UI's `Input` (v1.0.0-rc.0), which renders a
+ * native `<input>` (via Field.Control) and stays composable with `Field`
+ * wrappers. It is used standalone here because the M3 search bar carries no
+ * visible label — `aria-label` falls back to the placeholder, exactly as
+ * before. The elevated pill shell, focus elevation and trailing icon
+ * buttons remain custom M3 visuals.
  */
 declare const SearchBar: React.ForwardRefExoticComponent<SearchBarProps & React.RefAttributes<HTMLInputElement>>;
 
@@ -853,10 +980,13 @@ interface SearchViewProps {
  * label-large text, optional per-row close — and are keyboard navigable
  * (ArrowUp/ArrowDown walk an active index, Enter selects, via
  * aria-activedescendant). In "full-screen" mode the view covers the viewport
- * as a modal dialog (role="dialog" aria-modal, focus trapped inside and
- * restored to the trigger on close, Escape closes, body scroll locks); in
- * "docked" mode it renders inline above its results. The query input is the
- * forwarded ref target.
+ * as a modal dialog built on Base UI `Dialog` (v1.0.0-rc.0): the modal shell
+ * owns Escape, body scroll lock, focus trap, initial focus on the query
+ * input, focus restore to the opener and the role="dialog"/aria-modal
+ * wiring, while our motion.div (rendered via `Dialog.Popup`'s render prop)
+ * keeps the M3E slide-and-fade entrance/exit; in "docked" mode it renders
+ * inline above its results with no dialog machinery. The query input is a
+ * Base UI `Input` and the forwarded ref target.
  *
  * @example
  * const [open, setOpen] = React.useState(false);
@@ -885,8 +1015,19 @@ interface AutocompleteProps {
 }
 /**
  * M3 Autocomplete — an outlined text field that suggests options from a
- * filterable dropdown menu. Supports full keyboard navigation
- * (ArrowUp/ArrowDown/Enter/Escape) and outside-click dismissal.
+ * filterable dropdown menu.
+ *
+ * Built on Base UI's headless Autocomplete: Root owns the combobox state,
+ * live list filtering (`mode="list"` — the input query filters `options`
+ * internally), ArrowUp/Down/Enter/Escape keyboard contract, outside-press
+ * dismissal and the full combobox ARIA wiring (role=combobox on the input,
+ * listbox/option roles, aria-expanded/activedescendant). Input is the text
+ * field (ref forwarded to our public ref), Trigger is the rotating chevron,
+ * Positioner anchors and matches the anchor width, and List/Item render the
+ * options with roving highlight (`data-highlighted` drives the active
+ * shade). Only the M3 outlined-field and surface visuals + the entrance
+ * spring are ours; typing or selecting both flow through our public
+ * `value`/`onChange` contract.
  */
 declare const Autocomplete: React.ForwardRefExoticComponent<AutocompleteProps & React.RefAttributes<HTMLInputElement>>;
 
@@ -903,6 +1044,15 @@ interface CheckboxProps {
  * M3 Checkbox — a 48px touch target with an 18px rounded box.
  * The checkmark draws itself via animated `pathLength` on the
  * expressive spring; indeterminate shows a white dash.
+ *
+ * Built on Base UI's headless Checkbox Root: it owns the `role="checkbox"`,
+ * `aria-checked`/mixed state, hidden form input and keyboard activation.
+ * Our `checked`/`indeterminate` props drive it as a controlled component and
+ * Base UI's `onCheckedChange(nextChecked)` is adapted to our public
+ * `onChange(checked)` — the reported value matches the old semantics
+ * (an indeterminate box resolves to checked on click). The checkmark/dash
+ * stay custom (framer-motion pathLength springs — no Base UI primitive
+ * animates SVG paths).
  */
 declare const Checkbox: React.ForwardRefExoticComponent<CheckboxProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -919,7 +1069,7 @@ interface RadioProps {
  * M3 Radio button — a 48px touch target with a 20px ring (2dp stroke) and
  * a 10dp inner dot that springs in (scale 0 → 1) on the expressive spring
  * when selected. Wrap a set of Radios in `RadioGroup` for roving arrow-key
- * navigation.
+ * navigation (now handled by Base UI's RadioGroup).
  */
 declare const Radio: React.ForwardRefExoticComponent<RadioProps & React.RefAttributes<HTMLButtonElement>>;
 interface RadioGroupProps {
@@ -929,9 +1079,11 @@ interface RadioGroupProps {
     children?: React.ReactNode;
 }
 /**
- * M3 Radio group — a `role="radiogroup"` wrapper that adds the official
- * radio keyboard behavior: ArrowUp/ArrowLeft move to (and select) the
- * previous enabled radio, ArrowDown/ArrowRight the next, wrapping around.
+ * M3 Radio group — a `role="radiogroup"` wrapper. Keyboard behavior
+ * (ArrowUp/ArrowLeft → previous enabled radio, ArrowDown/ArrowRight → next,
+ * wrapping, focus-follows-selection) is owned by Base UI's RadioGroup.
+ * The selected value is mirrored from the child Radios' `checked` props and
+ * every change is routed back through the selected Radio's `onChange`.
  */
 declare function RadioGroup({ label, className, children }: RadioGroupProps): react_jsx_runtime.JSX.Element;
 
@@ -945,6 +1097,11 @@ interface SwitchProps {
  * M3 Switch — 52×32 track with a thumb that grows 16 → 24px and slides
  * on the default spatial spring. Pressing squashes the thumb to 28px.
  * The checked thumb shows an on-primary "check" glyph.
+ *
+ * Built on Base UI's headless Switch Root + Thumb: the Root owns the
+ * `role="switch"`, `aria-checked`, hidden form input and keyboard
+ * activation (adapted to our public `checked`/`onCheckedChange` API); the
+ * M3 thumb + track visuals and spring motion are unchanged.
  */
 declare const Switch: React.ForwardRefExoticComponent<SwitchProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -966,9 +1123,14 @@ interface SliderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChan
  * M3 Expressive slider — a thick 16px track with the signature tall thin
  * handle (4×44dp) that widens to 6dp while engaged, and 4dp on-surface stop
  * indicator dots (one at the track end; one per step when `discrete`).
- * Pointer-driven with full keyboard support (arrows ±step, PageUp/PageDown
- * ±10 steps, Home/End) and an optional value bubble. The interactive row is
- * 48dp tall to satisfy the touch-target guideline.
+ * The interactive row is 48dp tall to satisfy the touch-target guideline.
+ *
+ * Built on Base UI's headless Slider: Root owns value state, Control owns
+ * pointer capture, drag tracking and the full keyboard contract (arrows
+ * ±step, PageUp/PageDown ±10 steps, Home/End), Track/Indicator size the
+ * fill, and Thumb is our handle rendered as a motion.span for the
+ * expressive width spring. Our `value`/`onChange` API stays the public
+ * contract; Base UI's array-or-number value is normalized inside.
  */
 declare const Slider: React.ForwardRefExoticComponent<SliderProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -992,6 +1154,13 @@ interface ChipProps {
  * M3 Chip — compact interactive elements: assist, filter (with the
  * animated leading check), input (with a cancel affordance) and
  * suggestion. Press squashes to 96% on the fast visual spring.
+ *
+ * Built on Base UI headless parts: selectable variants (filter / assist /
+ * suggestion — every variant whose public API carries `selected` +
+ * `onSelect`) render a Base UI `Toggle`, which owns `aria-pressed` and the
+ * pressed state; input chips are pure actions and render a Base UI
+ * `Button`. Both render through a `motion.button` so the M3 press squash
+ * and visuals are unchanged.
  */
 declare const Chip: React.ForwardRefExoticComponent<ChipProps & React.RefAttributes<HTMLButtonElement>>;
 
@@ -1013,13 +1182,25 @@ interface TabsProps {
 }
 /**
  * M3 Tabs — organize content across different screens, data sets and interactions.
- * Primary tabs are the official 64dp icon+label columns with a 3dp active
- * indicator — a shared-layout underline sized to the measured label text width
- * (ResizeObserver + document.fonts.ready); secondary tabs are the 48dp Expressive
- * tonal pill row. Horizontally scrollable when tabs overflow — per spec,
- * leading/trailing scroll arrows appear while content overflows in that
- * direction. Roving tabindex with ArrowLeft/Right/Home/End (automatic
- * activation) follows the WAI-ARIA tabs pattern.
+ * Built on the Base UI Tabs primitive (imported as `BaseTabs` because this
+ * module also exports a `Tabs`): `Tabs.Root` is the controlled wrapper,
+ * `Tabs.List` the `role="tablist"` scroller and `Tabs.Tab` each
+ * `role="tab"` button. Base UI owns the WAI-ARIA tabs behavior — roving
+ * tabindex, ArrowLeft/Right + Home/End with looping, and automatic
+ * activation on arrow-key focus (`activateOnFocus`) — exactly the
+ * keyboard/ARIA contract this component implemented by hand before.
+ *
+ * The selection indicator intentionally stays a framer-motion shared-layout
+ * overlay (NOT `Tabs.Indicator`): the M3 primary underline must match the
+ * *measured label text width* (ResizeObserver + document.fonts.ready), while
+ * Base UI's indicator sizes to the whole tab and animates via CSS
+ * transitions — the motion overlay keeps the official 3dp underline and the
+ * secondary tonal pill pixel-identical and spring-animated (layoutId).
+ *
+ * Primary tabs are the official 64dp icon+label columns; secondary tabs are
+ * the 48dp Expressive tonal pill row. Horizontally scrollable when tabs
+ * overflow — per spec, leading/trailing scroll arrows appear while content
+ * overflows in that direction (kept custom; Base UI Tabs has no scroller).
  */
 declare function Tabs({ items, value, onChange, variant, fullWidth, className, }: TabsProps): react_jsx_runtime.JSX.Element;
 
@@ -1041,7 +1222,10 @@ interface NavigationBarProps {
  * M3 Navigation Bar — primary app navigation for small screens.
  * Fixed 80dp bar; the active destination gets a tonal pill that springs
  * between icons via a shared layout transition (layoutId).
- * Accepts 3–5 destinations.
+ * Accepts 3–5 destinations. The active destination button carries
+ * `aria-current="page"`; Base UI has no primitive for this pattern, so the
+ * roving/tab behavior stays intentionally simple (every destination is
+ * tabbable) which suits a 3–5 item bar.
  */
 declare function NavigationBar({ items, value, onChange, fullWidth, className, }: NavigationBarProps): react_jsx_runtime.JSX.Element;
 
@@ -1072,9 +1256,19 @@ interface NavigationDrawerProps {
  * M3 Navigation Drawer — side navigation for destinations.
  * Official container: 360dp wide, surface-container-low, 16dp trailing
  * corners; 56dp full-width pill items (active = secondary-container).
- * The modal variant slides in from the left over a 32% scrim, traps focus,
- * and closes on Escape / scrim click / destination select (focus returned on
- * close). The standard variant is a static inline panel.
+ *
+ * The modal variant is presented with the Base UI Dialog primitive:
+ * `Dialog.Root/Portal/Backdrop/Popup` own Escape + scrim dismissal, the
+ * focus trap, focus restore on close and the body scroll lock (all of
+ * which were hand-rolled before the migration). The standard variant stays
+ * a static inline panel — no dialog semantics apply to it.
+ *
+ * Animation note: the M3 slide uses a physics spring, which framer-motion
+ * drives on the main thread (no CSS transition for Base UI to await before
+ * unmounting). So on close we call `preventUnmountOnClose()` in
+ * `onOpenChange` and imperatively `unmount()` the dialog once the slide-out
+ * spring completes (`onAnimationComplete`) — the documented Base UI escape
+ * hatch for externally-animated popups.
  */
 declare function NavigationDrawer({ items, value, onChange, variant, open, onClose, header, footer, fullHeight, className, }: NavigationDrawerProps): react_jsx_runtime.JSX.Element;
 
@@ -1102,7 +1296,8 @@ interface NavigationRailProps {
  * M3 Navigation Rail — side navigation for medium/extended screens
  * (tablets, foldables). 80dp vertical bar with an optional header slot
  * (commonly a FAB); the active destination pill springs between items
- * via a shared layout transition (layoutId).
+ * via a shared layout transition (layoutId). The active destination
+ * button carries `aria-current="page"`.
  */
 declare function NavigationRail({ items, value, onChange, header, menuIcon, onMenuClick, foldingLine, className, }: NavigationRailProps): react_jsx_runtime.JSX.Element;
 
@@ -1122,12 +1317,6 @@ interface TopAppBarProps {
     fullWidth?: boolean;
     className?: string;
 }
-/**
- * M3 Top App Bar — all four official variants (small, center-aligned,
- * medium flexible, large flexible). On scroll, the bar gains a surface
- * container background + elevation; medium/large titles collapse from the
- * big bottom position into the 64dp top row with a spring height animation.
- */
 declare function TopAppBar({ title, variant, actions, onBack, scrollTargetRef, fullWidth, className, }: TopAppBarProps): react_jsx_runtime.JSX.Element;
 
 interface BottomAppBarAction {
@@ -1151,12 +1340,6 @@ interface BottomAppBarProps {
     fullWidth?: boolean;
     className?: string;
 }
-/**
- * M3 Bottom App Bar — primary navigation and key actions at the bottom of
- * small screens. 80dp surface-container bar with leading actions, trailing
- * icons and an optional center-docked FAB that notches the top edge and
- * morphs its corner shape on press (M3 Expressive).
- */
 declare function BottomAppBar({ navigationIcon, actions, trailingIcons, fab, fullWidth, className, }: BottomAppBarProps): react_jsx_runtime.JSX.Element;
 
 interface ToolbarIconItem {
@@ -1185,6 +1368,14 @@ interface ToolbarProps {
  * M3 Expressive Toolbar — NEW in 2025. A compact pill of contextual actions.
  * Floating variant hovers over content (top/bottom, centered); dockable
  * variant morphs between a floating pill and a square, docked full-width bar.
+ *
+ * Built on the Base UI Toolbar primitive (imported as `BaseToolbar` because
+ * this module also exports a `Toolbar`): `Toolbar.Root` provides the
+ * `role="toolbar"` container with roving tabindex + arrow-key navigation, and
+ * each action is a `Toolbar.Button` that registers itself via context. The
+ * floating variant composes the entrance spring through Base UI's `render`
+ * prop so the bar keeps its framer-motion animation while still being the
+ * toolbar root (Base UI merges role/aria/handlers onto the motion element).
  */
 declare function Toolbar({ icons, variant, color, position, width, fullWidth, docked, className, }: ToolbarProps): react_jsx_runtime.JSX.Element;
 
@@ -1215,9 +1406,15 @@ interface MenuProps {
  * (fastVisual scale), and closes on item click, outside press, or Escape.
  * Official container: 4dp corners, surface-container, elevation 2, 8dp
  * vertical padding around 48dp items with 24dp leading icons in a 12dp
- * gutter. ARIA: role=menu/menuitem on the panel with aria-haspopup/expanded
- * on the trigger; ArrowUp/Down/Home/End move focus, Escape/Tab close and
- * return focus to the trigger.
+ * gutter.
+ *
+ * Built on Base UI's headless Menu: Root owns open state, outside-press +
+ * Escape dismissal and focus restore to the trigger; Trigger composes with
+ * the rendered trigger element (aria-haspopup/expanded, click and ArrowDown
+ * keyboard open — the user's own onClick/onKeyDown still fire); Positioner
+ * anchors the popup and handles collision avoidance; Item owns roving
+ * focus, typeahead and Enter/Space activation, closing the menu on select.
+ * Only the M3 surface visuals and the fastVisual spring are ours.
  */
 declare function Menu({ trigger, items, open, onOpenChange, placement, className, }: MenuProps): react_jsx_runtime.JSX.Element;
 

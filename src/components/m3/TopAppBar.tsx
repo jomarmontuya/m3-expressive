@@ -86,10 +86,13 @@ function AppBarIconButton({
  * Toolbar.Buttons) purely for roving-tabindex + arrow-key semantics; the
  * leading back button sits outside that toolbar and stays a plain button.
  */
+// Shared stable default — a literal `[]` default is re-created per render.
+const EMPTY_ACTIONS: TopAppBarAction[] = [];
+
 export function TopAppBar({
   title,
   variant = "small",
-  actions = [],
+  actions = EMPTY_ACTIONS,
   onBack,
   scrollTargetRef,
   fullWidth = true,
