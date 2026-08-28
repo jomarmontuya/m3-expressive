@@ -1,0 +1,256 @@
+"use client";
+
+import * as React from "react";
+import { Card } from "@/components/m3/Card";
+import { List, ListItem } from "@/components/m3/List";
+import { BottomSheet } from "@/components/m3/BottomSheet";
+import { SideSheet } from "@/components/m3/SideSheet";
+import { DatePicker } from "@/components/m3/DatePicker";
+import { TimePicker } from "@/components/m3/TimePicker";
+import { Button } from "@/components/m3/Button";
+import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
+
+/**
+ * Containment + selection demos for the M3 Expressive showcase.
+ * Each demo is self-contained with local state.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Card                                                                */
+/* ------------------------------------------------------------------ */
+
+export function CardDemo() {
+  const [joined, setJoined] = React.useState(false);
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <Card variant="elevated" className="w-64 p-6">
+        <span className="md-title-medium text-m3-on-surface">Elevated</span>
+        <p className="md-body-medium text-m3-on-surface-variant">
+          A shadowed card resting on surface-container-low at elevation 1.
+        </p>
+      </Card>
+
+      <Card variant="filled" className="w-64 p-6">
+        <span className="md-title-medium text-m3-on-surface">Filled</span>
+        <p className="md-body-medium text-m3-on-surface-variant">
+          Uses the highest surface container for a solid tonal treatment.
+        </p>
+      </Card>
+
+      <Card
+        variant="outlined"
+        interactive
+        onClick={() => setJoined((j) => !j)}
+        className="w-64 p-6"
+      >
+        <MaterialSymbol icon="palette" size={28} className="text-m3-primary" />
+        <span className="md-title-medium text-m3-on-surface">Interactive</span>
+        <p className="md-body-medium text-m3-on-surface-variant">
+          Outlined card with a press shape morph, state layer and ripple.
+        </p>
+        <span
+          onClick={(e) => e.stopPropagation()}
+          className="mt-3 inline-block"
+        >
+          <Button size="sm" variant={joined ? "filled" : "tonal"} onClick={() => setJoined((j) => !j)}>
+            {joined ? "Joined" : "Join"}
+          </Button>
+        </span>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* List                                                                */
+/* ------------------------------------------------------------------ */
+
+export function ListDemo() {
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <List dividers className="w-[360px] overflow-hidden rounded-[20px] bg-m3-surface py-1">
+        <ListItem
+          leading={<MaterialSymbol icon="photo" />}
+          headline="Photos"
+          supporting="Yesterday · 24 items"
+          onClick={() => {}}
+        />
+        <ListItem
+          leading={<MaterialSymbol icon="favorite" />}
+          headline="Favorites"
+          supporting="Starred places you saved"
+          trailing="128"
+          selected
+          onClick={() => {}}
+        />
+        <ListItem
+          leading={<MaterialSymbol icon="archive" />}
+          headline="Archive"
+          supporting="Older than 90 days"
+          trailingIcon="more_vert"
+          onClick={() => {}}
+        />
+      </List>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Bottom Sheet                                                        */
+/* ------------------------------------------------------------------ */
+
+export function BottomSheetDemo() {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <Button variant="tonal" icon="keyboard_arrow_up" onClick={() => setOpen(true)}>
+        Open bottom sheet
+      </Button>
+
+      <BottomSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Choose a playlist"
+        footer={
+          <Button variant="filled" fullWidth onClick={() => setOpen(false)}>
+            Done
+          </Button>
+        }
+      >
+        <List>
+          {[
+            { icon: "music_note", name: "Focus Flow", meta: "42 songs" },
+            { icon: "headphones", name: "Deep Work", meta: "31 songs" },
+            { icon: "sunny", name: "Morning Boost", meta: "18 songs" },
+            { icon: "bedtime", name: "Wind Down", meta: "25 songs" },
+            { icon: "directions_run", name: "Run Cycle", meta: "37 songs" },
+            { icon: "restaurant", name: "Dinner Jazz", meta: "22 songs" },
+            { icon: "flight", name: "Travel Mix", meta: "29 songs" },
+            { icon: "auto_awesome", name: "Discover Weekly", meta: "30 songs" },
+          ].map((p) => (
+            <ListItem
+              key={p.name}
+              leading={<MaterialSymbol icon={p.icon} />}
+              headline={p.name}
+              supporting={`${p.meta} · Made for you`}
+              trailingIcon="more_vert"
+              onClick={() => setOpen(false)}
+            />
+          ))}
+        </List>
+      </BottomSheet>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Side Sheet                                                          */
+/* ------------------------------------------------------------------ */
+
+export function SideSheetDemo() {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <Button variant="tonal" icon="open_in_new" onClick={() => setOpen(true)}>
+        Open modal side sheet
+      </Button>
+
+      {/* Standard (persistent, inline) */}
+      <SideSheet variant="standard" open={false} onClose={() => {}} side="right" title="Details">
+        <List>
+          <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" onClick={() => {}} />
+          <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" selected onClick={() => {}} />
+          <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" onClick={() => {}} />
+        </List>
+      </SideSheet>
+
+      {/* Modal */}
+      <SideSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        side="right"
+        title="Filters"
+        footer={
+          <Button variant="filled" fullWidth onClick={() => setOpen(false)}>
+            Apply filters
+          </Button>
+        }
+      >
+        <List>
+          <ListItem
+            leading={<MaterialSymbol icon="check_circle" />}
+            headline="Recently added"
+            selected
+            onClick={() => {}}
+          />
+          <ListItem
+            leading={<MaterialSymbol icon="radio_button_unchecked" />}
+            headline="Alphabetical"
+            onClick={() => {}}
+          />
+          <ListItem
+            leading={<MaterialSymbol icon="radio_button_unchecked" />}
+            headline="Most played"
+            onClick={() => {}}
+          />
+          <ListItem
+            leading={<MaterialSymbol icon="radio_button_unchecked" />}
+            headline="Shared with me"
+            onClick={() => {}}
+          />
+        </List>
+      </SideSheet>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Date Picker                                                         */
+/* ------------------------------------------------------------------ */
+
+export function DatePickerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(() => new Date());
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <DatePicker value={date} onChange={setDate} />
+      <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-secondary-container p-4 text-m3-on-secondary-container">
+        <span className="md-label-medium">Selected date</span>
+        <span className="md-title-medium tabular-nums">
+          {date ? date.toDateString() : "None"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Time Picker                                                         */
+/* ------------------------------------------------------------------ */
+
+export function TimePickerDemo() {
+  const [time, setTime] = React.useState({ hour: 10, minute: 30 });
+  return (
+    <div className="flex flex-wrap items-start gap-6 p-2">
+      <TimePicker value={time} onChange={setTime} />
+      <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-tertiary-container p-4 text-m3-on-tertiary-container">
+        <span className="md-label-medium">Selected time</span>
+        <span className="md-display-small tabular-nums">
+          {String(time.hour).padStart(2, "0")}:{String(time.minute).padStart(2, "0")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Demo map                                                            */
+/* ------------------------------------------------------------------ */
+
+export const containmentDemoMap: Record<string, React.ComponentType> = {
+  card: CardDemo,
+  list: ListDemo,
+  "bottom-sheet": BottomSheetDemo,
+  "side-sheet": SideSheetDemo,
+  "date-picker": DatePickerDemo,
+  "time-picker": TimePickerDemo,
+};
