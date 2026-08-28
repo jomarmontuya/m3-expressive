@@ -146,6 +146,7 @@ export function AgentView() {
             </div>
             <div className="mt-3">
               <CodeBlock
+                language="json"
                 code={`// .mcp.json — repo root
 {
   "mcpServers": {
@@ -187,6 +188,7 @@ export function AgentView() {
         <h2 className="md-headline-small font-medium">Drop this into your agent&apos;s system prompt</h2>
         <div className="mt-4">
           <CodeBlock
+            language="text"
             code={`You build UIs with the "m3-expressive-react" library (Material 3 Expressive).
 
 1. Prefer the MCP server "m3-expressive" if connected:
@@ -211,6 +213,7 @@ export function AgentView() {
         <h2 className="md-headline-small font-medium">Every component carries this metadata</h2>
         <div className="mt-4">
           <CodeBlock
+            language="json"
             code={`{
   "id": "button",
   "name": "Button",

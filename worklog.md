@@ -872,3 +872,28 @@ Task: Round-11 QA + Props Playground completion (30 → 41/41) + demo mobile-ove
 - VR minor band now 5 pages (time-picker clock hand, carousel hover-grow, others animated) — all within threshold, documented.
 - Hero ratio 0.66/0.34 vs 3:2 documented; CI untested (no remote); npm publish blocked on registry access (build:package green).
 - Next candidates: MCP stateful SSE sessions; README badges + publish checklist; "Copy playground config as JSON" share feature; theme-builder seed → scheme round; date-picker range in the search-view pattern (query-by-range).
+
+---
+Task ID: 12
+Agent: orchestrator (Z.ai Code)
+Task: User-reported UI fixes — sidebar highlight spacing, code-block formatting + copy icon placement
+
+## Current project status
+Stable at 41/41 playground coverage; this round was triggered by direct user screenshot feedback on three visual defects. Investigation revealed the three complaints shared ONE systemic root cause plus two local issues. All fixed and verified.
+
+## Completed this round (verification results)
+- **Root-cause CSS cascade bug fixed (src/app/globals.css)**: `.m3-state { position: relative }` was unlayered CSS — in the cascade unlayered rules BEAT Tailwind 4's layered `@layer utilities`, so any element combining `m3-state` + `absolute` silently computed to `position: relative`. Confirmed live via getComputedStyle. Silent victims (all fixed by moving the state-layer + focus-ring rules into `@layer base`):
+  1. CodeBlock copy button — rendered IN-FLOW at top-left, 8px from the edge (user complaint "clipboard icon too close to the edge").
+  2. Carousel inline-layout arrows — rendered BELOW the carousel instead of vertically centered on its edges (verified: nextYcenter 581 == containerYcenter 581 after fix).
+  3. TimePicker clock dial — hour/minute numbers scattered ACROSS THE PAGE (numbers 4/5 landed over the generated-code section; 24h ring 14–23 stacked down the controls column). After fix: perfect circular dial, hand at 9 for 9:41.
+  4. Autocomplete clear button — now absolute again (7px inset from field right, vertically centered).
+- **CodeBlock redesigned as a proper code viewer** (src/components/showcase/CodeBlock.tsx) — user complaint "generated code block needs proper formatter": new header bar with language chip (`<> TSX`) left + copy button right (safely inset, in-flow so m3-state is harmless); body is a clean highlighted `pre` (p-4, no more pr-12 hack); light formatter normalizes emitted snippets (strip trailing whitespace, collapse 2+ blank lines to one, trim edges) applied to BOTH display and clipboard text; new optional `language` prop — AgentView updated (json / text / json), others default "tsx". Copy interaction verified live (icon → check, aria-pressed=true).
+- **Sidebar highlight spacing fixed** (src/components/showcase/Sidebar.tsx) — user complaint "sidebar highlights too close": pills inside a category group touched each other (outer space-y-1 only separated direct children = group wrappers). Each group now `space-y-1` (measured 4px gap between Button/Icon button), group headers get pb-1.5/pt-3 breathing room. Highlighted pills can never touch.
+- **VR tooling latent bug fixed (scripts/vr-capture.ts)**: `--force` WITHOUT `--only` crashed with "No component ids resolved" — `argv.indexOf(undefined)` → -1 → `argv[0]` ("--force") was swallowed as the only-filter. Proper ternary guard added; previous rounds only used `--force --only a,b,c` so this never surfaced.
+- Gates: tsc 0 src errors (examples/skills pre-existing only); lint 0 errors / 1 documented warning; **full VR baseline refresh 41/41 → vr:check PASS: identical 40 · minor 1 · changed 0** (minor = time-picker live clock hand, by design); mobile 375px zero overflow on radio/carousel/time-picker (sw=375); MCP health ok (14 tools / 41 components, untouched); dev.log clean (2 stale pre-existing Fast Refresh notes).
+
+## Unresolved issues / risks / next-phase priorities
+- VR baselines were refreshed for ALL 41 pages this round (code-block header changed every component page) — next round only needs targeted `--force --only` refreshes unless globals.css changes again.
+- md-* type-scale and m3-elevation-* classes remain unlayered by design (no known utility conflicts; minimal-change principle).
+- Unchanged constraints: hero ratio 0.66/0.34 documented; CI untested (no remote); npm publish blocked on registry access.
+- Next candidates: MCP stateful SSE sessions; README badges + publish checklist; "Copy playground config as JSON" share feature; keyboard-roving a11y audit of playground stages; array-typed PlaygroundValue.

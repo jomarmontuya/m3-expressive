@@ -4,15 +4,37 @@ import * as React from "react";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { cn } from "@/lib/utils";
 
-export function CodeBlock({ code, className }: { code: string; className?: string }) {
+/**
+ * CodeBlock — proper code viewer.
+ *
+ * Header bar: language chip (tsx / json / text) on the left, copy button on
+ * the right (safely inset — never overlapping the code). Body: highlighted
+ * snippet with light format normalization (no trailing whitespace, blank-line
+ * runs collapsed, trimmed edges) so generated markup always prints cleanly.
+ */
+export function CodeBlock({
+  code,
+  className,
+  language = "tsx",
+}: {
+  code: string;
+  className?: string;
+  language?: string;
+}) {
   const [copied, setCopied] = React.useState(false);
+
+  /** Light formatter: trim trailing spaces, collapse 2+ blank lines to one. */
+  const formatted = React.useMemo(
+    () => code.replace(/[ \t]+$/gm, "").replace(/\n{2,}/g, "\n\n").trim(),
+    [code]
+  );
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(formatted);
     } catch {
       const ta = document.createElement("textarea");
-      ta.value = code;
+      ta.value = formatted;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
@@ -23,16 +45,29 @@ export function CodeBlock({ code, className }: { code: string; className?: strin
   };
 
   return (
-    <div className={cn("group relative overflow-hidden rounded-xl border border-m3-outline-variant bg-m3-surface-container-lowest", className)}>
-      <button
-        onClick={copy}
-        aria-label="Copy code"
-        className="m3-state absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full text-m3-on-surface-variant opacity-70 transition-opacity hover:opacity-100"
-      >
-        <MaterialSymbol icon={copied ? "check" : "content_copy"} size={18} fill={copied} className={copied ? "text-m3-primary" : undefined} />
-      </button>
-      <pre className="m3-scroll overflow-x-auto p-4 pr-12 text-[13px] leading-relaxed">
-        <code className="font-mono text-m3-on-surface">{highlight(code)}</code>
+    <div className={cn("overflow-hidden rounded-xl border border-m3-outline-variant bg-m3-surface-container-lowest", className)}>
+      {/* header bar — language chip + copy action */}
+      <div className="flex items-center justify-between gap-2 border-b border-m3-outline-variant bg-m3-surface-container-low py-1.5 pl-4 pr-2">
+        <div className="flex items-center gap-2 md-label-small uppercase tracking-wider text-m3-on-surface-variant">
+          <MaterialSymbol icon="code" size={14} className="text-m3-primary" />
+          {language}
+        </div>
+        <button
+          onClick={copy}
+          aria-label="Copy code"
+          aria-pressed={copied}
+          className="m3-state m3-focus flex h-8 w-8 items-center justify-center rounded-full text-m3-on-surface-variant"
+        >
+          <MaterialSymbol
+            icon={copied ? "check" : "content_copy"}
+            size={18}
+            fill={copied}
+            className={copied ? "text-m3-primary" : undefined}
+          />
+        </button>
+      </div>
+      <pre className="m3-scroll overflow-x-auto p-4 text-[13px] leading-relaxed">
+        <code className="font-mono text-m3-on-surface">{highlight(formatted)}</code>
       </pre>
     </div>
   );

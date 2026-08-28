@@ -418,29 +418,35 @@
 /* ============================================================
    M3 STATE LAYER — overlay using currentColor
    usage: add class "m3-state" to any interactive element
+   NOTE: lives in @layer base so Tailwind utilities (absolute,
+   fixed, shadow-*, …) win the cascade — unlayered CSS would
+   override them and break absolutely-positioned controls
+   (code-block copy button, carousel arrows, clock dial).
    ============================================================ */
-.m3-state { position: relative; }
-.m3-state::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: currentColor;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1);
-}
-@media (hover: hover) {
-  .m3-state:hover::after { opacity: 0.08; }
-}
-.m3-state:focus-visible::after,
-.m3-state[data-pressed="true"]::after { opacity: 0.10; }
-.m3-state:active::after { opacity: 0.10; }
+@layer base {
+  .m3-state { position: relative; }
+  .m3-state::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  @media (hover: hover) {
+    .m3-state:hover::after { opacity: 0.08; }
+  }
+  .m3-state:focus-visible::after,
+  .m3-state[data-pressed="true"]::after { opacity: 0.10; }
+  .m3-state:active::after { opacity: 0.10; }
 
-/* M3 focus ring */
-.m3-focus:focus-visible {
-  outline: 3px solid var(--md-primary);
-  outline-offset: 2px;
+  /* M3 focus ring */
+  .m3-focus:focus-visible {
+    outline: 3px solid var(--md-primary);
+    outline-offset: 2px;
+  }
 }
 
 /* ============================================================

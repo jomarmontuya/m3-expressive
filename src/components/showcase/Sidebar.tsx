@@ -88,8 +88,8 @@ export function Sidebar({ route, navigate }: SidebarProps) {
         </div>
 
         {groups.map(({ cat, items }) => (
-          <div key={cat}>
-            <div className="px-3 py-1.5 md-label-small uppercase tracking-wide text-m3-on-surface-variant/80">
+          <div key={cat} className="space-y-1">
+            <div className="px-3 pb-1.5 pt-3 md-label-small uppercase tracking-wide text-m3-on-surface-variant/80">
               {categoryLabels[cat as M3Category]}
             </div>
             {items.map((c) => {

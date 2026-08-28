@@ -18,9 +18,13 @@ import {
 function parseArgs(): { force: boolean; only: string[] } {
   const argv = process.argv.slice(2);
   const onlyFlag = argv.find((a) => a.startsWith("--only"));
-  const onlyValue = onlyFlag?.includes("=")
-    ? onlyFlag.split("=")[1]
-    : argv[argv.indexOf(onlyFlag!) + 1];
+  // Guard: without --only, onlyFlag is undefined and argv.indexOf(undefined)
+  // is -1 — index 0 would wrongly swallow the next flag (e.g. "--force").
+  const onlyValue = onlyFlag
+    ? onlyFlag.includes("=")
+      ? onlyFlag.split("=")[1]
+      : argv[argv.indexOf(onlyFlag) + 1]
+    : undefined;
   return {
     force: argv.includes("--force"),
     only:
