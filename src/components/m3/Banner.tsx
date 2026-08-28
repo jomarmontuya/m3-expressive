@@ -37,6 +37,7 @@ export interface BannerProps {
  * sits below the content above a divider, end-aligned (official reference
  * implementation), on surface-container-low.
  */
+// Dismiss-on-click banner — Base UI Collapsible adds no value for this shape
 export function Banner({
   icon,
   text,

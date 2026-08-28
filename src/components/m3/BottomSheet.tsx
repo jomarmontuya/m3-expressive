@@ -2,6 +2,12 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
+import {
+  Dialog as BaseDialog,
+  type DialogRootActions,
+  type DialogRootChangeEventDetails,
+} from "@base-ui-components/react/dialog";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
 
@@ -20,9 +26,6 @@ export interface BottomSheetProps {
   className?: string;
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-
 /**
  * M3 Bottom Sheet — a surface anchored to the bottom edge with a 32×4dp
  * drag handle (22dp from the top). Container is surface-container-low with
@@ -32,61 +35,29 @@ const FOCUSABLE =
  * downward fling), close on Escape, lock body scroll, trap Tab focus and
  * restore focus to the trigger on close. Standard sheets render inline
  * without a scrim.
+ *
+ * The modal variant is built on Base UI's headless Dialog: Root owns the
+ * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
+ * Backdrop is the scrim; Popup is the sheet — kept mounted while the
+ * framer-motion slide/drag exit plays via `preventUnmountOnClose` +
+ * `actionsRef.unmount`. Drag-to-dismiss stays a framer-motion gesture on
+ * the sheet (a Base UI primitive for swipeable sheets does not exist in
+ * v1.0.0-rc.0).
  */
 export const BottomSheet = React.forwardRef<HTMLDivElement, BottomSheetProps>(function BottomSheet(
   { open, onClose, variant = "modal", title, children, footer, maxHeight, className },
   ref
 ) {
   const isModal = variant === "modal";
-  const panelRef = React.useRef<HTMLDivElement | null>(null);
-  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+  const actionsRef = React.useRef<DialogRootActions>({ unmount() {}, close() {} });
 
-  React.useEffect(() => {
-    if (!isModal || !open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [isModal, open, onClose]);
-
-  // Move focus into the sheet on open; return it to the trigger on close.
-  React.useEffect(() => {
-    if (!isModal || !open) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    const timer = window.setTimeout(() => panelRef.current?.focus(), 0);
-    return () => {
-      window.clearTimeout(timer);
-      restoreFocusRef.current?.focus?.();
-    };
-  }, [isModal, open]);
-
-  // Trap Tab focus inside the modal sheet surface.
-  const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "Tab" || !panelRef.current) return;
-    const focusables = Array.from(
-      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-    ).filter((el) => !el.hasAttribute("disabled"));
-    if (focusables.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || active === panelRef.current)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
+      if (!nextOpen) eventDetails.preventUnmountOnClose();
+      onClose();
+    },
+    [onClose]
+  );
 
   const handle = (
     <div
@@ -120,51 +91,54 @@ export const BottomSheet = React.forwardRef<HTMLDivElement, BottomSheetProps>(fu
     );
   }
 
+  const scrimMotion: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: durations.short4 / 1000, ease: "easeOut" },
+  };
+  const sheetMotion: HTMLMotionProps<"div"> = {
+    initial: { y: "100%" },
+    animate: { y: 0 },
+    exit: { y: "100%" },
+    transition: springs.defaultSpatial,
+    drag: "y",
+    dragConstraints: { top: 0 },
+    dragElastic: { top: 0, bottom: 0.6 },
+    onDragEnd: (_, info) => {
+      // Dismiss on a slow deep pull or a fast downward fling
+      if (info.offset.y > 120 || info.velocity.y > 500) onClose();
+    },
+  };
+
   return (
-    <AnimatePresence>
-      {open && (
-        <div ref={ref} className="fixed inset-0 z-[85]">
-          <motion.div
-            className="absolute inset-0 bg-m3-scrim/32"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: durations.short4 / 1000, ease: "easeOut" }}
-            onClick={onClose}
-          />
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            tabIndex={-1}
-            onKeyDown={handleTab}
-            className={cn(
-              // Official: full width up to 640dp; 56dp side margins when detached (>640dp windows)
-              "absolute inset-x-0 bottom-0 mx-auto flex w-full max-w-[640px] flex-col rounded-t-[28px] m3-elevation-1 bg-m3-surface-container-low px-6 pb-6 outline-none sm:left-14 sm:right-14 sm:w-auto",
-              className
-            )}
-            style={{ maxHeight: maxHeight ?? "calc(100dvh - 72px)" }}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={springs.defaultSpatial}
-            drag="y"
-            dragConstraints={{ top: 0 }}
-            dragElastic={{ top: 0, bottom: 0.6 }}
-            onDragEnd={(_, info) => {
-              // Dismiss on a slow deep pull or a fast downward fling
-              if (info.offset.y > 120 || info.velocity.y > 500) onClose();
-            }}
-          >
-            {handle}
-            {titleEl}
-            {contentEl}
-            {footerEl}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <BaseDialog.Root open={open} onOpenChange={handleOpenChange} actionsRef={actionsRef} modal>
+      <AnimatePresence onExitComplete={() => actionsRef.current?.unmount()}>
+        {open && (
+          <BaseDialog.Portal>
+            <BaseDialog.Backdrop render={<motion.div {...scrimMotion} />} className="fixed inset-0 z-[85] bg-m3-scrim/32" />
+            <BaseDialog.Popup
+              aria-label={title}
+              ref={ref}
+              render={
+                <motion.div {...sheetMotion} />
+              }
+              className={cn(
+                // Official: full width up to 640dp; 56dp side margins when detached (>640dp windows)
+                "fixed inset-x-0 bottom-0 z-[85] mx-auto flex w-full max-w-[640px] flex-col rounded-t-[28px] m3-elevation-1 bg-m3-surface-container-low px-6 pb-6 outline-none sm:left-14 sm:right-14 sm:w-auto",
+                className
+              )}
+              style={{ maxHeight: maxHeight ?? "calc(100dvh - 72px)" }}
+            >
+              {handle}
+              {titleEl}
+              {contentEl}
+              {footerEl}
+            </BaseDialog.Popup>
+          </BaseDialog.Portal>
+        )}
+      </AnimatePresence>
+    </BaseDialog.Root>
   );
 });
 

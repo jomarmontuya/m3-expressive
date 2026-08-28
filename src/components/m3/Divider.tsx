@@ -1,5 +1,6 @@
 "use client";
 
+import { Separator } from "@base-ui-components/react/separator";
 import { cn } from "@/lib/utils";
 
 export type DividerInset = "none" | "start" | "middle" | "end";
@@ -41,6 +42,12 @@ const verticalInsets: Record<DividerInset, string> = {
 /**
  * M3 Divider — a 1dp line that groups content in lists and layouts.
  * Supports start/middle/end insets and a vertical orientation.
+ *
+ * Built on the Base UI Separator primitive: it owns the `role="separator"`
+ * element, `aria-orientation` and orientation defaults; the M3 visuals
+ * (inset, thickness, color role) are applied on top via className/style.
+ * A future labeled-divider variant would render this separator plus a
+ * text span; no label prop exists in the public API yet.
  */
 export function Divider({
   inset = "none",
@@ -51,9 +58,8 @@ export function Divider({
 }: DividerProps) {
   const horizontal = orientation === "horizontal";
   return (
-    <div
-      role="separator"
-      aria-orientation={orientation}
+    <Separator
+      orientation={orientation}
       className={cn(
         "shrink-0",
         horizontal ? "w-full" : "h-full self-stretch",

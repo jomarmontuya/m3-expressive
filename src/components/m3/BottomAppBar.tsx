@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react";
+import { Toolbar } from "@base-ui-components/react/toolbar";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -38,11 +39,18 @@ export interface BottomAppBarProps {
   className?: string;
 }
 
+// No Base UI app-bar primitive — layout retained; optional Toolbar semantics on the actions row.
 /**
  * M3 Bottom App Bar — primary navigation and key actions at the bottom of
  * small screens. 80dp surface-container bar with leading actions, trailing
  * icons and an optional center-docked FAB that notches the top edge and
  * morphs its corner shape on press (M3 Expressive).
+ *
+ * The bar itself is a Base UI Toolbar.Root: every icon button (navigation
+ * icon, actions, trailing icons) is a Toolbar.Button, giving the bar
+ * `role="toolbar"` with roving tabindex + arrow-key navigation. The
+ * center FAB is intentionally not a toolbar item — it is a distinct
+ * express-press action and keeps its normal tab position.
  */
 export function BottomAppBar({
   navigationIcon,
@@ -55,7 +63,9 @@ export function BottomAppBar({
   const [fabPressed, setFabPressed] = React.useState(false);
 
   return (
-    <div
+    // Base UI Toolbar: the bar <div> gains role="toolbar" and the icon
+    // buttons below become Toolbar.Buttons (roving tabindex + arrow keys).
+    <Toolbar.Root
       className={cn(
         "relative flex h-20 items-center justify-between bg-m3-surface-container px-4",
         fullWidth && "w-full",
@@ -64,8 +74,7 @@ export function BottomAppBar({
     >
       <div className="flex items-center gap-1">
         {navigationIcon && (
-          <button
-            type="button"
+          <Toolbar.Button
             aria-label={navigationIcon.label ?? navigationIcon.icon}
             title={navigationIcon.label}
             onClick={navigationIcon.onClick}
@@ -73,12 +82,11 @@ export function BottomAppBar({
           >
             <Ripple />
             <MaterialSymbol icon={navigationIcon.icon} size={24} />
-          </button>
+          </Toolbar.Button>
         )}
         {actions.map((action, i) => (
-          <button
+          <Toolbar.Button
             key={`${action.icon}-${i}`}
-            type="button"
             aria-label={action.label ?? action.icon}
             title={action.label}
             onClick={action.onClick}
@@ -86,7 +94,7 @@ export function BottomAppBar({
           >
             <Ripple />
             <MaterialSymbol icon={action.icon} size={24} />
-          </button>
+          </Toolbar.Button>
         ))}
       </div>
 
@@ -111,18 +119,17 @@ export function BottomAppBar({
 
       <div className="flex items-center gap-1">
         {trailingIcons.map((icon, i) => (
-          <button
+          <Toolbar.Button
             key={`${icon}-${i}`}
-            type="button"
             aria-label={icon}
             className="m3-state relative flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant"
           >
             <Ripple />
             <MaterialSymbol icon={icon} size={24} />
-          </button>
+          </Toolbar.Button>
         ))}
       </div>
-    </div>
+    </Toolbar.Root>
   );
 }
 

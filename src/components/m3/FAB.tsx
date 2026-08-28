@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Button as BaseButton } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -33,8 +34,8 @@ export const fabColorStyles: Record<FabColor, string> = {
 
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 export interface FabProps
   extends Omit<
@@ -51,8 +52,13 @@ export interface FabProps
 
 /**
  * M3 Floating action button (FAB) — the highest-emphasis action on a screen.
- * Official elevation: level 3 at rest → level 4 on hover/pressed (lowered:
- * 1 → 2). Press squeezes with the expressive spring. Disabled drops to the
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — the expressive hover/tap
+ * springs and the M3 state layer. Official elevation: level 3 at rest →
+ * level 4 on hover/pressed (lowered: 1 → 2). Disabled drops to the
  * on-surface 12%/38% disabled tokens with no elevation.
  */
 export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
@@ -65,15 +71,9 @@ export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
   const hoverElevation = lowered ? "m3-elevation-2" : "m3-elevation-4";
 
   return (
-    <motion.button
+    <BaseButton
       ref={ref}
-      type="button"
       disabled={disabled}
-      whileHover={disabled ? undefined : { scale: 1.03 }}
-      whileTap={disabled ? undefined : { scale: 0.94 }}
-      transition={springs.expressive}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
       className={cn(
         "m3-state m3-focus relative inline-flex select-none items-center justify-center",
         "transition-[background-color,box-shadow] duration-200",
@@ -86,10 +86,19 @@ export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
       )}
       style={{ width: s.container, height: s.container }}
       {...props}
-    >
-      <Ripple disabled={disabled} />
-      <MaterialSymbol icon={icon} size={s.icon} />
-    </motion.button>
+      render={
+        <motion.button
+          whileHover={disabled ? undefined : { scale: 1.03 }}
+          whileTap={disabled ? undefined : { scale: 0.94 }}
+          transition={springs.expressive}
+          onHoverStart={() => setHovered(true)}
+          onHoverEnd={() => setHovered(false)}
+        >
+          <Ripple disabled={disabled} />
+          <MaterialSymbol icon={icon} size={s.icon} />
+        </motion.button>
+      }
+    />
   );
 });
 

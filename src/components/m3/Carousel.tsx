@@ -88,6 +88,9 @@ const toneStyles: Record<CarouselTone, string> = {
 
 const clampCount = (n: number) => Math.min(5, Math.max(1, Math.round(n)));
 
+// No Base UI primitive for carousel in v1.0.0-rc.0 — custom implementation retained
+// (scroll-snap scroller + peek layouts + overflow-aware arrows; do not restructure).
+
 /**
  * M3 Expressive Carousel — a horizontally scrollable, scroll-snapped
  * collection of items with the three official layout strategies

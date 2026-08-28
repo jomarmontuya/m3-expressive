@@ -1,7 +1,9 @@
 'use client';
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Dialog } from "@base-ui-components/react/dialog";
+import type { DialogRootActions, DialogRootChangeEventDetails } from "@base-ui-components/react/dialog";
+import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
@@ -42,9 +44,19 @@ export interface NavigationDrawerProps {
  * M3 Navigation Drawer — side navigation for destinations.
  * Official container: 360dp wide, surface-container-low, 16dp trailing
  * corners; 56dp full-width pill items (active = secondary-container).
- * The modal variant slides in from the left over a 32% scrim, traps focus,
- * and closes on Escape / scrim click / destination select (focus returned on
- * close). The standard variant is a static inline panel.
+ *
+ * The modal variant is presented with the Base UI Dialog primitive:
+ * `Dialog.Root/Portal/Backdrop/Popup` own Escape + scrim dismissal, the
+ * focus trap, focus restore on close and the body scroll lock (all of
+ * which were hand-rolled before the migration). The standard variant stays
+ * a static inline panel — no dialog semantics apply to it.
+ *
+ * Animation note: the M3 slide uses a physics spring, which framer-motion
+ * drives on the main thread (no CSS transition for Base UI to await before
+ * unmounting). So on close we call `preventUnmountOnClose()` in
+ * `onOpenChange` and imperatively `unmount()` the dialog once the slide-out
+ * spring completes (`onAnimationComplete`) — the documented Base UI escape
+ * hatch for externally-animated popups.
  */
 export function NavigationDrawer({
   items,
@@ -64,55 +76,28 @@ export function NavigationDrawer({
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const showModal = variant === "modal" && (open !== undefined ? open : uncontrolledOpen);
 
+  /* Base UI Dialog wiring (modal presentation only). */
+  const dialogActionsRef = React.useRef<DialogRootActions>(null!);
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
+      if (!nextOpen) {
+        // Keep the popup mounted while the framer-motion exit spring plays;
+        // we unmount it ourselves in onAnimationComplete below.
+        eventDetails.preventUnmountOnClose();
+        if (!isControlled) setUncontrolledOpen(false);
+        onClose?.();
+      } else if (!isControlled) {
+        setUncontrolledOpen(true);
+      }
+    },
+    [isControlled, onClose]
+  );
+
+  /** Route internal close requests (destination picks) through Base UI so every close shares one exit path. */
   const handleClose = React.useCallback(() => {
-    if (!isControlled) setUncontrolledOpen(false);
-    onClose?.();
-  }, [isControlled, onClose]);
-
-  /* Modal focus management: focus the panel on open, trap Tab, restore focus on close. */
-  const panelRef = React.useRef<HTMLDivElement>(null);
-  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
-
-  React.useEffect(() => {
-    if (!showModal) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    panelRef.current?.focus({ preventScroll: true });
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        handleClose();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const panel = panelRef.current;
-      if (!panel) return;
-      const focusables = Array.from(
-        panel.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-      );
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-      const inside = !!active && panel.contains(active);
-      if (e.shiftKey && (active === first || !inside)) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && (active === last || !inside)) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      restoreFocusRef.current?.focus?.();
-    };
-  }, [showModal, handleClose]);
+    dialogActionsRef.current?.close();
+  }, []);
 
   const body = (
     <>
@@ -171,6 +156,7 @@ export function NavigationDrawer({
   );
 
   if (variant === "standard") {
+    // No dialog semantics for the inline/persistent drawer — plain panel.
     return (
       <nav
         aria-label="Navigation drawer"
@@ -186,32 +172,37 @@ export function NavigationDrawer({
   }
 
   return (
-    <AnimatePresence>
-      {showModal && (
-        <div key="m3-drawer" className="fixed inset-0 z-[75]" role="dialog" aria-modal="true" aria-label="Navigation drawer">
-          <motion.div
-            className="absolute inset-0 bg-m3-scrim/32"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={spring(springs.defaultVisual)}
-            onClick={handleClose}
-          />
-          <motion.nav
-            ref={panelRef}
-            tabIndex={-1}
-            aria-label="Navigation drawer"
-            className="m3-scroll absolute left-0 top-0 flex h-full w-[360px] flex-col overflow-y-auto rounded-r-2xl bg-m3-surface-container-low p-3 focus:outline-none"
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={spring(springs.defaultSpatial)}
-          >
-            {body}
-          </motion.nav>
-        </div>
-      )}
-    </AnimatePresence>
+    <Dialog.Root open={showModal} onOpenChange={handleOpenChange} actionsRef={dialogActionsRef}>
+      <Dialog.Portal>
+        {/* 32% scrim — Base UI wires outside-press dismissal to this backdrop */}
+        <Dialog.Backdrop
+          render={
+            <motion.div
+              className="fixed inset-0 z-[75] bg-m3-scrim/32"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showModal ? 1 : 0 }}
+              transition={spring(springs.defaultVisual)}
+            />
+          }
+        />
+        <Dialog.Popup
+          render={
+            <motion.nav
+              aria-label="Navigation drawer"
+              className="m3-scroll fixed inset-y-0 left-0 z-[75] flex w-[360px] flex-col overflow-y-auto rounded-r-2xl bg-m3-surface-container-low p-3 focus:outline-none"
+              initial={{ x: "-100%" }}
+              animate={{ x: showModal ? 0 : "-100%" }}
+              transition={spring(springs.defaultSpatial)}
+              onAnimationComplete={() => {
+                if (!showModal) dialogActionsRef.current?.unmount();
+              }}
+            />
+          }
+        >
+          {body}
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

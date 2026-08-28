@@ -17,6 +17,10 @@ export interface ListProps extends React.HTMLAttributes<HTMLUListElement> {
   children?: React.ReactNode;
 }
 
+// No Base UI primitive for list in v1.0.0-rc.0 — custom implementation retained
+// (semantic <ul>/<li> rows; selected rows expose aria-current, clickable rows
+// render as real <button>s, so the a11y wiring already matches Base UI's model).
+
 /**
  * M3 List — a vertical collection of ListItem rows.
  * Long lists scroll with the thin m3-scroll styling.

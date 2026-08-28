@@ -2,6 +2,12 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
+import {
+  Dialog as BaseDialog,
+  type DialogRootActions,
+  type DialogRootChangeEventDetails,
+} from "@base-ui-components/react/dialog";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
@@ -24,17 +30,21 @@ export interface DialogProps {
   className?: string;
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-
 /**
  * M3 Dialog — a modal window that blocks the page underneath with a 32%
  * scrim. Basic dialogs center on screen on surface-container-high with
  * 28dp corners, elevation 3 and the official 280–560dp width range;
- * fullscreen dialogs cover the viewport edge-to-edge. The headline and
- * body are wired via aria-labelledby / aria-describedby, focus is trapped
- * inside while open, Escape/scrim dismiss when dismissible, and focus
- * returns to the triggering element on close.
+ * fullscreen dialogs cover the viewport edge-to-edge.
+ *
+ * Built on Base UI's headless Dialog: Root owns the focus trap, page
+ * scroll lock, focus restore to the trigger, Escape/outside-press
+ * dismissal and aria-modal wiring; Backdrop is the scrim and Popup the
+ * panel. Our `open`/`onClose` API stays the public contract — Base UI's
+ * `onOpenChange` reasons are filtered through `dismissible` (non-dismissible
+ * dialogs ignore escape/outside reasons). The M3 entrance (scale 0.9 → 1
+ * on the expressive spring, scrim fade) is framer-motion composed via the
+ * element-form `render` prop; Base UI defers unmounting until the exit
+ * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
 export function Dialog({
   open,
@@ -49,128 +59,92 @@ export function Dialog({
 }: DialogProps) {
   const headlineId = React.useId();
   const bodyId = React.useId();
-  const panelRef = React.useRef<HTMLDivElement>(null);
-  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
 
-  React.useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && dismissible) onClose?.();
-    };
-    window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open, dismissible, onClose]);
+  // Keep the dialog mounted while the framer-motion exit plays, then unmount.
+  const actionsRef = React.useRef<DialogRootActions>({ unmount() {}, close() {} });
 
-  // Move focus into the dialog on open; return it to the trigger on close.
-  React.useEffect(() => {
-    if (!open) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    const timer = window.setTimeout(() => panelRef.current?.focus(), 0);
-    return () => {
-      window.clearTimeout(timer);
-      restoreFocusRef.current?.focus?.();
-    };
-  }, [open]);
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
+      if (nextOpen) return;
+      // Non-dismissible dialogs ignore Escape / outside-press requests;
+      // programmatic closes (imperative action / close press) still flow.
+      if (
+        !dismissible &&
+        (eventDetails.reason === "escape-key" || eventDetails.reason === "outside-press")
+      ) {
+        return;
+      }
+      eventDetails.preventUnmountOnClose();
+      onClose?.();
+    },
+    [dismissible, onClose]
+  );
 
-  // Trap Tab focus inside the dialog surface.
-  const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "Tab" || !panelRef.current) return;
-    const focusables = Array.from(
-      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-    ).filter((el) => !el.hasAttribute("disabled"));
-    if (focusables.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || active === panelRef.current)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    }
+  const scrimMotion: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    // Named framer easing (tokens.ts easings.* are CSS strings, not
+    // framer Easing tuples); "easeOut" ≙ easings.standardDecelerate
+    transition: { duration: durations.short4 / 1000, ease: "easeOut" },
+  };
+
+  const panelMotion: HTMLMotionProps<"div"> = {
+    initial: { scale: 0.9, y: 20, opacity: 0 },
+    animate: { scale: 1, y: 0, opacity: 1 },
+    exit: { scale: 0.9, y: 20, opacity: 0 },
+    transition: springs.expressive,
   };
 
   return (
-    <AnimatePresence>
-      {open && (
-        <div
-          className={cn(
-            "fixed inset-0 z-[80] flex items-center justify-center p-6",
-            fullscreen && "p-0"
-          )}
-        >
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            // Named framer easing (tokens.ts easings.* are CSS strings, not
-            // framer Easing tuples); "easeOut" ≙ easings.standardDecelerate
-            transition={{
-              duration: durations.short4 / 1000,
-              ease: "easeOut",
-            }}
-            className="absolute inset-0 bg-m3-scrim/32"
-            onClick={() => {
-              if (dismissible) onClose?.();
-            }}
-          />
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={headline ? headlineId : undefined}
-            aria-describedby={children ? bodyId : undefined}
-            tabIndex={-1}
-            onKeyDown={handleTab}
-            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={springs.expressive}
-            className={cn(
-              "m3-elevation-3 relative w-full bg-m3-surface-container-high p-6 outline-none",
-              fullscreen
-                ? "h-full max-w-none rounded-none"
-                : "min-w-[280px] max-w-[560px] rounded-[28px]",
-              className
-            )}
-          >
-            {icon && (
-              // Official: 24dp primary icon, center-aligned, 16dp above the headline
-              <span className="mb-4 flex justify-center">
-                <MaterialSymbol icon={icon} size={24} className="text-m3-primary" />
-              </span>
-            )}
-            {headline && (
-              // Official: headline center-aligns when an icon is present, start-aligns otherwise
-              <h2
-                id={headlineId}
-                className={cn("md-headline-small mb-4 text-m3-on-surface", icon && "text-center")}
-              >
-                {headline}
-              </h2>
-            )}
-            {children && (
-              <div id={bodyId} className="md-body-medium text-m3-on-surface-variant">
-                {children}
-              </div>
-            )}
-            {actions && (
-              // Official action area: 8dp between text buttons, 24dp above / 24dp sides+below
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-6">{actions}</div>
-            )}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <BaseDialog.Root open={open} onOpenChange={handleOpenChange} actionsRef={actionsRef} modal>
+      <AnimatePresence>
+        {open && (
+          <BaseDialog.Portal>
+            <BaseDialog.Backdrop render={<motion.div {...scrimMotion} />} className="fixed inset-0 z-[80] bg-m3-scrim/32" />
+            <BaseDialog.Popup
+              aria-labelledby={headline ? headlineId : undefined}
+              aria-describedby={children ? bodyId : undefined}
+              render={<motion.div {...panelMotion} />}
+              className={cn(
+                "m3-elevation-3 bg-m3-surface-container-high p-6 outline-none",
+                // Transform-free centering (inset-0 + margin auto) — framer owns
+                // the transform for the M3 entrance spring.
+                fullscreen
+                  ? "fixed inset-0 z-[80] h-full w-full rounded-none"
+                  : "fixed inset-0 z-[80] m-auto h-fit w-[min(560px,calc(100vw-3rem))] min-w-[280px] rounded-[28px]",
+                className
+              )}
+            >
+              {icon && (
+                // Official: 24dp primary icon, center-aligned, 16dp above the headline
+                <span className="mb-4 flex justify-center">
+                  <MaterialSymbol icon={icon} size={24} className="text-m3-primary" />
+                </span>
+              )}
+              {headline && (
+                // Official: headline center-aligns when an icon is present, start-aligns otherwise
+                <h2
+                  id={headlineId}
+                  className={cn("md-headline-small mb-4 text-m3-on-surface", icon && "text-center")}
+                >
+                  {headline}
+                </h2>
+              )}
+              {children && (
+                <div id={bodyId} className="md-body-medium text-m3-on-surface-variant">
+                  {children}
+                </div>
+              )}
+              {actions && (
+                // Official action area: 8dp between text buttons, 24dp above / 24dp sides+below
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-6">{actions}</div>
+              )}
+            </BaseDialog.Popup>
+          </BaseDialog.Portal>
+        )}
+      </AnimatePresence>
+    </BaseDialog.Root>
   );
 }
 

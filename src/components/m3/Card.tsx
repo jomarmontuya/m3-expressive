@@ -40,6 +40,8 @@ export interface CardProps
   interactive?: boolean;
 }
 
+// Presentational container — no Base UI primitive needed (DOM + API unchanged).
+
 /**
  * M3 Expressive Card — a 12dp-corner containment surface (M3 shape.medium;
  * pass shape="extraLarge" for 28dp M3E hero cards).

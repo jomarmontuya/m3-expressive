@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Button as BaseButton } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -10,8 +11,8 @@ import { fabColorStyles, type FabColor } from "./FAB";
 
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 export interface ExtendedFabProps
   extends Omit<
@@ -30,10 +31,15 @@ export interface ExtendedFabProps
 /**
  * M3 Extended FAB — a wider floating action button with an icon and
  * text label, for the primary action when an icon alone is not clear.
- * Official anatomy: 56dp height, 16dp corners, 24dp icon, 8dp icon-label
- * gap, 20dp horizontal padding, label-large text. Elevation 3 → 4 on
- * hover/pressed (lowered: 1 → 2); disabled uses the on-surface 12%/38%
- * tokens with no elevation.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — the expressive hover/tap
+ * springs and the M3 state layer. Official anatomy: 56dp height, 16dp
+ * corners, 24dp icon, 8dp icon-label gap, 20dp horizontal padding,
+ * label-large text. Elevation 3 → 4 on hover/pressed (lowered: 1 → 2);
+ * disabled uses the on-surface 12%/38% tokens with no elevation.
  */
 export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>(
   function ExtendedFab(
@@ -45,15 +51,9 @@ export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>
     const hoverElevation = lowered ? "m3-elevation-2" : "m3-elevation-4";
 
     return (
-      <motion.button
+      <BaseButton
         ref={ref}
-        type="button"
         disabled={disabled}
-        whileHover={disabled ? undefined : { scale: 1.03 }}
-        whileTap={disabled ? undefined : { scale: 0.94 }}
-        transition={springs.expressive}
-        onHoverStart={() => setHovered(true)}
-        onHoverEnd={() => setHovered(false)}
         className={cn(
           "m3-state m3-focus relative inline-flex select-none items-center justify-center overflow-hidden rounded-2xl px-5",
           "gap-2 md-label-large",
@@ -65,11 +65,20 @@ export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>
         )}
         style={{ height: 56 }}
         {...props}
-      >
-        <Ripple disabled={disabled} />
-        <MaterialSymbol icon={icon} size={24} />
-        <span>{label}</span>
-      </motion.button>
+        render={
+          <motion.button
+            whileHover={disabled ? undefined : { scale: 1.03 }}
+            whileTap={disabled ? undefined : { scale: 0.94 }}
+            transition={springs.expressive}
+            onHoverStart={() => setHovered(true)}
+            onHoverEnd={() => setHovered(false)}
+          >
+            <Ripple disabled={disabled} />
+            <MaterialSymbol icon={icon} size={24} />
+            <span>{label}</span>
+          </motion.button>
+        }
+      />
     );
   }
 );

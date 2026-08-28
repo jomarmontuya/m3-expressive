@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Transition } from "framer-motion";
+import type { HTMLMotionProps, Transition } from "framer-motion";
+import { Dialog, type DialogRootActions, type DialogRootChangeEventDetails } from "@base-ui-components/react/dialog";
+import { Input } from "@base-ui-components/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens, durations } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -49,9 +51,6 @@ export interface SearchViewProps {
   className?: string;
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-
 /**
  * M3 Search view — the expanded companion of the search bar: a persistent,
  * full-width search surface for larger, richer search that expands over the
@@ -64,10 +63,13 @@ const FOCUSABLE =
  * label-large text, optional per-row close — and are keyboard navigable
  * (ArrowUp/ArrowDown walk an active index, Enter selects, via
  * aria-activedescendant). In "full-screen" mode the view covers the viewport
- * as a modal dialog (role="dialog" aria-modal, focus trapped inside and
- * restored to the trigger on close, Escape closes, body scroll locks); in
- * "docked" mode it renders inline above its results. The query input is the
- * forwarded ref target.
+ * as a modal dialog built on Base UI `Dialog` (v1.0.0-rc.0): the modal shell
+ * owns Escape, body scroll lock, focus trap, initial focus on the query
+ * input, focus restore to the opener and the role="dialog"/aria-modal
+ * wiring, while our motion.div (rendered via `Dialog.Popup`'s render prop)
+ * keeps the M3E slide-and-fade entrance/exit; in "docked" mode it renders
+ * inline above its results with no dialog machinery. The query input is a
+ * Base UI `Input` and the forwarded ref target.
  *
  * @example
  * const [open, setOpen] = React.useState(false);
@@ -103,9 +105,7 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
   ref
 ) {
   const fullScreen = mode === "full-screen";
-  const panelRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
   const [active, setActive] = React.useState(-1);
   const reactId = React.useId();
   const listId = `m3-sv-${reactId.replace(/:/g, "")}`;
@@ -124,6 +124,16 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
     [isControlled, onValueChange]
   );
 
+  // Base UI Dialog shell (full-screen mode only): keeps the popup mounted
+  // while our framer-motion exit plays, then unmounts via actionsRef.
+  const dialogActionsRef = React.useRef<DialogRootActions>({ unmount() {}, close() {} });
+  const handleDialogOpenChange = (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
+    // Defer Base UI's unmount until AnimatePresence finishes the exit animation.
+    if (!nextOpen) eventDetails.preventUnmountOnClose();
+    onOpenChange(nextOpen);
+  };
+  const handleDialogExited = () => dialogActionsRef.current?.unmount();
+
   /** Recent searches replace the results content while the query is empty. */
   const showRecents = query.trim() === "" && recentSearches.length > 0;
 
@@ -138,55 +148,8 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
     setActive(-1);
   };
 
-  // Full-screen only: Escape anywhere closes; body scroll locks while open.
-  React.useEffect(() => {
-    if (!open || !fullScreen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open, fullScreen, onOpenChange]);
-
-  // Full-screen only: focus the input on open; return focus to the trigger on close.
-  React.useEffect(() => {
-    if (!open || !fullScreen) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    let timer = 0;
-    if (autoFocus) timer = window.setTimeout(() => inputRef.current?.focus(), 0);
-    return () => {
-      window.clearTimeout(timer);
-      restoreFocusRef.current?.focus?.();
-    };
-  }, [open, fullScreen, autoFocus]);
-
-  // Full-screen only: trap Tab focus inside the search view (Dialog pattern).
-  const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "Tab" || !panelRef.current) return;
-    const focusables = Array.from(
-      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-    ).filter((el) => !el.hasAttribute("disabled"));
-    if (focusables.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const activeEl = document.activeElement;
-    if (e.shiftKey && (activeEl === first || activeEl === panelRef.current)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && activeEl === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
-
+  // Docked only: Escape on the input closes (full-screen Escape is owned by
+  // the Base UI Dialog shell, which dismisses from anywhere).
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown" && showRecents) {
       e.preventDefault();
@@ -199,83 +162,78 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
         e.preventDefault();
         handleRecentSelect(recentSearches[active]);
       }
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && !fullScreen) {
       onOpenChange(false);
     }
   };
 
-  const panel = (
-    <motion.div
-      ref={panelRef}
-      role="dialog"
-      aria-modal={fullScreen || undefined}
-      aria-label={placeholder}
-      tabIndex={-1}
-      onKeyDown={fullScreen ? handleTab : undefined}
-      initial={fullScreen ? { y: -48, opacity: 0 } : { y: -8, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={fullScreen ? { y: -48, opacity: 0 } : { y: -8, opacity: 0 }}
-      transition={
-        fullScreen
-          ? springs.fastSpatial
-          : { duration: durations.short4 / 1000, ease: "easeOut" }
-      }
-      className={cn(
-        "flex flex-col bg-m3-surface outline-none",
-        fullScreen ? "fixed inset-0 z-[90]" : "relative w-full overflow-hidden",
-        className
-      )}
+  /** Leading close affordance — Dialog.Close in full-screen, plain button inline. */
+  const closeButtonClassName =
+    "m3-state relative ml-1 grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface";
+  const closeControl = fullScreen ? (
+    <Dialog.Close render={<button type="button" aria-label="Close search" className={closeButtonClassName} />}>
+      <Ripple />
+      {leadingIcon ?? <MaterialSymbol icon="arrow_back" size={24} />}
+    </Dialog.Close>
+  ) : (
+    <button
+      type="button"
+      onClick={() => onOpenChange(false)}
+      aria-label="Close search"
+      className={closeButtonClassName}
     >
-      {/* Official: 56dp input row on surface-container-high */}
-      <div className="flex h-14 shrink-0 items-center bg-m3-surface-container-high">
+      <Ripple />
+      {leadingIcon ?? <MaterialSymbol icon="arrow_back" size={24} />}
+    </button>
+  );
+
+  const inputRow = (
+    /* Official: 56dp input row on surface-container-high */
+    <div className="flex h-14 shrink-0 items-center bg-m3-surface-container-high">
+      {closeControl}
+      <Input
+        ref={inputRef}
+        type="text"
+        role="combobox"
+        aria-label={placeholder}
+        aria-expanded={showRecents}
+        aria-haspopup="listbox"
+        aria-autocomplete="list"
+        aria-controls={showRecents ? listId : undefined}
+        aria-activedescendant={showRecents && active >= 0 ? `${listId}-${active}` : undefined}
+        value={query}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setActive(-1);
+        }}
+        onKeyDown={handleInputKeyDown}
+        className="h-full min-w-0 flex-1 bg-transparent px-4 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
+      />
+      {/* Clear affordance once a query exists */}
+      {query !== "" && (
         <button
           type="button"
-          onClick={() => onOpenChange(false)}
-          aria-label="Close search"
-          className="m3-state relative ml-1 grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface"
+          onClick={() => {
+            setQuery("");
+            setActive(-1);
+            inputRef.current?.focus();
+          }}
+          aria-label="Clear search text"
+          className="m3-state relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface"
         >
           <Ripple />
-          {leadingIcon ?? <MaterialSymbol icon="arrow_back" size={24} />}
+          <MaterialSymbol icon="close" size={24} />
         </button>
-        <input
-          ref={inputRef}
-          type="text"
-          role="combobox"
-          aria-label={placeholder}
-          aria-expanded={showRecents}
-          aria-haspopup="listbox"
-          aria-autocomplete="list"
-          aria-controls={showRecents ? listId : undefined}
-          aria-activedescendant={showRecents && active >= 0 ? `${listId}-${active}` : undefined}
-          value={query}
-          placeholder={placeholder}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setActive(-1);
-          }}
-          onKeyDown={handleInputKeyDown}
-          className="h-full min-w-0 flex-1 bg-transparent px-4 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
-        />
-        {/* Clear affordance once a query exists */}
-        {query !== "" && (
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("");
-              setActive(-1);
-              inputRef.current?.focus();
-            }}
-            aria-label="Clear search text"
-            className="m3-state relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface"
-          >
-            <Ripple />
-            <MaterialSymbol icon="close" size={24} />
-          </button>
-        )}
-        {trailingActions && (
-          <div className="flex shrink-0 items-center pr-1">{trailingActions}</div>
-        )}
-      </div>
+      )}
+      {trailingActions && (
+        <div className="flex shrink-0 items-center pr-1">{trailingActions}</div>
+      )}
+    </div>
+  );
+
+  const resultsArea = (
+    <>
       {/* Official: 1dp outline-variant divider below the input row */}
       <div aria-hidden="true" className="h-px w-full shrink-0 bg-m3-outline-variant" />
 
@@ -326,10 +284,74 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
         )}
         {!showRecents && children}
       </div>
-    </motion.div>
+    </>
   );
 
-  return <AnimatePresence>{open && panel}</AnimatePresence>;
+  const panelClassName = cn(
+    "flex flex-col bg-m3-surface outline-none",
+    fullScreen ? "fixed inset-0 z-[90]" : "relative w-full overflow-hidden",
+    className
+  );
+  const panelMotionProps: HTMLMotionProps<"div"> = {
+    initial: fullScreen ? { y: -48, opacity: 0 } : { y: -8, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: fullScreen ? { y: -48, opacity: 0 } : { y: -8, opacity: 0 },
+    transition: fullScreen
+      ? springs.fastSpatial
+      : { duration: durations.short4 / 1000, ease: "easeOut" },
+  };
+
+  if (fullScreen) {
+    return (
+      <Dialog.Root
+        open={open}
+        onOpenChange={handleDialogOpenChange}
+        actionsRef={dialogActionsRef}
+        // No outside-click dismissal: the view covers the viewport, matching
+        // the previous inline overlay (Escape / leading icon close it).
+        disablePointerDismissal
+      >
+        <AnimatePresence onExitComplete={handleDialogExited}>
+          {open && (
+            <Dialog.Portal>
+              <Dialog.Popup
+                render={
+                  <motion.div
+                    aria-label={placeholder}
+                    tabIndex={-1}
+                    className={panelClassName}
+                    {...panelMotionProps}
+                  >
+                    {inputRow}
+                    {resultsArea}
+                  </motion.div>
+                }
+                initialFocus={autoFocus ? inputRef : false}
+              />
+            </Dialog.Portal>
+          )}
+        </AnimatePresence>
+      </Dialog.Root>
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="m3-search-view-docked"
+          role="dialog"
+          aria-label={placeholder}
+          tabIndex={-1}
+          className={panelClassName}
+          {...panelMotionProps}
+        >
+          {inputRow}
+          {resultsArea}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 });
 
 export { searchViewMeta } from "@/lib/m3/meta";

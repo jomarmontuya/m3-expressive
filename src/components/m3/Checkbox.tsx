@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { Checkbox as BaseCheckbox } from "@base-ui-components/react/checkbox";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -24,33 +25,42 @@ export interface CheckboxProps {
  * M3 Checkbox — a 48px touch target with an 18px rounded box.
  * The checkmark draws itself via animated `pathLength` on the
  * expressive spring; indeterminate shows a white dash.
+ *
+ * Built on Base UI's headless Checkbox Root: it owns the `role="checkbox"`,
+ * `aria-checked`/mixed state, hidden form input and keyboard activation.
+ * Our `checked`/`indeterminate` props drive it as a controlled component and
+ * Base UI's `onCheckedChange(nextChecked)` is adapted to our public
+ * `onChange(checked)` — the reported value matches the old semantics
+ * (an indeterminate box resolves to checked on click). The checkmark/dash
+ * stay custom (framer-motion pathLength springs — no Base UI primitive
+ * animates SVG paths).
  */
 export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
   { checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className },
   ref
 ) {
   const isFilled = checked || indeterminate;
-  const handleToggle = () => {
-    if (disabled) return;
-    onChange?.(indeterminate ? true : !checked);
-  };
 
   return (
-    <motion.button
+    <BaseCheckbox.Root
       ref={ref}
-      type="button"
-      role="checkbox"
-      aria-checked={indeterminate ? "mixed" : checked}
+      checked={checked}
+      indeterminate={indeterminate}
       disabled={disabled}
-      onClick={handleToggle}
-      whileTap={disabled ? undefined : { scale: 0.95 }}
-      transition={springs.fastVisual}
+      nativeButton
+      onCheckedChange={(nextChecked) => onChange?.(nextChecked)}
       className={cn(
         "m3-state m3-focus relative inline-flex items-center overflow-hidden rounded-full outline-none",
         error ? "text-m3-error" : isFilled ? "text-m3-primary" : "text-m3-on-surface-variant",
         disabled && "pointer-events-none opacity-38",
         className
       )}
+      render={
+        <motion.button
+          whileTap={disabled ? undefined : { scale: 0.95 }}
+          transition={springs.fastVisual}
+        />
+      }
     >
       <Ripple disabled={disabled} />
       <span className="grid h-12 w-12 shrink-0 place-items-center">
@@ -92,7 +102,7 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(funct
         </motion.span>
       </span>
       {label && <span className="pr-3 text-m3-on-surface md-body-large">{label}</span>}
-    </motion.button>
+    </BaseCheckbox.Root>
   );
 });
 

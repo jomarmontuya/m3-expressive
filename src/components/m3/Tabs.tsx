@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react";
+import { Tabs as BaseTabs } from "@base-ui-components/react/tabs";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -33,13 +34,25 @@ export interface TabsProps {
 
 /**
  * M3 Tabs — organize content across different screens, data sets and interactions.
- * Primary tabs are the official 64dp icon+label columns with a 3dp active
- * indicator — a shared-layout underline sized to the measured label text width
- * (ResizeObserver + document.fonts.ready); secondary tabs are the 48dp Expressive
- * tonal pill row. Horizontally scrollable when tabs overflow — per spec,
- * leading/trailing scroll arrows appear while content overflows in that
- * direction. Roving tabindex with ArrowLeft/Right/Home/End (automatic
- * activation) follows the WAI-ARIA tabs pattern.
+ * Built on the Base UI Tabs primitive (imported as `BaseTabs` because this
+ * module also exports a `Tabs`): `Tabs.Root` is the controlled wrapper,
+ * `Tabs.List` the `role="tablist"` scroller and `Tabs.Tab` each
+ * `role="tab"` button. Base UI owns the WAI-ARIA tabs behavior — roving
+ * tabindex, ArrowLeft/Right + Home/End with looping, and automatic
+ * activation on arrow-key focus (`activateOnFocus`) — exactly the
+ * keyboard/ARIA contract this component implemented by hand before.
+ *
+ * The selection indicator intentionally stays a framer-motion shared-layout
+ * overlay (NOT `Tabs.Indicator`): the M3 primary underline must match the
+ * *measured label text width* (ResizeObserver + document.fonts.ready), while
+ * Base UI's indicator sizes to the whole tab and animates via CSS
+ * transitions — the motion overlay keeps the official 3dp underline and the
+ * secondary tonal pill pixel-identical and spring-animated (layoutId).
+ *
+ * Primary tabs are the official 64dp icon+label columns; secondary tabs are
+ * the 48dp Expressive tonal pill row. Horizontally scrollable when tabs
+ * overflow — per spec, leading/trailing scroll arrows appear while content
+ * overflows in that direction (kept custom; Base UI Tabs has no scroller).
  */
 export function Tabs({
   items,
@@ -87,20 +100,6 @@ export function Tabs({
     el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.75, 120), behavior: "smooth" });
   };
 
-  /* --- Keyboard: roving tabindex + automatic activation (WAI-ARIA tabs) --- */
-  const tabRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
-  const onTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
-    let next: number | null = null;
-    if (e.key === "ArrowRight") next = (index + 1) % items.length;
-    else if (e.key === "ArrowLeft") next = (index - 1 + items.length) % items.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = items.length - 1;
-    if (next === null) return;
-    e.preventDefault();
-    tabRefs.current[next]?.focus();
-    onChange(items[next].value);
-  };
-
   /* --- Primary indicator: measure label text so the underline matches it (M3) --- */
   const labelRefs = React.useRef<Map<string, HTMLSpanElement>>(new Map());
   const [labelWidths, setLabelWidths] = React.useState<Record<string, number>>({});
@@ -134,15 +133,18 @@ export function Tabs({
   }, [measureLabels, items]);
 
   const tablist = (
-    <div
+    // BaseTabs.List renders the tablist <div> (role="tablist") and doubles as
+    // the horizontal scroller, exactly like the pre-migration markup.
+    // activateOnFocus = automatic activation: arrows move focus AND select.
+    <BaseTabs.List
       ref={scrollerRef}
-      role="tablist"
+      activateOnFocus
       className={cn(
         "m3-scroll flex flex-1 items-stretch overflow-x-auto",
         isPrimary ? "h-16 border-b border-m3-outline-variant" : "h-12"
       )}
     >
-      {items.map((item, index) => {
+      {items.map((item) => {
         const active = item.value === value;
         const measuredWidth = labelWidths[item.value] ?? 0;
         const textColor = active
@@ -151,17 +153,11 @@ export function Tabs({
             : "text-m3-on-secondary-container"
           : "text-m3-on-surface-variant";
         return (
-          <button
+          // BaseTabs.Tab owns role="tab", aria-selected and the roving
+          // tabindex — no manual onKeyDown/aria wiring needed anymore.
+          <BaseTabs.Tab
             key={item.value}
-            ref={(el) => {
-              tabRefs.current[index] = el;
-            }}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            tabIndex={active ? 0 : -1}
-            onKeyDown={(e) => onTabKeyDown(e, index)}
-            onClick={() => onChange(item.value)}
+            value={item.value}
             className={cn(
               "m3-state relative flex shrink-0 items-center justify-center",
               isPrimary ? "flex-col gap-1 pb-2 pt-3" : "gap-2 px-4",
@@ -221,14 +217,18 @@ export function Tabs({
             >
               {item.label}
             </span>
-          </button>
+          </BaseTabs.Tab>
         );
       })}
-    </div>
+    </BaseTabs.List>
   );
 
   return (
-    <div
+    // BaseTabs.Root renders the outer wrapper <div> and owns the controlled
+    // value + change events; the scroll arrows are plain siblings (not tabs).
+    <BaseTabs.Root
+      value={value}
+      onValueChange={(v) => onChange(v as string)}
       className={cn(
         "flex items-stretch",
         fullWidth ? "w-full" : "w-fit max-w-full",
@@ -258,7 +258,7 @@ export function Tabs({
           <MaterialSymbol icon="chevron_right" size={24} />
         </button>
       )}
-    </div>
+    </BaseTabs.Root>
   );
 }
 

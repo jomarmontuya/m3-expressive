@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { ToggleGroup } from "@base-ui-components/react/toggle-group";
+import { Toggle } from "@base-ui-components/react/toggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
@@ -16,7 +18,8 @@ export interface SegmentedButtonOption {
   icon?: string;
 }
 
-export interface SegmentedButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SegmentedButtonProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "defaultChecked"> {
   options: SegmentedButtonOption[];
   type?: SegmentedButtonType;
   /** Controlled value: string for single, string[] for multiple; omit for uncontrolled */
@@ -39,6 +42,11 @@ const sizeStyles: Record<SegmentedButtonSize, { height: number; icon: number }> 
  * M3 Segmented buttons — connected segments inside one pill outline for
  * selecting between 2–5 choices. Selected segments fill with the
  * secondary-container color and a check icon springs open.
+ *
+ * Built on Base UI's headless ToggleGroup/Toggle: the group owns the pressed
+ * state, `aria-pressed`, roving arrow-key focus and disabled propagation,
+ * while this layer keeps the M3 Expressive visuals (connected pill outline,
+ * 48dp touch expanders, springy check icon, ripple).
  */
 export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonProps>(
   function SegmentedButton(
@@ -54,26 +62,28 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
       : internalValue;
     const s = sizeStyles[size];
 
-    const select = React.useCallback(
-      (v: string) => {
-        let next: string[];
-        if (type === "single") {
-          next = selectedList.includes(v) ? [] : [v];
-        } else {
-          next = selectedList.includes(v)
-            ? selectedList.filter((x) => x !== v)
-            : [...selectedList, v];
-        }
+    /**
+     * Base UI always reports the group value as an array of pressed segment
+     * values; adapt it back to our public shape (string for single, string[]
+     * for multiple) without leaking Base UI types through the API.
+     */
+    const handleGroupValueChange = React.useCallback(
+      (groupValue: unknown[]) => {
+        const next = groupValue as string[];
         if (!isControlled) setInternalValue(next);
         onValueChange?.(type === "single" ? (next[0] ?? "") : next);
       },
-      [type, selectedList, isControlled, onValueChange]
+      [type, isControlled, onValueChange]
     );
 
     return (
-      <div
+      <ToggleGroup
         ref={ref}
-        role="group"
+        value={isControlled ? selectedList : undefined}
+        onValueChange={handleGroupValueChange}
+        multiple={type === "multiple"}
+        disabled={disabled}
+        orientation="horizontal"
         className={cn(
           "inline-flex select-none rounded-full border",
           disabled ? "border-m3-on-surface/12" : "border-m3-outline",
@@ -86,14 +96,9 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
           const isSelected = selectedList.includes(option.value);
 
           return (
-            <motion.button
+            <Toggle
               key={option.value}
-              type="button"
-              disabled={disabled}
-              aria-pressed={isSelected}
-              onClick={() => select(option.value)}
-              whileTap={disabled ? undefined : { scale: 0.97 }}
-              transition={springs.fastVisual}
+              value={option.value}
               className={cn(
                 "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 px-4",
                 /* 48dp touch target: invisible ::before hit-expander, vertical-only
@@ -111,6 +116,13 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
                     ? "bg-m3-secondary-container text-m3-on-secondary-container"
                     : "bg-transparent text-m3-on-surface"
               )}
+              /* render keeps the press squash while Base UI renders the <button> */
+              render={
+                <motion.button
+                  whileTap={disabled ? undefined : { scale: 0.97 }}
+                  transition={springs.fastVisual}
+                />
+              }
             >
               <Ripple disabled={disabled} />
               <AnimatePresence initial={false}>
@@ -129,10 +141,10 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
               </AnimatePresence>
               {option.icon && <MaterialSymbol icon={option.icon} size={s.icon} />}
               {option.label}
-            </motion.button>
+            </Toggle>
           );
         })}
-      </div>
+      </ToggleGroup>
     );
   }
 );

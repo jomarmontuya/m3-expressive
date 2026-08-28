@@ -3,7 +3,7 @@
 /**
  * DocsView — Installation guide + Getting started (ShadCN philosophy):
  *
- *   1. Install 3 runtime dependencies
+ *   1. Install 4 runtime dependencies (Base UI headless primitives + framer-motion + cn)
  *   2. Copy the source into your repo (manually, or let an MCP-connected
  *      AI agent do it) — you own the code, no black-box npm package
  *   3. Paste the design-token CSS once — every component styles itself
@@ -30,10 +30,10 @@ import type { Route } from "./Sidebar";
 /* ------------------------------------------------------------------ */
 
 const INSTALL_CMD: Record<string, string> = {
-  bun: "bun add framer-motion clsx tailwind-merge",
-  npm: "npm install framer-motion clsx tailwind-merge",
-  pnpm: "pnpm add framer-motion clsx tailwind-merge",
-  yarn: "yarn add framer-motion clsx tailwind-merge",
+  bun: "bun add @base-ui-components/react framer-motion clsx tailwind-merge",
+  npm: "npm install @base-ui-components/react framer-motion clsx tailwind-merge",
+  pnpm: "pnpm add @base-ui-components/react framer-motion clsx tailwind-merge",
+  yarn: "yarn add @base-ui-components/react framer-motion clsx tailwind-merge",
 };
 
 const MCP_PROMPT = `# After wiring the m3-expressive MCP server (.mcp.json — see the Agent API page),
@@ -326,7 +326,7 @@ export function DocsView({ navigate }: { navigate: (r: Route) => void }) {
         Install &amp; getting started
       </h1>
       <p className="mt-3 max-w-3xl md-body-large text-m3-on-surface-variant">
-        ShadCN-style: install three dependencies, copy the source straight into your
+        ShadCN-style: install four dependencies, copy the source straight into your
         repo — manually or through an MCP-connected AI agent — paste one token
         stylesheet, and you&apos;re rendering Material 3 Expressive. No npm package, no
         black boxes: <strong className="text-m3-on-surface">you own the code</strong>.
@@ -392,7 +392,7 @@ function InstallTab({ navigate }: { navigate: (r: Route) => void }) {
 
       <Step num="01" title="Install dependencies" icon="download">
         <p className="mb-3 md-body-medium text-m3-on-surface-variant">
-          One command, three packages. Everything else is source you copy in the next step.
+          One command, four packages. Everything else is source you copy in the next step.
         </p>
         <div className="mb-3">
           <SegmentedButton

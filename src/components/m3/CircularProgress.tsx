@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { Progress } from "@base-ui-components/react/progress";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,11 @@ export interface CircularProgressProps {
  * before the fixed 4px stop indicator dot at 12 o'clock (official M3E track
  * gap + stop dot). Indeterminate: the M3 arc grows to ~270° and contracts
  * while the ring rotates.
+ *
+ * No radial primitive — custom SVG retained; Progress.Root donates the
+ * `role="progressbar"` semantics (aria-valuenow/min/max + valuetext, and the
+ * `data-indeterminate`/`data-progressing`/`data-complete` states) from a
+ * wrapper element while the ring itself stays a plain `aria-hidden` SVG.
  */
 export function CircularProgress({
   value,
@@ -68,16 +73,48 @@ export function CircularProgress({
 
   if (!determinate) {
     return (
-      <motion.svg
-        role="progressbar"
+      <Progress.Root
+        value={null}
         aria-label={ariaLabel}
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className={cn("shrink-0", className)}
-        animate={{ rotate: 360 }}
-        transition={{ duration: spin, repeat: Infinity, ease: "linear" }}
+        className={cn("inline-block shrink-0", className)}
       >
+        <motion.svg
+          aria-hidden="true"
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: spin, repeat: Infinity, ease: "linear" }}
+        >
+          {track}
+          <motion.circle
+            cx={cx}
+            cy={cx}
+            r={r}
+            fill="none"
+            stroke={stroke}
+            strokeWidth={thickness}
+            strokeLinecap="round"
+            pathLength={1}
+            transform={`rotate(-90 ${cx} ${cx})`}
+            animate={{ strokeDasharray: [`${arc} ${1 - arc}`, "0.75 0.25", `${arc} ${1 - arc}`] }}
+            transition={{ duration: spin, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.svg>
+      </Progress.Root>
+    );
+  }
+
+  return (
+    <Progress.Root
+      value={v}
+      aria-label={ariaLabel}
+      /* Locale-independent valuetext — Base UI's Intl-percent default (e.g.
+         "42 %" in fr-FR) would drift between SSR and non-English browsers. */
+      getAriaValueText={(_formatted, val) => `${Math.round(val ?? 0)}%`}
+      className={cn("inline-block shrink-0", className)}
+    >
+      <motion.svg aria-hidden="true" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {track}
         <motion.circle
           cx={cx}
@@ -87,45 +124,16 @@ export function CircularProgress({
           stroke={stroke}
           strokeWidth={thickness}
           strokeLinecap="round"
-          pathLength={1}
+          strokeDasharray={c}
           transform={`rotate(-90 ${cx} ${cx})`}
-          animate={{ strokeDasharray: [`${arc} ${1 - arc}`, "0.75 0.25", `${arc} ${1 - arc}`] }}
-          transition={{ duration: spin, repeat: Infinity, ease: "easeInOut" }}
+          initial={{ strokeDashoffset: c }}
+          animate={{ strokeDashoffset: offset }}
+          transition={asTransition(springs.defaultSpatial)}
         />
+        {/* Fixed stop indicator dot at the track end (12 o'clock) */}
+        <circle cx={cx} cy={cx - r} r={dotR} fill={stroke} />
       </motion.svg>
-    );
-  }
-
-  return (
-    <motion.svg
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(v)}
-      aria-label={ariaLabel}
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      className={cn("shrink-0", className)}
-    >
-      {track}
-      <motion.circle
-        cx={cx}
-        cy={cx}
-        r={r}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={thickness}
-        strokeLinecap="round"
-        strokeDasharray={c}
-        transform={`rotate(-90 ${cx} ${cx})`}
-        initial={{ strokeDashoffset: c }}
-        animate={{ strokeDashoffset: offset }}
-        transition={asTransition(springs.defaultSpatial)}
-      />
-      {/* Fixed stop indicator dot at the track end (12 o'clock) */}
-      <circle cx={cx} cy={cx - r} r={dotR} fill={stroke} />
-    </motion.svg>
+    </Progress.Root>
   );
 }
 

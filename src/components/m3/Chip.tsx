@@ -3,6 +3,8 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { Toggle } from "@base-ui-components/react/toggle";
+import { Button } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -36,6 +38,13 @@ export interface ChipProps {
  * M3 Chip — compact interactive elements: assist, filter (with the
  * animated leading check), input (with a cancel affordance) and
  * suggestion. Press squashes to 96% on the fast visual spring.
+ *
+ * Built on Base UI headless parts: selectable variants (filter / assist /
+ * suggestion — every variant whose public API carries `selected` +
+ * `onSelect`) render a Base UI `Toggle`, which owns `aria-pressed` and the
+ * pressed state; input chips are pure actions and render a Base UI
+ * `Button`. Both render through a `motion.button` so the M3 press squash
+ * and visuals are unchanged.
  */
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   {
@@ -57,32 +66,19 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip
   const isSelectable = variant === "filter" || variant === "assist" || variant === "suggestion";
   const showCheck = selected && (variant === "filter" || variant === "assist");
 
-  const handleClick = () => {
-    if (disabled) return;
-    if (isSelectable) onSelect?.(!selected);
-  };
+  const rootClassName = cn(
+    "m3-state m3-focus relative inline-flex select-none items-center gap-2 overflow-hidden rounded-full border px-4 md-label-large transition-[background-color,border-color,box-shadow] duration-150",
+    elevated && !selected
+      ? "m3-elevation-1 border-transparent bg-m3-surface-container-low text-m3-primary hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_2px_6px_2px_rgb(0_0_0/0.15)]"
+      : showCheck
+        ? "border-transparent bg-m3-secondary-container text-m3-on-secondary-container"
+        : "border-m3-outline bg-transparent text-m3-on-surface",
+    disabled && "pointer-events-none opacity-38",
+    className
+  );
 
-  return (
-    <motion.button
-      ref={ref}
-      type="button"
-      disabled={disabled}
-      onClick={handleClick}
-      whileTap={disabled ? undefined : { scale: 0.96 }}
-      transition={springs.fastVisual}
-      aria-pressed={isSelectable ? selected : undefined}
-      className={cn(
-        "m3-state m3-focus relative inline-flex select-none items-center gap-2 overflow-hidden rounded-full border px-4 md-label-large transition-[background-color,border-color,box-shadow] duration-150",
-        elevated && !selected
-          ? "m3-elevation-1 border-transparent bg-m3-surface-container-low text-m3-primary hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_2px_6px_2px_rgb(0_0_0/0.15)]"
-          : showCheck
-            ? "border-transparent bg-m3-secondary-container text-m3-on-secondary-container"
-            : "border-m3-outline bg-transparent text-m3-on-surface",
-        disabled && "pointer-events-none opacity-38",
-        className
-      )}
-      style={{ height: sizeHeights[size] }}
-    >
+  const content = (
+    <>
       <Ripple disabled={disabled} />
       <AnimatePresence initial={false} mode="wait">
         {showCheck ? (
@@ -113,6 +109,9 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip
       </AnimatePresence>
       <span className="truncate">{children}</span>
       {isInput && onRemove && (
+        // No Base UI primitive for a nested remove affordance inside a button
+        // in v1.0.0-rc.0 — custom implementation retained (a real <button>
+        // cannot be nested inside the chip's own <button>).
         <span
           role="button"
           tabIndex={disabled ? -1 : 0}
@@ -134,7 +133,42 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip
         </span>
       )}
       {!isInput && trailingIcon && <MaterialSymbol icon={trailingIcon} size={18} className="shrink-0" />}
-    </motion.button>
+    </>
+  );
+
+  const motionProps = {
+    whileTap: disabled ? undefined : ({ scale: 0.96 } as const),
+    transition: springs.fastVisual,
+  };
+
+  if (isInput) {
+    return (
+      <Button
+        ref={ref}
+        disabled={disabled}
+        className={rootClassName}
+        style={{ height: sizeHeights[size] }}
+        render={<motion.button {...motionProps} />}
+      >
+        {content}
+      </Button>
+    );
+  }
+
+  if (!isSelectable) return null;
+
+  return (
+    <Toggle
+      ref={ref}
+      pressed={selected}
+      onPressedChange={(nextPressed) => onSelect?.(nextPressed)}
+      disabled={disabled}
+      className={rootClassName}
+      style={{ height: sizeHeights[size] }}
+      render={<motion.button {...motionProps} />}
+    >
+      {content}
+    </Toggle>
   );
 });
 

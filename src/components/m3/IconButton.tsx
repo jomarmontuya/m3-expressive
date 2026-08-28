@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Button as BaseButton } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -53,8 +54,8 @@ const disabledStyles: Record<IconButtonVariant, string> = {
 
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
- * (motion-specific) signatures — spreading the DOM versions onto motion.button
- * would be a type conflict.
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
  */
 export interface IconButtonProps
   extends Omit<
@@ -74,8 +75,14 @@ export interface IconButtonProps
 
 /**
  * M3 Icon button — a compact pressable icon with a state layer and ripple.
- * When `toggleable`, the selected state recolors the icon to the primary
- * role (standard/outlined) and pops it in with the expressive spring.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type` default and disabled/focus handling (it guards click + pointer
+ * events while disabled); the `render` prop composes it with a framer-motion
+ * element so WE keep the visuals — press scale spring, M3 state layer and
+ * the selected pop. When `toggleable`, the selected state recolors the icon
+ * to the primary role (standard/outlined) and pops it in with the expressive
+ * spring (`aria-pressed` stays wired for assistive tech).
  */
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   {
@@ -110,13 +117,11 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
   );
 
   return (
-    <motion.button
+    <BaseButton
       ref={ref}
       type={type ?? "button"}
       disabled={disabled}
       onClick={handleClick}
-      whileTap={disabled ? undefined : { scale: 0.96 }}
-      transition={springs.fastVisual}
       aria-pressed={toggleable ? isSelected : undefined}
       className={cn(
         "m3-state m3-focus relative inline-flex select-none items-center justify-center rounded-full",
@@ -130,23 +135,26 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
       )}
       style={{ width: s.container, height: s.container }}
       {...props}
-    >
-      <Ripple disabled={disabled} />
-      {/* Keyed remount = spring scale pop whenever the selection flips */}
-      <motion.span
-        key={toggleable && isSelected ? "selected" : "unselected"}
-        initial={{ scale: toggleable && isSelected ? 0.6 : 1 }}
-        animate={{ scale: 1 }}
-        transition={springs.expressiveEffects}
-        className="inline-flex"
-      >
-        <MaterialSymbol
-          icon={icon}
-          size={s.icon}
-          fill={toggleable ? isSelected : variant === "filled"}
-        />
-      </motion.span>
-    </motion.button>
+      render={
+        <motion.button whileTap={disabled ? undefined : { scale: 0.96 }} transition={springs.fastVisual}>
+          <Ripple disabled={disabled} />
+          {/* Keyed remount = spring scale pop whenever the selection flips */}
+          <motion.span
+            key={toggleable && isSelected ? "selected" : "unselected"}
+            initial={{ scale: toggleable && isSelected ? 0.6 : 1 }}
+            animate={{ scale: 1 }}
+            transition={springs.expressiveEffects}
+            className="inline-flex"
+          >
+            <MaterialSymbol
+              icon={icon}
+              size={s.icon}
+              fill={toggleable ? isSelected : variant === "filled"}
+            />
+          </motion.span>
+        </motion.button>
+      }
+    />
   );
 });
 

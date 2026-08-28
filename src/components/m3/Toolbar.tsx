@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react";
+import { Toolbar as BaseToolbar } from "@base-ui-components/react/toolbar";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,14 @@ const colorStyles: Record<ToolbarColor, { container: string; icon: string; activ
  * M3 Expressive Toolbar — NEW in 2025. A compact pill of contextual actions.
  * Floating variant hovers over content (top/bottom, centered); dockable
  * variant morphs between a floating pill and a square, docked full-width bar.
+ *
+ * Built on the Base UI Toolbar primitive (imported as `BaseToolbar` because
+ * this module also exports a `Toolbar`): `Toolbar.Root` provides the
+ * `role="toolbar"` container with roving tabindex + arrow-key navigation, and
+ * each action is a `Toolbar.Button` that registers itself via context. The
+ * floating variant composes the entrance spring through Base UI's `render`
+ * prop so the bar keeps its framer-motion animation while still being the
+ * toolbar root (Base UI merges role/aria/handlers onto the motion element).
  */
 export function Toolbar({
   icons,
@@ -63,9 +72,8 @@ export function Toolbar({
   const c = colorStyles[color];
 
   const renderIconButton = (item: ToolbarIconItem, i: number) => (
-    <button
+    <BaseToolbar.Button
       key={`${item.icon}-${i}`}
-      type="button"
       aria-label={item.label ?? item.icon}
       title={item.label}
       aria-pressed={item.active || undefined}
@@ -78,13 +86,14 @@ export function Toolbar({
     >
       <Ripple />
       <MaterialSymbol icon={item.icon} size={24} fill={item.active} />
-    </button>
+    </BaseToolbar.Button>
   );
 
   if (variant === "dockable") {
     return (
       <div className={cn("w-full", className)}>
-        <div
+        {/* BaseToolbar.Root renders the bar <div> itself (role="toolbar") */}
+        <BaseToolbar.Root
           style={{
             width: !docked && !fullWidth ? width : undefined,
             transitionDuration: `${durations.medium2}ms`,
@@ -99,31 +108,37 @@ export function Toolbar({
           )}
         >
           {icons.map(renderIconButton)}
-        </div>
+        </BaseToolbar.Root>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: fullWidth ? 0 : "-50%", y: position === "bottom" ? 12 : -12, scale: 0.96 }}
-      animate={{ opacity: 1, x: fullWidth ? 0 : "-50%", y: 0, scale: 1 }}
-      transition={spring(springs.expressiveEffects)}
-      style={
-        fullWidth
-          ? { width: "calc(100% - 2rem)" }
-          : { width, transitionDuration: `${durations.medium2}ms`, transitionTimingFunction: easings.standard }
+    // render prop: the toolbar root *is* the animated pill — Base UI clones the
+    // motion.div with its toolbar props, framer-motion keeps the entrance spring.
+    <BaseToolbar.Root
+      render={
+        <motion.div
+          initial={{ opacity: 0, x: fullWidth ? 0 : "-50%", y: position === "bottom" ? 12 : -12, scale: 0.96 }}
+          animate={{ opacity: 1, x: fullWidth ? 0 : "-50%", y: 0, scale: 1 }}
+          transition={spring(springs.expressiveEffects)}
+          style={
+            fullWidth
+              ? { width: "calc(100% - 2rem)" }
+              : { width, transitionDuration: `${durations.medium2}ms`, transitionTimingFunction: easings.standard }
+          }
+          className={cn(
+            "m3-elevation-2 absolute flex items-center justify-center gap-1 rounded-full px-2 py-1",
+            position === "bottom" ? "bottom-4" : "top-4",
+            fullWidth ? "left-4" : "left-1/2",
+            c.container,
+            className
+          )}
+        />
       }
-      className={cn(
-        "m3-elevation-2 absolute flex items-center justify-center gap-1 rounded-full px-2 py-1",
-        position === "bottom" ? "bottom-4" : "top-4",
-        fullWidth ? "left-4" : "left-1/2",
-        c.container,
-        className
-      )}
     >
       {icons.map(renderIconButton)}
-    </motion.div>
+    </BaseToolbar.Root>
   );
 }
 

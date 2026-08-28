@@ -35,11 +35,14 @@ export interface NavigationRailProps {
   className?: string;
 }
 
+// No Base UI primitive for a vertical navigation rail in v1.0.0-rc.0 — custom
+// implementation retained.
 /**
  * M3 Navigation Rail — side navigation for medium/extended screens
  * (tablets, foldables). 80dp vertical bar with an optional header slot
  * (commonly a FAB); the active destination pill springs between items
- * via a shared layout transition (layoutId).
+ * via a shared layout transition (layoutId). The active destination
+ * button carries `aria-current="page"`.
  */
 export function NavigationRail({
   items,

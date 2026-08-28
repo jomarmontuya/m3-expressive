@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button as BaseButton } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs, durations, shapeMorph } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -66,6 +67,11 @@ const shapeStyles: Record<ButtonShape, string> = {
   small: "rounded-lg",
 };
 
+/**
+ * Button attributes minus the handlers framer-motion re-defines with its own
+ * (motion-specific) signatures — those DOM versions would conflict once they
+ * reach the motion element through Base UI's `render` composition.
+ */
 export interface ButtonProps
   extends Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -89,9 +95,15 @@ export interface ButtonProps
 
 /**
  * M3 Expressive Button.
- * Press morphs the corner shape (full → 20dp) with the bouncy expressive
- * spring — the hallmark M3E interaction. Plays for keyboard presses too
- * (Space/Enter), via the shared shapeMorph token pair.
+ *
+ * Layering: Base UI's headless `Button` owns the native <button> semantics,
+ * the `type="button"` default and disabled/focus handling (it guards click +
+ * pointer events while disabled); the `render` prop composes it with a
+ * framer-motion element so WE keep the visuals — press scale, the M3E shape
+ * morph, springs and the M3 state layer. Press morphs the corner shape
+ * (full → 20dp) with the bouncy expressive spring — the hallmark M3E
+ * interaction. Plays for keyboard presses too (Space/Enter), via the shared
+ * shapeMorph token pair.
  */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
@@ -134,9 +146,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   };
 
   return (
-    <motion.button
+    <BaseButton
       ref={ref}
-      type="button"
       disabled={isDisabled}
       aria-busy={loading || undefined}
       data-pressed={pressed || undefined}
@@ -146,13 +157,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onBlur={handleBlur}
-      whileTap={isDisabled ? undefined : { scale: 0.96 }}
-      animate={
-        morphs
-          ? { borderRadius: pressed ? shapeMorph.button.pressed : shapeMorph.button.rest }
-          : undefined
-      }
-      transition={{ scale: springs.fastVisual, borderRadius: springs.expressiveEffects }}
       className={cn(
         "m3-state m3-focus relative inline-flex select-none items-center justify-center",
         "transition-colors duration-150",
@@ -170,38 +174,49 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
         gap: s.gap,
       }}
       {...props}
-    >
-      <Ripple />
-      <AnimatePresence initial={false}>
-        {loading && (
-          <motion.span
-            key="spinner"
-            initial={{ width: 0, opacity: 0, marginRight: 0 }}
-            animate={{ width: s.iconSize, opacity: 1, marginRight: parseInt(s.gap) }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={springs.fastSpatial}
-            className="inline-flex items-center overflow-hidden"
-          >
-            {/* Tokenized 1s linear rotation (durations.extraLong4) — the loading
-                indicator replaces the leading icon per the Material pattern */}
-            <motion.span
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, ease: "linear", duration: durations.extraLong4 / 1000 }}
-              className="inline-flex"
-            >
-              <MaterialSymbol icon="progress_activity" size={s.iconSize} />
-            </motion.span>
-          </motion.span>
-        )}
-      </AnimatePresence>
-      {!loading && icon && (
-        <MaterialSymbol icon={icon} size={s.iconSize} fill={variant === "filled"} />
-      )}
-      {children}
-      {trailingIcon && (
-        <MaterialSymbol icon={trailingIcon} size={s.iconSize} fill={variant === "filled"} />
-      )}
-    </motion.button>
+      render={
+        <motion.button
+          whileTap={isDisabled ? undefined : { scale: 0.96 }}
+          animate={
+            morphs
+              ? { borderRadius: pressed ? shapeMorph.button.pressed : shapeMorph.button.rest }
+              : undefined
+          }
+          transition={{ scale: springs.fastVisual, borderRadius: springs.expressiveEffects }}
+        >
+          <Ripple />
+          <AnimatePresence initial={false}>
+            {loading && (
+              <motion.span
+                key="spinner"
+                initial={{ width: 0, opacity: 0, marginRight: 0 }}
+                animate={{ width: s.iconSize, opacity: 1, marginRight: parseInt(s.gap) }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={springs.fastSpatial}
+                className="inline-flex items-center overflow-hidden"
+              >
+                {/* Tokenized 1s linear rotation (durations.extraLong4) — the loading
+                    indicator replaces the leading icon per the Material pattern */}
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, ease: "linear", duration: durations.extraLong4 / 1000 }}
+                  className="inline-flex"
+                >
+                  <MaterialSymbol icon="progress_activity" size={s.iconSize} />
+                </motion.span>
+              </motion.span>
+            )}
+          </AnimatePresence>
+          {!loading && icon && (
+            <MaterialSymbol icon={icon} size={s.iconSize} fill={variant === "filled"} />
+          )}
+          {children}
+          {trailingIcon && (
+            <MaterialSymbol icon={trailingIcon} size={s.iconSize} fill={variant === "filled"} />
+          )}
+        </motion.button>
+      }
+    />
   );
 });
 

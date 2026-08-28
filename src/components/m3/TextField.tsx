@@ -3,6 +3,8 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { Field } from "@base-ui-components/react/field";
+import { Input } from "@base-ui-components/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
@@ -37,6 +39,16 @@ export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInput
  * M3 Text field — outlined (default) and filled containers with the
  * floating label animation (label docks into the outlined border gap
  * or rises inside the filled container, on the fast spatial spring).
+ *
+ * Built on Base UI `Field` + `Input` (v1.0.0-rc.0): `Field.Root` owns the
+ * disabled/invalid state and wires `aria-labelledby` (label), `aria-invalid`
+ * and `aria-describedby` (supporting text) onto the input for free. The
+ * floating motion label is rendered through `Field.Label`'s `render` prop so
+ * the label↔control association stays automatic while the M3E dock/rise
+ * animation stays ours. `Field.Error` is intentionally unused: M3 recolors
+ * the supporting text in the error state instead of swapping in a distinct
+ * error message, so `helperText` always maps to `Field.Description` and the
+ * error state flows through `Field.Root`'s `invalid` prop.
  */
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   {
@@ -63,9 +75,6 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
   ref
 ) {
   const [focused, setFocused] = React.useState(false);
-  const autoId = React.useId();
-  const inputId = id ?? `m3-tf-${autoId.replace(/:/g, "")}`;
-  const helperId = helperText ? `${inputId}-helper` : undefined;
 
   const hasValue = value != null && String(value).length > 0;
   const floated = focused || hasValue;
@@ -79,7 +88,11 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
   const showPlaceholder = placeholder != null && (!label || floated);
 
   return (
-    <div className={cn("relative", fullWidth && "w-full", className)}>
+    <Field.Root
+      invalid={error || undefined}
+      disabled={disabled}
+      className={cn("relative", fullWidth && "w-full", className)}
+    >
       <div
         className={cn(
           "group/field relative flex items-center transition-[border-color,box-shadow] duration-150",
@@ -110,17 +123,14 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
             )}
           />
         )}
-        <input
+        <Input
           ref={ref}
-          id={inputId}
+          id={id}
           type={type}
           value={value}
           onChange={onChange}
-          disabled={disabled}
           required={required}
           placeholder={showPlaceholder ? placeholder : undefined}
-          aria-invalid={error || undefined}
-          aria-describedby={helperId}
           onFocus={(e) => {
             setFocused(true);
             onFocus?.(e);
@@ -175,46 +185,52 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
           </>
         )}
         {label && (
-          <motion.label
-            htmlFor={inputId}
-            className={cn(
-              "pointer-events-none absolute z-[1]",
-              variant === "outlined" ? "bg-m3-surface px-1" : "px-0",
-              disabled && "opacity-38",
-              floated ? "md-body-small" : labelRestClass,
-              error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
-            )}
-            initial={false}
-            animate={{
-              top: variant === "outlined" ? (floated ? -8 : centerY - labelRestHalf) : floated ? 8 : centerY - labelRestHalf,
-              left: variant === "outlined"
-                ? floated
-                  ? leadingIcon
-                    ? 40
-                    : 12
-                  : leadingIcon
-                    ? 48
-                    : 16
-                : leadingIcon
-                  ? 48
-                  : 16,
-            }}
-            transition={springs.fastSpatial}
-          >
-            {label}
-            {required && <span className="text-m3-error"> *</span>}
-          </motion.label>
+          <Field.Label
+            render={
+              <motion.label
+                className={cn(
+                  "pointer-events-none absolute z-[1]",
+                  variant === "outlined" ? "bg-m3-surface px-1" : "px-0",
+                  disabled && "opacity-38",
+                  floated ? "md-body-small" : labelRestClass,
+                  error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
+                )}
+                initial={false}
+                animate={{
+                  top: variant === "outlined" ? (floated ? -8 : centerY - labelRestHalf) : floated ? 8 : centerY - labelRestHalf,
+                  left: variant === "outlined"
+                    ? floated
+                      ? leadingIcon
+                        ? 40
+                        : 12
+                      : leadingIcon
+                        ? 48
+                        : 16
+                    : leadingIcon
+                      ? 48
+                      : 16,
+                }}
+                transition={springs.fastSpatial}
+              >
+                {label}
+                {required && <span className="text-m3-error"> *</span>}
+              </motion.label>
+            }
+          />
         )}
       </div>
       {helperText && (
-        <div
-          id={helperId}
-          className={cn("mt-1 px-4 md-body-small", disabled && "opacity-38", error ? "text-m3-error" : "text-m3-on-surface-variant")}
+        <Field.Description
+          className={cn(
+            "mt-1 px-4 md-body-small",
+            disabled && "opacity-38",
+            error ? "text-m3-error" : "text-m3-on-surface-variant"
+          )}
         >
           {helperText}
-        </div>
+        </Field.Description>
       )}
-    </div>
+    </Field.Root>
   );
 });
 

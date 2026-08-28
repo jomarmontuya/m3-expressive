@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from "react";
+import { Toolbar } from "@base-ui-components/react/toolbar";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -39,26 +40,51 @@ const heights: Record<TopAppBarVariant, number> = {
   large: 152,
 };
 
-function AppBarIconButton({ icon, label, onClick }: { icon: string; label?: string; onClick?: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-label={label ?? icon}
-      title={label}
-      onClick={onClick}
-      className="m3-state relative flex h-11 w-11 items-center justify-center rounded-full text-m3-on-surface-variant"
-  >
+function AppBarIconButton({
+  icon,
+  label,
+  onClick,
+  toolbar = false,
+}: {
+  icon: string;
+  label?: string;
+  onClick?: () => void;
+  /** Render as a Base UI Toolbar.Button so the button joins the actions-row roving-tabindex group. */
+  toolbar?: boolean;
+}) {
+  const classes =
+    "m3-state relative flex h-11 w-11 items-center justify-center rounded-full text-m3-on-surface-variant";
+  const content = (
+    <>
       <Ripple />
       <MaterialSymbol icon={icon} size={24} />
+    </>
+  );
+  if (toolbar) {
+    return (
+      <Toolbar.Button aria-label={label ?? icon} title={label} onClick={onClick} className={classes}>
+        {content}
+      </Toolbar.Button>
+    );
+  }
+  return (
+    <button type="button" aria-label={label ?? icon} title={label} onClick={onClick} className={classes}>
+      {content}
     </button>
   );
 }
 
+// No Base UI app-bar primitive — layout retained; optional Toolbar semantics on the actions row.
 /**
  * M3 Top App Bar — all four official variants (small, center-aligned,
  * medium flexible, large flexible). On scroll, the bar gains a surface
  * container background + elevation; medium/large titles collapse from the
  * big bottom position into the 64dp top row with a spring height animation.
+ *
+ * The scroll/elevation/collapse behavior is app-bar specific and stays custom.
+ * The actions row is wrapped in a Base UI Toolbar.Root (its buttons are
+ * Toolbar.Buttons) purely for roving-tabindex + arrow-key semantics; the
+ * leading back button sits outside that toolbar and stays a plain button.
  */
 export function TopAppBar({
   title,
@@ -87,13 +113,19 @@ export function TopAppBar({
   // M3 on-scroll behavior: a surface-container color fill separates the bar
   // from content. No shadow — the elevation shadow is the old M2 treatment.
   const barState = scrolled ? "bg-m3-surface-container" : "bg-m3-surface";
-  const actionsRow = (
-    <div className="ml-auto flex items-center gap-1">
-      {actions.map((action, i) => (
-        <AppBarIconButton key={`${action.icon}-${i}`} icon={action.icon} label={action.label} onClick={action.onClick} />
-      ))}
-    </div>
-  );
+  const actionsRow =
+    actions.length > 0 ? (
+      // Base UI Toolbar: roving tabindex + arrow keys across the action buttons.
+      // Renders the same <div> as before, plus role="toolbar"/aria-orientation.
+      // (Empty `actions` keeps the original plain spacer div — no empty toolbar.)
+      <Toolbar.Root className="ml-auto flex items-center gap-1">
+        {actions.map((action, i) => (
+          <AppBarIconButton key={`${action.icon}-${i}`} toolbar icon={action.icon} label={action.label} onClick={action.onClick} />
+        ))}
+      </Toolbar.Root>
+    ) : (
+      <div className="ml-auto flex items-center gap-1" />
+    );
 
   if (!isFlexible) {
     return (

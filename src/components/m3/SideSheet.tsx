@@ -2,6 +2,12 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
+import {
+  Dialog as BaseDialog,
+  type DialogRootActions,
+  type DialogRootChangeEventDetails,
+} from "@base-ui-components/react/dialog";
 import { cn } from "@/lib/utils";
 import { springs, durations } from "@/lib/m3/tokens";
 
@@ -23,9 +29,6 @@ export interface SideSheetProps {
   className?: string;
 }
 
-const FOCUSABLE =
-  'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-
 /**
  * M3 Side Sheet — a secondary surface anchored to the left or right edge
  * with the official 16dp radius on the inner (docked) edge only — the
@@ -35,6 +38,13 @@ const FOCUSABLE =
  * trigger on close; standard sheets render inline as a persistent
  * surface-toned panel with no scrim. Content padding is 24dp with 12dp
  * between top elements.
+ *
+ * The modal variant is built on Base UI's headless Dialog: Root owns the
+ * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
+ * Backdrop is the scrim; Popup is the sheet — kept mounted while the
+ * framer-motion slide exit plays via `preventUnmountOnClose` +
+ * `actionsRef.unmount`. (No Base UI primitive for docked side surfaces
+ * exists in v1.0.0-rc.0; the standard variant stays a custom panel.)
  */
 export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(function SideSheet(
   {
@@ -52,55 +62,15 @@ export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(functi
 ) {
   const isModal = variant === "modal";
   const isRight = side === "right";
-  const panelRef = React.useRef<HTMLDivElement | null>(null);
-  const restoreFocusRef = React.useRef<HTMLElement | null>(null);
+  const actionsRef = React.useRef<DialogRootActions>({ unmount() {}, close() {} });
 
-  React.useEffect(() => {
-    if (!isModal || !open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [isModal, open, onClose]);
-
-  // Move focus into the sheet on open; return it to the trigger on close.
-  React.useEffect(() => {
-    if (!isModal || !open) return;
-    restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    const timer = window.setTimeout(() => panelRef.current?.focus(), 0);
-    return () => {
-      window.clearTimeout(timer);
-      restoreFocusRef.current?.focus?.();
-    };
-  }, [isModal, open]);
-
-  // Trap Tab focus inside the modal sheet surface.
-  const handleTab = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "Tab" || !panelRef.current) return;
-    const focusables = Array.from(
-      panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-    ).filter((el) => !el.hasAttribute("disabled"));
-    if (focusables.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement;
-    if (e.shiftKey && (active === first || active === panelRef.current)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
+      if (!nextOpen) eventDetails.preventUnmountOnClose();
+      onClose();
+    },
+    [onClose]
+  );
 
   // Official: 24dp start/end padding, 12dp between top elements
   const header = title ? (
@@ -136,43 +106,44 @@ export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(functi
     );
   }
 
+  const scrimMotion: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: durations.short4 / 1000, ease: "easeOut" },
+  };
+  const sheetMotion: HTMLMotionProps<"div"> = {
+    initial: isRight ? { x: "100%" } : { x: "-100%" },
+    animate: { x: 0 },
+    exit: isRight ? { x: "100%" } : { x: "-100%" },
+    transition: springs.defaultSpatial,
+  };
+
   return (
-    <AnimatePresence>
-      {open && (
-        <div ref={ref} className="fixed inset-0 z-[85]">
-          <motion.div
-            className="absolute inset-0 bg-m3-scrim/32"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: durations.short4 / 1000, ease: "easeOut" }}
-            onClick={onClose}
-          />
-          <motion.div
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label={title}
-            tabIndex={-1}
-            onKeyDown={handleTab}
-            className={cn(
-              "absolute top-0 flex h-full max-w-[400px] flex-col bg-m3-surface-container-low p-6 outline-none m3-elevation-1",
-              isRight ? "right-0 rounded-l-[16px]" : "left-0 rounded-r-[16px]",
-              className
-            )}
-            style={{ width: Math.min(width, 400) }}
-            initial={isRight ? { x: "100%" } : { x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={isRight ? { x: "100%" } : { x: "-100%" }}
-            transition={springs.defaultSpatial}
-          >
-            {header}
-            {contentEl}
-            {footerEl}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <BaseDialog.Root open={open} onOpenChange={handleOpenChange} actionsRef={actionsRef} modal>
+      <AnimatePresence onExitComplete={() => actionsRef.current?.unmount()}>
+        {open && (
+          <BaseDialog.Portal>
+            <BaseDialog.Backdrop render={<motion.div {...scrimMotion} />} className="fixed inset-0 z-[85] bg-m3-scrim/32" />
+            <BaseDialog.Popup
+              aria-label={title}
+              ref={ref}
+              render={<motion.div {...sheetMotion} />}
+              className={cn(
+                "fixed top-0 z-[85] flex h-full max-w-[400px] flex-col bg-m3-surface-container-low p-6 outline-none m3-elevation-1",
+                isRight ? "right-0 rounded-l-[16px]" : "left-0 rounded-r-[16px]",
+                className
+              )}
+              style={{ width: Math.min(width, 400) }}
+            >
+              {header}
+              {contentEl}
+              {footerEl}
+            </BaseDialog.Popup>
+          </BaseDialog.Portal>
+        )}
+      </AnimatePresence>
+    </BaseDialog.Root>
   );
 });
 

@@ -29,11 +29,17 @@ export interface NavigationBarProps {
   className?: string;
 }
 
+// No Base UI primitive for a bottom navigation bar in v1.0.0-rc.0 — custom
+// implementation retained. (Base UI's `navigation-menu` is a popup/menu
+// primitive, NOT a bottom nav — it is deliberately not used here.)
 /**
  * M3 Navigation Bar — primary app navigation for small screens.
  * Fixed 80dp bar; the active destination gets a tonal pill that springs
  * between icons via a shared layout transition (layoutId).
- * Accepts 3–5 destinations.
+ * Accepts 3–5 destinations. The active destination button carries
+ * `aria-current="page"`; Base UI has no primitive for this pattern, so the
+ * roving/tab behavior stays intentionally simple (every destination is
+ * tabbable) which suits a 3–5 item bar.
  */
 export function NavigationBar({
   items,

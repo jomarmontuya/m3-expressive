@@ -29,6 +29,8 @@ export interface LoadingIndicatorProps {
 }
 
 /**
+ * No Base UI primitive for the expressive loading indicator in v1.0.0-rc.0 — custom implementation retained.
+ *
  * M3 EXPRESSIVE Loading indicator (2025) — the signature shape-morphing loader.
  * The container rotates continuously one full turn (official 4666ms global
  * rotation) while its corner shape morphs in 650ms steps, with two dashed

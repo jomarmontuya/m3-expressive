@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
+import { Button as BaseButton } from "@base-ui-components/react/button";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -59,6 +60,13 @@ export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
  * signature M3E variable-width treatment where the hovered segment grows.
  * The 40dp small size exposes an expanded 48dp touch target via an
  * invisible ::before hit-area extension.
+ *
+ * No Base UI primitive for a connected button group in v1.0.0-rc.0 — custom
+ * container retained. The container stays a plain semantic group
+ * (`role="group"`; `aria-label` reaches it through the `...props` spread).
+ * Each segment is our M3 Button layer (Base UI `Button` + framer-motion
+ * `render` composition), so segments inherit the same native-<button>
+ * disabled/focus handling as the standalone buttons.
  */
 export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(function ButtonGroup(
   {
@@ -111,28 +119,14 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(fu
         const isHot = variableWidths && !disabled && (hoveredId === btn.id || isSelected);
 
         return (
-          <motion.button
+          <BaseButton
             key={btn.id}
-            type="button"
             disabled={disabled}
             aria-pressed={selection !== "none" ? isSelected : undefined}
             onClick={() => {
               toggle(btn.id);
               btn.onClick?.();
             }}
-            onHoverStart={variableWidths ? () => setHoveredId(btn.id) : undefined}
-            onHoverEnd={
-              variableWidths
-                ? () => setHoveredId((cur) => (cur === btn.id ? null : cur))
-                : undefined
-            }
-            whileTap={disabled ? undefined : { scale: 0.96 }}
-            animate={variableWidths ? { flexGrow: isHot ? 1.4 : 1 } : undefined}
-            transition={
-              variableWidths
-                ? { scale: springs.fastVisual, flexGrow: springs.defaultSpatial }
-                : springs.fastVisual
-            }
             className={cn(
               "m3-state m3-focus relative inline-flex select-none items-center justify-center gap-2 rounded-full md-label-large",
               "transition-colors duration-150",
@@ -143,11 +137,28 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(fu
               disabled && "pointer-events-none"
             )}
             style={variableWidths ? { height: s.height, flexBasis: 0, minWidth: 0 } : { height: s.height }}
-          >
-            <Ripple disabled={disabled} />
-            {btn.icon && <MaterialSymbol icon={btn.icon} size={s.icon} />}
-            {btn.label}
-          </motion.button>
+            render={
+              <motion.button
+                onHoverStart={variableWidths ? () => setHoveredId(btn.id) : undefined}
+                onHoverEnd={
+                  variableWidths
+                    ? () => setHoveredId((cur) => (cur === btn.id ? null : cur))
+                    : undefined
+                }
+                whileTap={disabled ? undefined : { scale: 0.96 }}
+                animate={variableWidths ? { flexGrow: isHot ? 1.4 : 1 } : undefined}
+                transition={
+                  variableWidths
+                    ? { scale: springs.fastVisual, flexGrow: springs.defaultSpatial }
+                    : springs.fastVisual
+                }
+              >
+                <Ripple disabled={disabled} />
+                {btn.icon && <MaterialSymbol icon={btn.icon} size={s.icon} />}
+                {btn.label}
+              </motion.button>
+            }
+          />
         );
       })}
     </div>

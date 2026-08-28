@@ -3,6 +3,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { Switch as BaseSwitch } from "@base-ui-components/react/switch";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { MaterialSymbol } from "./MaterialSymbol";
@@ -21,6 +22,11 @@ export interface SwitchProps {
  * M3 Switch — 52×32 track with a thumb that grows 16 → 24px and slides
  * on the default spatial spring. Pressing squashes the thumb to 28px.
  * The checked thumb shows an on-primary "check" glyph.
+ *
+ * Built on Base UI's headless Switch Root + Thumb: the Root owns the
+ * `role="switch"`, `aria-checked`, hidden form input and keyboard
+ * activation (adapted to our public `checked`/`onCheckedChange` API); the
+ * M3 thumb + track visuals and spring motion are unchanged.
  */
 export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
   { checked = false, onCheckedChange, disabled = false, className },
@@ -33,13 +39,12 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
   const thumbX = checked ? (pressed ? 20 : 24) : 4;
 
   return (
-    <motion.button
+    <BaseSwitch.Root
       ref={ref}
-      type="button"
-      role="switch"
-      aria-checked={checked}
+      checked={checked}
       disabled={disabled}
-      onClick={() => onCheckedChange?.(!checked)}
+      nativeButton
+      onCheckedChange={(nextChecked) => onCheckedChange?.(nextChecked)}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}
@@ -51,15 +56,20 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
         disabled && "pointer-events-none opacity-38",
         className
       )}
+      render={<button />}
     >
-      <motion.span
+      <BaseSwitch.Thumb
         className={cn(
           "absolute left-0 top-1/2 grid place-items-center rounded-full shadow-[0_1px_3px_1px_rgba(0,0,0,0.15)] transition-colors duration-150",
           checked ? "bg-m3-on-primary" : "bg-m3-outline"
         )}
-        initial={false}
-        animate={{ x: thumbX, y: "-50%", width: thumbSize, height: thumbSize }}
-        transition={springs.defaultSpatial}
+        render={
+          <motion.span
+            initial={false}
+            animate={{ x: thumbX, y: "-50%", width: thumbSize, height: thumbSize }}
+            transition={springs.defaultSpatial}
+          />
+        }
       >
         <AnimatePresence initial={false}>
           {checked && (
@@ -75,8 +85,8 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
             </motion.span>
           )}
         </AnimatePresence>
-      </motion.span>
-    </motion.button>
+      </BaseSwitch.Thumb>
+    </BaseSwitch.Root>
   );
 });
 

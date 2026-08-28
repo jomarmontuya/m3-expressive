@@ -2,6 +2,12 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { HTMLMotionProps } from "framer-motion";
+import {
+  Menu as BaseMenu,
+  type MenuRootActions,
+  type MenuRootChangeEventDetails,
+} from "@base-ui-components/react/menu";
 import { cn } from "@/lib/utils";
 import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -49,150 +55,117 @@ export interface SplitButtonProps {
  * M3 Expressive Split button — two joined pill segments: the left one fires
  * the default action, the right one opens a dropdown of related actions.
  * The menu is a standard M3 menu surface: 4dp corners, elevation 2,
- * 48dp menu items with Arrow/Home/End keyboard navigation.
+ * 48dp menu items.
+ *
+ * Built on Base UI's headless Menu: the dropdown segment is a Menu.Trigger
+ * (aria-haspopup/expanded + ArrowDown keyboard open), and the popup owns
+ * roving focus, Arrow/Home/End navigation, typeahead, outside-press and
+ * Escape dismissal with focus restore. The joined pill, press squash and
+ * rotating chevron stay ours. The menu is kept mounted while the exit
+ * spring plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
 export const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(function SplitButton(
   { label, onClick, items, variant = "filled", size = "md", disabled = false, className },
   ref
 ) {
   const [open, setOpen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const menuRef = React.useRef<HTMLDivElement | null>(null);
   const s = sizeStyles[size];
 
-  // Close on outside click + Escape while open
-  React.useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
-  const setRefs = React.useCallback(
-    (node: HTMLDivElement | null) => {
-      containerRef.current = node;
-      if (typeof ref === "function") ref(node);
-      else if (ref) ref.current = node;
+  // Keep the menu mounted while the framer-motion exit plays, then unmount.
+  const actionsRef = React.useRef<MenuRootActions>({ unmount() {} });
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean, eventDetails: MenuRootChangeEventDetails) => {
+      if (!nextOpen) eventDetails.preventUnmountOnClose();
+      setOpen(nextOpen);
     },
-    [ref]
+    []
   );
 
-  /** Arrow/Home/End navigation between menu items (M3 menu keyboard spec). */
-  const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const menuItems = Array.from(
-      menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []
-    );
-    if (menuItems.length === 0) return;
-    const currentIndex = menuItems.indexOf(document.activeElement as HTMLButtonElement);
-    let nextIndex: number | null = null;
-    if (e.key === "ArrowDown") nextIndex = currentIndex < 0 ? 0 : Math.min(currentIndex + 1, menuItems.length - 1);
-    else if (e.key === "ArrowUp") nextIndex = currentIndex < 0 ? menuItems.length - 1 : Math.max(currentIndex - 1, 0);
-    else if (e.key === "Home") nextIndex = 0;
-    else if (e.key === "End") nextIndex = menuItems.length - 1;
-    if (nextIndex !== null) {
-      e.preventDefault();
-      menuItems[nextIndex]?.focus();
-    }
+  const popupMotion: HTMLMotionProps<"div"> = {
+    initial: { opacity: 0, scale: 0.92, y: -6 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.95, y: -6 },
+    transition: springs.fastSpatial,
+    style: { transformOrigin: "top left" },
   };
 
   return (
-    <div ref={setRefs} className={cn("relative inline-flex", className)}>
-      <motion.div
-        whileTap={disabled ? undefined : { scale: 0.96 }}
-        transition={springs.fastVisual}
-        className={cn(
-          "inline-flex items-stretch rounded-full",
-          "transition-colors duration-150",
-          disabled ? disabledStyles[variant] : variantStyles[variant],
-          disabled && "pointer-events-none"
-        )}
-      >
-        {/* Action segment */}
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={onClick}
+    <BaseMenu.Root open={open} onOpenChange={handleOpenChange} actionsRef={actionsRef} disabled={disabled}>
+      <div ref={ref} className={cn("relative inline-flex", className)}>
+        <motion.div
+          whileTap={disabled ? undefined : { scale: 0.96 }}
+          transition={springs.fastVisual}
           className={cn(
-            "m3-state m3-focus relative inline-flex select-none items-center justify-center rounded-l-full md-label-large",
-            "focus-visible:z-10"
+            "inline-flex items-stretch rounded-full",
+            "transition-colors duration-150",
+            disabled ? disabledStyles[variant] : variantStyles[variant],
+            disabled && "pointer-events-none"
           )}
-          style={{ height: s.height, padding: s.padding }}
         >
-          <Ripple disabled={disabled} />
-          {label}
-        </button>
-
-        {/* Divider */}
-        <div aria-hidden="true" className="w-px self-stretch bg-current opacity-20" />
-
-        {/* Dropdown trigger segment */}
-        <button
-          type="button"
-          disabled={disabled}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          aria-label={`More actions for ${label}`}
-          onClick={() => setOpen((o) => !o)}
-          className="m3-state m3-focus relative inline-flex w-10 select-none items-center justify-center rounded-r-full focus-visible:z-10"
-        >
-          <Ripple disabled={disabled} />
-          <motion.span
-            animate={{ rotate: open ? 180 : 0 }}
-            transition={springs.fastSpatial}
-            className="inline-flex"
+          {/* Action segment */}
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            className={cn(
+              "m3-state m3-focus relative inline-flex select-none items-center justify-center rounded-l-full md-label-large",
+              "focus-visible:z-10"
+            )}
+            style={{ height: s.height, padding: s.padding }}
           >
-            <MaterialSymbol icon="arrow_drop_down" size={s.icon} />
-          </motion.span>
-        </button>
-      </motion.div>
+            <Ripple disabled={disabled} />
+            {label}
+          </button>
 
-      {/* Dropdown menu (rendered outside the clipped pill) */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            ref={menuRef}
-            role="menu"
-            aria-label={`${label} actions`}
-            initial={{ opacity: 0, scale: 0.92, y: -6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -6 }}
-            transition={springs.fastSpatial}
-            onKeyDown={handleMenuKeyDown}
-            style={{ transformOrigin: "top left", borderRadius: 4 }}
-            className="m3-elevation-2 absolute left-0 top-full z-20 mt-2 min-w-[220px] overflow-hidden bg-m3-surface-container"
+          {/* Divider */}
+          <div aria-hidden="true" className="w-px self-stretch bg-current opacity-20" />
+
+          {/* Dropdown trigger segment — Base UI owns the menu semantics */}
+          <BaseMenu.Trigger
+            disabled={disabled}
+            aria-label={`More actions for ${label}`}
+            className="m3-state m3-focus relative inline-flex w-10 cursor-pointer select-none items-center justify-center rounded-r-full outline-none focus-visible:z-10"
           >
-            {items.map((item, i) => (
-              <button
-                key={`${item.label}-${i}`}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  item.onClick?.();
-                  setOpen(false);
-                }}
-                className="m3-state m3-focus flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left text-m3-on-surface md-label-large"
-              >
-                {item.icon && (
-                  <MaterialSymbol icon={item.icon} size={20} className="text-m3-on-surface-variant" />
-                )}
-                {item.label}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            <Ripple disabled={disabled} />
+            <motion.span
+              animate={{ rotate: open ? 180 : 0 }}
+              transition={springs.fastSpatial}
+              className="inline-flex"
+            >
+              <MaterialSymbol icon="arrow_drop_down" size={s.icon} />
+            </motion.span>
+          </BaseMenu.Trigger>
+        </motion.div>
+
+        {/* Dropdown menu (rendered outside the clipped pill) */}
+        <AnimatePresence onExitComplete={() => actionsRef.current?.unmount()}>
+          {open && (
+            <BaseMenu.Portal>
+              <BaseMenu.Positioner side="bottom" align="start" sideOffset={8} className="z-20 outline-none">
+                <BaseMenu.Popup
+                  aria-label={`${label} actions`}
+                  render={<motion.div {...popupMotion} />}
+                  className="m3-elevation-2 min-w-[220px] overflow-hidden rounded-[4px] bg-m3-surface-container py-2 outline-none"
+                >
+                  {items.map((item, i) => (
+                    <BaseMenu.Item
+                      key={`${item.label}-${i}`}
+                      onClick={() => item.onClick?.()}
+                      className="m3-state m3-focus flex min-h-12 w-full cursor-pointer list-none items-center gap-3 px-4 py-2 text-left text-m3-on-surface outline-none md-label-large"
+                    >
+                      {item.icon && (
+                        <MaterialSymbol icon={item.icon} size={20} className="text-m3-on-surface-variant" />
+                      )}
+                      {item.label}
+                    </BaseMenu.Item>
+                  ))}
+                </BaseMenu.Popup>
+              </BaseMenu.Positioner>
+            </BaseMenu.Portal>
+          )}
+        </AnimatePresence>
+      </div>
+    </BaseMenu.Root>
   );
 });
 

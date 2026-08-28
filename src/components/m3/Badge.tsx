@@ -33,6 +33,10 @@ export interface BadgeProps {
 }
 
 /**
+ * No Base UI primitive for badge in v1.0.0-rc.0 — custom implementation retained.
+ * (Base UI added `badge` only after 1.0.0-rc.0 — it is absent from the installed
+ * package's exports — and our anchored/count/dot API is richer anyway.)
+ *
  * M3 Badge — a small status marker for another element.
  * With `children` it pins to the anchor's top-right corner using the official
  * offsets (content badge overhangs 4px right / 2px top; the 6px dot sits flush

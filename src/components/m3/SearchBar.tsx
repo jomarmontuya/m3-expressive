@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { Input } from "@base-ui-components/react/input";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -34,6 +35,13 @@ export interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInput
 /**
  * M3 Search bar — a rounded-full pill that elevates and lightens its
  * surface when focused. Enter triggers `onSubmit`.
+ *
+ * The underlying element is Base UI's `Input` (v1.0.0-rc.0), which renders a
+ * native `<input>` (via Field.Control) and stays composable with `Field`
+ * wrappers. It is used standalone here because the M3 search bar carries no
+ * visible label — `aria-label` falls back to the placeholder, exactly as
+ * before. The elevated pill shell, focus elevation and trailing icon
+ * buttons remain custom M3 visuals.
  */
 export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
   {
@@ -68,7 +76,7 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
         {leadingIcon && (
           <MaterialSymbol icon={leadingIcon} size={24} className="ml-4 shrink-0 text-m3-on-surface-variant" />
         )}
-        <input
+        <Input
           ref={ref}
           type="text"
           role="searchbox"

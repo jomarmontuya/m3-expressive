@@ -1,14 +1,9 @@
 "use client";
 
-import * as React from "react";
+import { Progress } from "@base-ui-components/react/progress";
 import { motion } from "framer-motion";
-import type { Transition } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { springs, durations, colorVar } from "@/lib/m3/tokens";
-import type { M3Spring } from "@/lib/m3/tokens";
-
-/** tokens.ts `satisfies` widens spring `type` to string; narrow for framer-motion. */
-const asTransition = (s: M3Spring): Transition => s as Transition;
+import { durations, easings, colorVar } from "@/lib/m3/tokens";
 
 export type LinearProgressColor = "primary" | "secondary" | "tertiary" | "error";
 
@@ -80,8 +75,13 @@ function PulsingWave({ stroke, slideDuration }: { stroke: string; slideDuration:
 
 /**
  * M3 Linear progress indicator — flat (baseline) or Expressive wavy.
- * Determinate mode animates the active indicator with a spring and leaves a
- * 4px gap before the trailing stop indicator dot, per the M3E spec.
+ * Semantics come from Base UI's Progress parts: `Root` renders the
+ * `role="progressbar"` element (aria-valuenow/min/max + a valuetext, and
+ * `data-indeterminate`/`data-progressing`/`data-complete` state attributes),
+ * `Track` is the visible rail and `Indicator` is the value-sliced bar (Base UI
+ * applies `inset-inline-start: 0` + the percentage `width` inline when
+ * determinate, and nothing while indeterminate). All M3 visuals stay ours via
+ * className; no buffer/range styling exists in the M3 spec or the current API.
  */
 export function LinearProgress({
   value,
@@ -98,33 +98,49 @@ export function LinearProgress({
   const slide = durations.extraLong2 / 1000;
 
   return (
-    <div
-      role="progressbar"
-      aria-valuemin={determinate ? 0 : undefined}
-      aria-valuemax={determinate ? 100 : undefined}
-      aria-valuenow={determinate ? Math.round(v) : undefined}
+    <Progress.Root
+      value={determinate ? v : null}
       aria-label={label ?? "Loading"}
+      /* Locale-independent valuetext — Base UI's Intl-percent default (e.g.
+         "42 %" in fr-FR) would drift between SSR and non-English browsers. */
+      getAriaValueText={(_formatted, val) =>
+        val == null ? "indeterminate progress" : `${Math.round(val)}%`
+      }
       className={cn("flex flex-col gap-1", fullWidth && "w-full", className)}
     >
       {(label || determinate) && (
         <div className="flex items-center justify-between">
-          {label && <span className="md-label-medium text-m3-on-surface-variant">{label}</span>}
+          {label && (
+            // Progress.Label wires aria-labelledby on the Root for screen readers
+            <Progress.Label className="md-label-medium text-m3-on-surface-variant">
+              {label}
+            </Progress.Label>
+          )}
           {determinate && (
-            <span className="md-label-medium text-m3-on-surface-variant">{Math.round(v)}%</span>
+            /* Deterministic "N%" text — Base UI's Intl percent formatting is
+               locale-dependent (e.g. "42 %" in fr-FR) and would drift from the
+               previous rendering / SSR hydration. Value is aria-hidden, so the
+               live value is announced once via the Root's valuetext. */
+            <Progress.Value className="md-label-medium text-m3-on-surface-variant">
+              {(_formattedValue, val) => `${Math.round(val ?? 0)}%`}
+            </Progress.Value>
           )}
         </div>
       )}
 
       {wavey ? (
-        <div className="relative h-5 overflow-hidden rounded-full">
+        <Progress.Track className="relative h-5 overflow-hidden rounded-full">
           {/* Official M3E wavy indicator keeps the flat 4dp track visible */}
           <span className="absolute left-0 top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-m3-surface-container-highest" />
           {determinate ? (
-            <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${v}%` }}>
+            // Base UI slices the Indicator to the value percentage (inline width)
+            <Progress.Indicator className="absolute top-0 overflow-hidden">
               <PulsingWave stroke={stroke} slideDuration={slide} />
-            </div>
+            </Progress.Indicator>
           ) : (
-            <PulsingWave stroke={stroke} slideDuration={slide} />
+            <Progress.Indicator className="absolute inset-0">
+              <PulsingWave stroke={stroke} slideDuration={slide} />
+            </Progress.Indicator>
           )}
           {determinate && (
             <span
@@ -132,22 +148,26 @@ export function LinearProgress({
               style={{ background: stroke }}
             />
           )}
-        </div>
+        </Progress.Track>
       ) : (
-        <div
+        <Progress.Track
           className="relative overflow-visible rounded-full bg-m3-surface-container-highest"
           style={{ height }}
         >
           {determinate ? (
-            <motion.div
-              className="absolute left-0 top-0 h-full rounded-full"
-              style={{ background: stroke, maxWidth: "calc(100% - 8px)" }}
-              initial={{ width: 0 }}
-              animate={{ width: `${v}%` }}
-              transition={asTransition(springs.defaultSpatial)}
+            // Width is owned by Base UI (inline % of value); the end-state is
+            // animated with the M3 emphasized curve (CSS approximation of the
+            // defaultSpatial spring), maxWidth keeps the 4px stop-dot gap.
+            <Progress.Indicator
+              className="absolute top-0 rounded-full"
+              style={{
+                background: stroke,
+                maxWidth: "calc(100% - 8px)",
+                transition: `width ${durations.medium4}ms ${easings.emphasized}`,
+              }}
             />
           ) : (
-            <div className="absolute inset-0 overflow-hidden rounded-full">
+            <Progress.Indicator className="absolute inset-0 overflow-hidden rounded-full">
               <motion.div
                 className="absolute top-0 h-full rounded-full"
                 style={{ background: stroke, width: "35%" }}
@@ -169,7 +189,7 @@ export function LinearProgress({
                   delay: durations.short4 / 1000,
                 }}
               />
-            </div>
+            </Progress.Indicator>
           )}
           {determinate && (
             <span
@@ -177,9 +197,9 @@ export function LinearProgress({
               style={{ background: stroke }}
             />
           )}
-        </div>
+        </Progress.Track>
       )}
-    </div>
+    </Progress.Root>
   );
 }
 

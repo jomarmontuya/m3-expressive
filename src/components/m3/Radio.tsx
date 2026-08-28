@@ -3,6 +3,8 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import type { Transition } from "framer-motion";
+import { RadioGroup as BaseRadioGroup } from "@base-ui-components/react/radio-group";
+import { Radio as BaseRadio } from "@base-ui-components/react/radio";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -21,31 +23,73 @@ export interface RadioProps {
 }
 
 /**
+ * Internal bridge between our prop-driven Radio API (each Radio receives
+ * `checked` from the parent) and Base UI's group-driven model (the group
+ * owns the selected value). Radios report their checked state up so the
+ * Base UI group — which owns roving arrow-key focus, the hidden form input
+ * and ARIA wiring — stays in sync with the parent-owned selection.
+ */
+interface M3RadioGroupBridge {
+  /** Marks `value` as the group's selected radio (seeded from `checked` props). */
+  setGroupValue: (value: unknown) => void;
+  /** Per-radio change callbacks so keyboard selection fires the right `onChange`. */
+  registerChangeHandler: (value: unknown, handler: (() => void) | undefined) => void;
+}
+
+const M3RadioGroupContext = React.createContext<M3RadioGroupBridge | null>(null);
+
+/**
  * M3 Radio button — a 48px touch target with a 20px ring (2dp stroke) and
  * a 10dp inner dot that springs in (scale 0 → 1) on the expressive spring
  * when selected. Wrap a set of Radios in `RadioGroup` for roving arrow-key
- * navigation.
+ * navigation (now handled by Base UI's RadioGroup).
  */
 export const Radio = React.forwardRef<HTMLButtonElement, RadioProps>(function Radio(
   { checked = false, onChange, label, disabled = false, error = false, className },
   ref
 ) {
+  // Base UI radios identify themselves by `value` within a group; ours are
+  // addressable only by `checked`, so every instance gets a synthetic id.
+  const value = React.useId();
+  const group = React.useContext(M3RadioGroupContext);
+
+  // Seed/mirror the Base UI group with the parent-declared selection.
+  React.useEffect(() => {
+    if (checked) group?.setGroupValue(value);
+  }, [checked, group, value]);
+
+  // Keep the latest change handler reachable for keyboard-driven selection.
+  React.useEffect(() => {
+    group?.registerChangeHandler(value, onChange);
+    return () => group?.registerChangeHandler(value, undefined);
+  });
+
   return (
-    <motion.button
+    <BaseRadio.Root
       ref={ref}
-      type="button"
-      role="radio"
-      aria-checked={checked}
+      value={value}
       disabled={disabled}
-      onClick={() => onChange?.()}
-      whileTap={disabled ? undefined : { scale: 0.95 }}
-      transition={springs.fastVisual}
+      nativeButton
+      // Standalone radios have no Base UI group to click through — fire directly.
+      // Inside a group Base UI's own click → hidden-input flow handles it.
+      onClick={() => {
+        if (!group) onChange?.();
+      }}
+      // Our visuals (and the public contract) follow the `checked` prop, so the
+      // announced state is overridden to match it even before Base UI syncs.
+      aria-checked={checked}
       className={cn(
         "m3-state m3-focus relative inline-flex items-center overflow-hidden rounded-full outline-none",
         error ? "text-m3-error" : checked ? "text-m3-primary" : "text-m3-on-surface-variant",
         disabled && "pointer-events-none opacity-38",
         className
       )}
+      render={
+        <motion.button
+          whileTap={disabled ? undefined : { scale: 0.95 }}
+          transition={springs.fastVisual}
+        />
+      }
     >
       <Ripple disabled={disabled} />
       <span className="grid h-12 w-12 shrink-0 place-items-center">
@@ -68,7 +112,7 @@ export const Radio = React.forwardRef<HTMLButtonElement, RadioProps>(function Ra
         </span>
       </span>
       {label && <span className="pr-3 text-m3-on-surface md-body-large">{label}</span>}
-    </motion.button>
+    </BaseRadio.Root>
   );
 });
 
@@ -80,29 +124,47 @@ export interface RadioGroupProps {
 }
 
 /**
- * M3 Radio group — a `role="radiogroup"` wrapper that adds the official
- * radio keyboard behavior: ArrowUp/ArrowLeft move to (and select) the
- * previous enabled radio, ArrowDown/ArrowRight the next, wrapping around.
+ * M3 Radio group — a `role="radiogroup"` wrapper. Keyboard behavior
+ * (ArrowUp/ArrowLeft → previous enabled radio, ArrowDown/ArrowRight → next,
+ * wrapping, focus-follows-selection) is owned by Base UI's RadioGroup.
+ * The selected value is mirrored from the child Radios' `checked` props and
+ * every change is routed back through the selected Radio's `onChange`.
  */
 export function RadioGroup({ label, className, children }: RadioGroupProps) {
-  const onKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowDown" && e.key !== "ArrowRight" && e.key !== "ArrowUp" && e.key !== "ArrowLeft") return;
-    const root = e.currentTarget;
-    const radios = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="radio"]:not([disabled])'));
-    if (radios.length === 0) return;
-    const forward = e.key === "ArrowDown" || e.key === "ArrowRight";
-    const current = radios.indexOf(document.activeElement as HTMLButtonElement);
-    const base = current === -1 ? 0 : current;
-    const next = forward ? (base + 1) % radios.length : (base - 1 + radios.length) % radios.length;
-    e.preventDefault();
-    radios[next].focus();
-    radios[next].click();
+  const [groupValue, setGroupValue] = React.useState<unknown>(null);
+  const changeHandlersRef = React.useRef(new Map<unknown, () => void>());
+
+  const registerChangeHandler = React.useCallback(
+    (value: unknown, handler: (() => void) | undefined) => {
+      if (handler) changeHandlersRef.current.set(value, handler);
+      else changeHandlersRef.current.delete(value);
+    },
+    []
+  );
+
+  // A radio was activated (click or keyboard): remember it as selected and
+  // dispatch the owning Radio's public `onChange`.
+  const handleValueChange = React.useCallback((value: unknown) => {
+    setGroupValue(value ?? null);
+    changeHandlersRef.current.get(value)?.();
   }, []);
 
+  const bridge = React.useMemo(
+    () => ({ setGroupValue, registerChangeHandler }),
+    [setGroupValue, registerChangeHandler]
+  );
+
   return (
-    <div role="radiogroup" aria-label={label} onKeyDown={onKeyDown} className={cn("flex flex-col", className)}>
-      {children}
-    </div>
+    <M3RadioGroupContext.Provider value={bridge}>
+      <BaseRadioGroup
+        value={groupValue}
+        onValueChange={handleValueChange}
+        aria-label={label}
+        className={cn("flex flex-col", className)}
+      >
+        {children}
+      </BaseRadioGroup>
+    </M3RadioGroupContext.Provider>
   );
 }
 
