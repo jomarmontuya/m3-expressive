@@ -1280,3 +1280,28 @@ Task: Base UI rc.0→stable spike (investigation only, no code changes)
 
 ## Stage Summary
 Verdict: GO. Local usage map done (19 subpaths/~35 import lines). No code changed this task.
+
+---
+Task ID: 21-baseui-migration
+Agent: orchestrator (Z.ai Code)
+Task: Execute Base UI migration per spike verdict (docs/base-ui-upgrade-spike.md)
+
+## Work Log
+- bun remove @base-ui-components/react → bun add @base-ui/react (^1.7.0). sed-swapped the package specifier across 34 source files (33 m3 components + showcase/DocsView). Package manifest untouched — Base UI is bundled into dist by tsup (pre-existing architecture; making it a peerDep is a separate decision, noted).
+- tsc fallout: exactly the predicted type-level issue — MenuRootActions/TooltipRootActions in 1.7 require close(), so the 4 actionsRef stubs lacking it (FabMenu, Menu, SplitButton, Tooltip) were aligned to the full-stub pattern Dialog/SideSheet/BottomSheet already used. No behavioral changes.
+- AGENTS.md: stack line → @base-ui/react 1.7.0; Base UI gotcha rewritten (custom-by-design list named explicitly, Drawer noted as future BottomSheet/SideSheet simplification candidate).
+- Note: the parallel session's edits to Tabs/BottomAppBar/TopAppBar/Tooltip/etc. landed mid-task and rode along in this commit — they were part of the working tree and passed all gates.
+
+## Stage Summary
+Verified: tsc 0 errors · lint 0 errors / 2 known warnings · build:package exit 0 · VR check 41/41 IDENTICAL (0.0000 diff) — strongest possible outcome. Committed 11b972d, pushed to private repo. Phase 0 COMPLETE: repo is OSS-ready, on current stable Base UI, same foundation as shadcn's default.
+
+---
+Task ID: 21b-phase1-deferred
+Agent: orchestrator (Z.ai Code)
+Task: Document Phase 1 (shadcn-style registry) as pending; record spec-audit dependency
+
+## Work Log
+- Updated docs/open-source-release-plan.md §10: Phase 0 marked COMPLETE (worklog tasks 18–21), Phase 1 marked PENDING and explicitly sequenced AFTER the in-progress full Google spec audit (Jomar + separate agent, component-by-component 1:1 against m3.material.io). Rationale: registry JSON must be generated from settled component source; audit outcomes feed audit/ (re-include at flip), the meta guidelines field, and the planned MCP audit_page tool.
+
+## Stage Summary
+Docs-only. No pending implementation work in this session; Phase 1 resumes on Jomar's go once the spec audit lands.
