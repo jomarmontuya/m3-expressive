@@ -12,6 +12,7 @@ declare const buttonGroupMeta: M3ComponentMeta;
 declare const dividerMeta: M3ComponentMeta;
 declare const datePickerMeta: M3ComponentMeta;
 declare const sideSheetMeta: M3ComponentMeta;
+declare const carouselMeta: M3ComponentMeta;
 declare const dialogMeta: M3ComponentMeta;
 declare const snackbarMeta: M3ComponentMeta;
 declare const navigationDrawerMeta: M3ComponentMeta;
@@ -49,4 +50,4 @@ declare const bottomSheetMeta: M3ComponentMeta;
 declare const buttonMeta: M3ComponentMeta;
 declare const linearProgressMeta: M3ComponentMeta;
 
-export { autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, checkboxMeta, chipMeta, circularProgressMeta, datePickerMeta, dialogMeta, dividerMeta, extendedFabMeta, fabMenuMeta, fabMeta, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, searchBarMeta, searchViewMeta, segmentedButtonMeta, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, switchMeta, tabsMeta, textFieldMeta, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta };
+export { autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, checkboxMeta, chipMeta, circularProgressMeta, datePickerMeta, dialogMeta, dividerMeta, extendedFabMeta, fabMenuMeta, fabMeta, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, searchBarMeta, searchViewMeta, segmentedButtonMeta, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, switchMeta, tabsMeta, textFieldMeta, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta };

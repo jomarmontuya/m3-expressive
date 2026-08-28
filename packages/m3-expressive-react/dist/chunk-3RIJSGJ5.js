@@ -1,4 +1,4 @@
-"use strict";Object.defineProperty(exports, "__esModule", {value: true});// ../../src/lib/m3/meta.ts
+// ../../src/lib/m3/meta.ts
 var buttonGroupMeta = {
   id: "button-group",
   name: "Button group",
@@ -93,12 +93,15 @@ var datePickerMeta = {
   id: "date-picker",
   name: "Date Picker",
   category: "selection",
-  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons.",
+  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons. selectionMode='range' adds the official M3 date-range selection (androidx DateRangePicker conventions): tap start then end, in-between days carry a continuous primary-container band behind 40dp start/end circles, hover previews the tentative range, and the modal header shows Start/End date placeholders until the pair is complete.",
   importLine: `import { DatePicker } from "@/components/m3";`,
-  variants: ["month-view", "year-view", "modal"],
+  variants: ["month-view", "year-view", "modal", "range \xB7 inline", "range \xB7 modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
-    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked." },
+    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked (single mode)." },
+    { name: "selectionMode", type: `'single' | 'range'`, default: `'single'`, description: "Pick one date, or a start/end range: tap start, then end (tap \u2265 start completes); tapping before the start or once complete restarts with a fresh start." },
+    { name: "range", type: `{ start?: Date; end?: Date }`, description: "Range mode \u2014 controlled selected range; omit for uncontrolled state. Partial ranges (start only) are valid states." },
+    { name: "onRangeChange", type: `(range: { start?: Date; end?: Date }) => void`, description: "Range mode \u2014 fires on every tap with the next range (partial ranges included)." },
     { name: "minDate", type: `Date`, description: "Earliest selectable date; earlier days render disabled (38%)." },
     { name: "maxDate", type: `Date`, description: "Latest selectable date; later days render disabled (38%)." },
     { name: "presentation", type: `'inline' | 'modal'`, default: `'inline'`, description: "Embedded calendar grid, or the official modal picker (328\xD7512dp portrait / 568\xD7368dp landscape at viewport \u2265 600px) with selected-date header and 32% scrim." },
@@ -114,19 +117,21 @@ var datePickerMeta = {
       "Use minDate/maxDate to constrain scheduling to valid ranges.",
       "Pair with a readout chip to show the formatted selected date.",
       'Use presentation="modal" for the official picker dialog \u2014 328\xD7512dp portrait / 568\xD7368dp landscape with selected-date header, 32% scrim and live-apply selection.',
-      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it."
+      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it.",
+      "Use selectionMode='range' for check-in/check-out and event spans \u2014 the band reads as one stripe per week row between the start/end circles."
     ],
-    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column", "Range band (selectionMode='range'): per-cell layer behind the day buttons \u2014 start cell right half (rounded-l-full, hidden under the circle), end cell left half (rounded-r-full), in-between cells full-width square, square cuts at week-row edges, 4dp vertical inset (inset-y-1) keeps adjacent week stripes separate; color = primary-container at 44% (color-mix over the m3 primary-container token \u2014 androidx maps its range container to primary-container; attenuated so mid-band days keep on-surface text); start/end days stay 40dp circles (inline primary \xB7 modal primary-container)"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)", "Range (selectionMode='range'): start/end days 40dp circles with \u201Cstart/end of range\u201D label suffixes, in-between days on the primary-container/44 band (all aria-selected), 24% band + primary outline previews the tentative range while only the start is set, modal header shows Start/End date placeholders or the \u201CAug 21 \u2013 Aug 28\u201D pair (headline-small) and closes only on a complete pick"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
-      "Keep the selected-day pill circular and high-contrast (primary/on-primary)"
+      "Keep the selected-day pill circular and high-contrast (primary/on-primary)",
+      "Show start/end placeholders until both dates are picked \u2014 the modal header and readouts echo the partial range"
     ],
     donts: [
       "Don't force users to scroll years one month at a time \u2014 use the year grid",
       "Don't hide disabled days entirely; dim them to 38%",
-      "Don't use the picker for date ranges (extend it deliberately)",
+      "Don't close the modal picker before the range is complete \u2014 a start-only day tap must keep it open",
       "Don't add confirm/cancel buttons to the modal \u2014 M3 applies the selection live and Escape/scrim dismiss"
     ]
   },
@@ -147,6 +152,21 @@ const [open, setOpen] = React.useState(false);
   onOpenChange={setOpen}
   value={date}
   onChange={setDate}
+/>
+
+// Range selection (selectionMode="range") \u2014 tap start, then end
+const [range, setRange] = React.useState<{ start?: Date; end?: Date }>({});
+<DatePicker selectionMode="range" range={range} onRangeChange={setRange} />
+
+// Range modal \u2014 header shows Start/End date placeholders until the pair is
+// complete; it closes only after the second pick (Escape/scrim always dismiss)
+<DatePicker
+  presentation="modal"
+  selectionMode="range"
+  open={open}
+  onOpenChange={setOpen}
+  range={range}
+  onRangeChange={setRange}
 />`,
   related: ["time-picker", "card", "bottom-sheet"],
   demoName: "DatePickerDemo"
@@ -196,6 +216,63 @@ var sideSheetMeta = {
 </SideSheet>`,
   related: ["bottom-sheet", "card", "list"],
   demoName: "SideSheetDemo"
+};
+var carouselMeta = {
+  id: "carousel",
+  name: "Carousel",
+  category: "containment",
+  description: "New in Material 3 Expressive: a horizontally scrollable, scroll-snapped collection of items with three official layout strategies \u2014 multi-browse (flexible equal widths with a peek), hero (one large leading item, the rest smaller) and inline (one full-width item per view). Items sit 8dp apart, are shaped (28dp corners by default) and, in the multi-browse layout, play the signature M3E dynamic-width treatment: the hovered or focused item springs to ~1.12\xD7 its width while the neighbors give up the difference.",
+  importLine: `import { Carousel } from "@/components/m3";`,
+  variants: ["multi-browse", "hero", "inline"],
+  props: [
+    { name: "items", type: `CarouselItem[]`, description: "Snap items: id, optional label, MaterialSymbol icon, container tone ('primary' | 'secondary' | 'tertiary' | 'surface'), optional href/onClick (makes the whole item a button/link)." },
+    { name: "layout", type: `'multi-browse' | 'hero' | 'inline'`, default: `'multi-browse'`, description: "Official strategy: flexible equal widths with a 24px peek \xB7 one large (66%) + smaller (34%) items \xB7 one full-width item per view." },
+    { name: "alignment", type: `'start' | 'end'`, default: `'start'`, description: "Scroll-snap alignment of items." },
+    { name: "itemCount", type: `number`, default: `4`, description: "multi-browse only: visible-item hint, clamped to 1\u20135." },
+    { name: "shape", type: `'round' | 'square'`, default: `'round'`, description: "Item corners: 28dp (M3E extra-large) or square." },
+    { name: "arrows", type: `'auto' | 'always' | 'never'`, default: `'auto'`, description: "Optional navigation arrows: circular 48dp buttons that scroll one item per press and only appear while content overflows in their direction. 'auto' reveals on hover/focus, 'always' keeps them visible (keyboard-reachable), 'never' hides them." },
+    { name: "ariaLabel", type: `string`, description: "Accessible name of the carousel region (defaults to a derived label)." },
+    { name: "className", type: `string`, description: "Extra classes for the scroller." }
+  ],
+  guidelines: {
+    whenToUse: [
+      "Use carousels to browse a small, visually rich collection of similar content (media cards, destination tiles).",
+      "Use multi-browse when items share equal importance and flexible widths should show several at once.",
+      "Use hero when one featured item deserves emphasis and the rest are secondary.",
+      "Use inline for full-bleed, one-item-per-view browsing."
+    ],
+    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12\xD7, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)", "Optional navigation arrows (48dp circular, elevation 1, one item per press, overflow-directional)"],
+    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12\xD7, neighbors shrink; arrows reveal in 'auto')", "Focus (3px focus ring; same width-grow as hover; arrows reveal in 'auto')", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)", "Overflow end reached (arrow for that direction hides)"],
+    dos: [
+      "Use multi-browse for mixed or equal-importance content, hero for featured + rest, inline for full-bleed imagery",
+      "Keep 1\u20135 items visible (official multi-browse range)",
+      "Give every item a label (or accessible name) so the carousel is describable",
+      "Keep item heights in one carousel consistent (hero large:small \u2248 3:2)"
+    ],
+    donts: [
+      "Don't nest carousels inside carousels",
+      "Don't put primary actions inside carousel items (items are browse/navigation, not task buttons)",
+      "Don't allow tiny peeks that hide content \u2014 the 24px peek only hints that more exists",
+      "Don't use the dynamic-width grow in hero/inline \u2014 flexible widths are a multi-browse trait"
+    ]
+  },
+  exampleCode: `<Carousel
+  layout="multi-browse"
+  itemCount={4}
+  ariaLabel="Weekend getaways"
+  items={[
+    { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary", onClick: open },
+    { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary", onClick: open },
+    { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+    { id: "food", label: "Food tours", icon: "restaurant", tone: "surface" },
+  ]}
+/>
+
+<Carousel layout="hero" items={featured} />
+<Carousel layout="inline" items={fullBleed} />`,
+  m3e: true,
+  related: ["card", "list", "bottom-sheet"],
+  demoName: "CarouselDemo"
 };
 var dialogMeta = {
   id: "dialog",
@@ -1860,46 +1937,47 @@ var linearProgressMeta = {
   demoName: "LinearProgressDemo"
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-exports.buttonGroupMeta = buttonGroupMeta; exports.dividerMeta = dividerMeta; exports.datePickerMeta = datePickerMeta; exports.sideSheetMeta = sideSheetMeta; exports.dialogMeta = dialogMeta; exports.snackbarMeta = snackbarMeta; exports.navigationDrawerMeta = navigationDrawerMeta; exports.listMeta = listMeta; exports.cardMeta = cardMeta; exports.segmentedButtonMeta = segmentedButtonMeta; exports.sliderMeta = sliderMeta; exports.textFieldMeta = textFieldMeta; exports.autocompleteMeta = autocompleteMeta; exports.navigationRailMeta = navigationRailMeta; exports.chipMeta = chipMeta; exports.bannerMeta = bannerMeta; exports.checkboxMeta = checkboxMeta; exports.fabMeta = fabMeta; exports.tabsMeta = tabsMeta; exports.loadingIndicatorMeta = loadingIndicatorMeta; exports.menuMeta = menuMeta; exports.bottomAppBarMeta = bottomAppBarMeta; exports.extendedFabMeta = extendedFabMeta; exports.circularProgressMeta = circularProgressMeta; exports.badgeMeta = badgeMeta; exports.searchBarMeta = searchBarMeta; exports.searchViewMeta = searchViewMeta; exports.splitButtonMeta = splitButtonMeta; exports.switchMeta = switchMeta; exports.timePickerMeta = timePickerMeta; exports.radioMeta = radioMeta; exports.toolbarMeta = toolbarMeta; exports.iconButtonMeta = iconButtonMeta; exports.tooltipMeta = tooltipMeta; exports.fabMenuMeta = fabMenuMeta; exports.navigationBarMeta = navigationBarMeta; exports.topAppBarMeta = topAppBarMeta; exports.bottomSheetMeta = bottomSheetMeta; exports.buttonMeta = buttonMeta; exports.linearProgressMeta = linearProgressMeta;
-//# sourceMappingURL=chunk-WEC2GTG6.cjs.map
+export {
+  buttonGroupMeta,
+  dividerMeta,
+  datePickerMeta,
+  sideSheetMeta,
+  carouselMeta,
+  dialogMeta,
+  snackbarMeta,
+  navigationDrawerMeta,
+  listMeta,
+  cardMeta,
+  segmentedButtonMeta,
+  sliderMeta,
+  textFieldMeta,
+  autocompleteMeta,
+  navigationRailMeta,
+  chipMeta,
+  bannerMeta,
+  checkboxMeta,
+  fabMeta,
+  tabsMeta,
+  loadingIndicatorMeta,
+  menuMeta,
+  bottomAppBarMeta,
+  extendedFabMeta,
+  circularProgressMeta,
+  badgeMeta,
+  searchBarMeta,
+  searchViewMeta,
+  splitButtonMeta,
+  switchMeta,
+  timePickerMeta,
+  radioMeta,
+  toolbarMeta,
+  iconButtonMeta,
+  tooltipMeta,
+  fabMenuMeta,
+  navigationBarMeta,
+  topAppBarMeta,
+  bottomSheetMeta,
+  buttonMeta,
+  linearProgressMeta
+};
+//# sourceMappingURL=chunk-3RIJSGJ5.js.map

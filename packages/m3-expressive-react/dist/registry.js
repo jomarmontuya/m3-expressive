@@ -10,6 +10,7 @@ import {
   buttonGroupMeta,
   buttonMeta,
   cardMeta,
+  carouselMeta,
   checkboxMeta,
   chipMeta,
   circularProgressMeta,
@@ -42,7 +43,7 @@ import {
   toolbarMeta,
   tooltipMeta,
   topAppBarMeta
-} from "./chunk-HNWZFSN6.js";
+} from "./chunk-3RIJSGJ5.js";
 
 // ../../src/lib/m3/registry.ts
 var COMPONENT_DIR = "src/components/m3";
@@ -68,6 +69,7 @@ var TABLE = [
   { meta: listMeta, file: "List" },
   { meta: bottomSheetMeta, file: "BottomSheet" },
   { meta: sideSheetMeta, file: "SideSheet" },
+  { meta: carouselMeta, file: "Carousel" },
   { meta: textFieldMeta, file: "TextField" },
   { meta: searchBarMeta, file: "SearchBar" },
   { meta: searchViewMeta, file: "SearchView" },

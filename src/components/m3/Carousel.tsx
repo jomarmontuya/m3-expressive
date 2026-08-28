@@ -11,6 +11,9 @@ export type CarouselLayout = "multi-browse" | "hero" | "inline";
 export type CarouselAlignment = "start" | "end";
 export type CarouselTone = "primary" | "secondary" | "tertiary" | "surface";
 export type CarouselShape = "round" | "square";
+/** Navigation-arrow affordance: "auto" reveals on hover/focus while overflowing,
+ * "always" keeps visible arrows (keyboard-reachable), "never" hides them. */
+export type CarouselArrows = "auto" | "always" | "never";
 
 /**
  * One snap item. Items render tonal containers with a large MaterialSymbol
@@ -45,6 +48,11 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   itemCount?: number;
   /** Item corners: 28dp (extraLarge, M3E) or square. */
   shape?: CarouselShape;
+  /** Optional navigation arrows (M3 scrolling-row affordance): "auto" reveals
+   * circular 48dp buttons on hover/focus while content overflows in that
+   * direction; "always" keeps them visible and keyboard-reachable; "never"
+   * (and the default "auto") never blocks the swipe/scroll gesture. */
+  arrows?: CarouselArrows;
   /** Accessible name of the carousel region. */
   ariaLabel?: string;
   className?: string;
@@ -92,7 +100,9 @@ const clampCount = (n: number) => Math.min(5, Math.max(1, Math.round(n)));
  * up the difference (total visible width stays constant), using the
  * `springs.defaultSpatial` physics spring. Items snap with CSS scroll-snap
  * (mandatory), the native scrollbar is hidden, and Arrow keys rove focus
- * between slides (Tab reaches every actionable slide).
+ * between slides (Tab reaches every actionable slide). Optional circular
+ * navigation arrows (48dp, elevation 1) scroll one item per press and appear
+ * only while content overflows in their direction.
  *
  * ```tsx
  * <Carousel
@@ -113,6 +123,7 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
     alignment = "start",
     itemCount = 4,
     shape = "round",
+    arrows = "auto",
     ariaLabel,
     className,
     ...props
@@ -152,6 +163,68 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
     },
     [ref]
   );
+
+  /* ---- optional navigation arrows ------------------------------------ */
+  const showArrows = arrows !== "never";
+  const scrollerId = React.useId().replace(/[:]/g, "");
+  const [canScrollStart, setCanScrollStart] = React.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React.useState(false);
+  const [hoverArrows, setHoverArrows] = React.useState(false);
+  const [kbWithin, setKbWithin] = React.useState(false);
+  const revealed = arrows === "always" || hoverArrows || kbWithin;
+
+  const updateOverflow = React.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanScrollStart(el.scrollLeft > 4);
+    setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  React.useEffect(() => {
+    if (!showArrows) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateOverflow();
+    el.addEventListener("scroll", updateOverflow, { passive: true });
+    /* Item widths spring-animate on hover, which changes scrollWidth without
+       a scroll event — observing the slides catches those morphs too. */
+    const ro = new ResizeObserver(updateOverflow);
+    ro.observe(el);
+    el.querySelectorAll("[data-carousel-item]").forEach((node) => ro.observe(node));
+    return () => {
+      el.removeEventListener("scroll", updateOverflow);
+      ro.disconnect();
+    };
+  }, [updateOverflow, showArrows, items.length]);
+
+  /** Advance exactly one slide in `dir` (layout-agnostic via live rects). */
+  const scrollByItem = (dir: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll<HTMLElement>("[data-carousel-item]"));
+    if (slides.length === 0) return;
+    const elLeft = el.getBoundingClientRect().left;
+    let target: HTMLElement | undefined;
+    if (dir === 1) {
+      target = slides.find((s) => s.getBoundingClientRect().left - elLeft > 2);
+    } else {
+      for (let i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].getBoundingClientRect().left - elLeft < -2) {
+          target = slides[i];
+          break;
+        }
+      }
+    }
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        inline: alignment === "end" ? "end" : "start",
+        block: "nearest",
+      });
+    } else {
+      el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+    }
+  };
 
   /* ---- slot math ---------------------------------------------------- */
   const slot =
@@ -220,8 +293,56 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
     }
   };
 
+  const arrowsUI = showArrows && (canScrollStart || canScrollEnd) && (
+    <>
+      {canScrollStart && (
+        <motion.button
+          type="button"
+          tabIndex={arrows === "always" ? 0 : -1}
+          aria-label="Previous items"
+          aria-controls={scrollerId}
+          onClick={() => scrollByItem(-1)}
+          initial={false}
+          animate={{ opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 }}
+          transition={springs.fastSpatial}
+          style={{ pointerEvents: revealed ? "auto" : "none" }}
+          className="m3-state m3-focus absolute left-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none"
+        >
+          <Ripple />
+          <MaterialSymbol icon="chevron_left" size={24} />
+        </motion.button>
+      )}
+      {canScrollEnd && (
+        <motion.button
+          type="button"
+          tabIndex={arrows === "always" ? 0 : -1}
+          aria-label="Next items"
+          aria-controls={scrollerId}
+          onClick={() => scrollByItem(1)}
+          initial={false}
+          animate={{ opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 }}
+          transition={springs.fastSpatial}
+          style={{ pointerEvents: revealed ? "auto" : "none" }}
+          className="m3-state m3-focus absolute right-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none"
+        >
+          <Ripple />
+          <MaterialSymbol icon="chevron_right" size={24} />
+        </motion.button>
+      )}
+    </>
+  );
+
   return (
     <div
+      className="relative w-full"
+      onPointerEnter={(e) => {
+        if ((e as React.PointerEvent).pointerType !== "touch") setHoverArrows(true);
+      }}
+      onPointerLeave={() => setHoverArrows(false)}
+      onFocus={() => setKbWithin(true)}
+      onBlur={() => setKbWithin(false)}
+    >
+      <div
       ref={setScrollerRef}
       role="region"
       aria-roledescription="carousel"
@@ -289,6 +410,8 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(function
           </motion.div>
         );
       })}
+      </div>
+      {arrowsUI}
     </div>
   );
 });

@@ -435,12 +435,17 @@ export function CarouselDemo() {
         <Carousel items={items.slice(0, 5)} layout="hero" ariaLabel="Featured getaways" />
       </section>
 
-      {/* inline — one full-width item per view */}
+      {/* inline — one full-width item per view, with visible navigation arrows */}
       <section className="mt-2 flex flex-col gap-2">
         <span className="md-label-large text-m3-on-surface">
-          Inline — one full-width item per view, adjacent items peek 0
+          Inline — one full-width item per view, with navigation arrows (arrows=&quot;always&quot;)
         </span>
-        <Carousel items={items.slice(0, 5)} layout="inline" ariaLabel="Full-bleed getaways" />
+        <Carousel
+          items={items.slice(0, 5)}
+          layout="inline"
+          arrows="always"
+          ariaLabel="Full-bleed getaways"
+        />
       </section>
     </div>
   );

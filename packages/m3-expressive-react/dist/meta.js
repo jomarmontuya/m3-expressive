@@ -7,6 +7,7 @@ import {
   buttonGroupMeta,
   buttonMeta,
   cardMeta,
+  carouselMeta,
   checkboxMeta,
   chipMeta,
   circularProgressMeta,
@@ -39,7 +40,7 @@ import {
   toolbarMeta,
   tooltipMeta,
   topAppBarMeta
-} from "./chunk-HNWZFSN6.js";
+} from "./chunk-3RIJSGJ5.js";
 export {
   autocompleteMeta,
   badgeMeta,
@@ -49,6 +50,7 @@ export {
   buttonGroupMeta,
   buttonMeta,
   cardMeta,
+  carouselMeta,
   checkboxMeta,
   chipMeta,
   circularProgressMeta,

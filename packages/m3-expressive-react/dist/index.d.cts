@@ -86,6 +86,7 @@ declare const buttonGroupMeta: M3ComponentMeta;
 declare const dividerMeta: M3ComponentMeta;
 declare const datePickerMeta: M3ComponentMeta;
 declare const sideSheetMeta: M3ComponentMeta;
+declare const carouselMeta: M3ComponentMeta;
 declare const dialogMeta: M3ComponentMeta;
 declare const snackbarMeta: M3ComponentMeta;
 declare const navigationDrawerMeta: M3ComponentMeta;
@@ -684,6 +685,84 @@ interface SideSheetProps {
  */
 declare const SideSheet: React.ForwardRefExoticComponent<SideSheetProps & React.RefAttributes<HTMLDivElement>>;
 
+type CarouselLayout = "multi-browse" | "hero" | "inline";
+type CarouselAlignment = "start" | "end";
+type CarouselTone = "primary" | "secondary" | "tertiary" | "surface";
+type CarouselShape = "round" | "square";
+/** Navigation-arrow affordance: "auto" reveals on hover/focus while overflowing,
+ * "always" keeps visible arrows (keyboard-reachable), "never" hides them. */
+type CarouselArrows = "auto" | "always" | "never";
+/**
+ * One snap item. Items render tonal containers with a large MaterialSymbol
+ * and an md-label-large label (the library has no image assets); give an item
+ * href or onClick to make the whole slide an actionable control.
+ */
+interface CarouselItem {
+    id: string;
+    label?: string;
+    /** Material Symbols ligature name, e.g. "beach_access" */
+    icon?: string;
+    /** Container color role of the item background */
+    tone?: CarouselTone;
+    /** Renders the item as a link */
+    href?: string;
+    /** Renders the item as a button; receives the item on activation */
+    onClick?: (item: CarouselItem) => void;
+}
+interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
+    items: CarouselItem[];
+    /**
+     * Official layout strategies (m3.material.io/components/carousel):
+     * multi-browse — flexible equal widths, `itemCount` visible + a 24px peek;
+     * hero — one large (66%) leading item, the rest smaller (34%);
+     * inline — one full-width item per view, adjacent items peek 0.
+     */
+    layout?: CarouselLayout;
+    /** Scroll-snap alignment of items. */
+    alignment?: CarouselAlignment;
+    /** multi-browse visible-item hint, clamped to 1–5. */
+    itemCount?: number;
+    /** Item corners: 28dp (extraLarge, M3E) or square. */
+    shape?: CarouselShape;
+    /** Optional navigation arrows (M3 scrolling-row affordance): "auto" reveals
+     * circular 48dp buttons on hover/focus while content overflows in that
+     * direction; "always" keeps them visible and keyboard-reachable; "never"
+     * (and the default "auto") never blocks the swipe/scroll gesture. */
+    arrows?: CarouselArrows;
+    /** Accessible name of the carousel region. */
+    ariaLabel?: string;
+    className?: string;
+}
+/**
+ * M3 Expressive Carousel — a horizontally scrollable, scroll-snapped
+ * collection of items with the three official layout strategies
+ * (multi-browse / hero / inline), 8dp gaps and shaped items.
+ *
+ * Provenance: https://m3.material.io/components/carousel/overview
+ *
+ * M3E signature — dynamic widths: in the multi-browse layout the
+ * hovered/focused slide springs to ~1.12× its slot while the neighbors give
+ * up the difference (total visible width stays constant), using the
+ * `springs.defaultSpatial` physics spring. Items snap with CSS scroll-snap
+ * (mandatory), the native scrollbar is hidden, and Arrow keys rove focus
+ * between slides (Tab reaches every actionable slide). Optional circular
+ * navigation arrows (48dp, elevation 1) scroll one item per press and appear
+ * only while content overflows in their direction.
+ *
+ * ```tsx
+ * <Carousel
+ *   layout="multi-browse"
+ *   itemCount={4}
+ *   items={[
+ *     { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary" },
+ *     { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary" },
+ *     { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+ *   ]}
+ * />
+ * ```
+ */
+declare const Carousel: React.ForwardRefExoticComponent<CarouselProps & React.RefAttributes<HTMLDivElement>>;
+
 type TextFieldVariant = "filled" | "outlined";
 type TextFieldSize = "xs" | "sm" | "md" | "lg";
 interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -1142,6 +1221,11 @@ interface MenuProps {
  */
 declare function Menu({ trigger, items, open, onOpenChange, placement, className, }: MenuProps): react_jsx_runtime.JSX.Element;
 
+/** Official date-range shape (androidx DateRangePicker / MaterialDatePicker) */
+interface DateRange {
+    start?: Date;
+    end?: Date;
+}
 interface DatePickerProps {
     /** Currently selected date */
     value?: Date;
@@ -1168,6 +1252,14 @@ interface DatePickerProps {
     closeOnSelect?: boolean;
     /** Inline only: stretch to the container width */
     fullWidth?: boolean;
+    /** 'single' (default) picks one date via value/onChange; 'range' picks a
+     * start/end pair via range/onRangeChange (tap start, then end; a tap
+     * before the start restarts — androidx DateRangePicker convention). */
+    selectionMode?: "single" | "range";
+    /** Range mode — controlled range; uncontrolled when omitted. */
+    range?: DateRange;
+    /** Range mode — fires on every tap with the next range (partial included). */
+    onRangeChange?: (r: DateRange) => void;
     className?: string;
 }
 /**
@@ -1189,7 +1281,21 @@ interface DatePickerProps {
  * selection with no action buttons, Escape/scrim dismissal, focus trap
  * with initial focus on the selected/today day and restore to the
  * opener, body scroll lock, and the same ARIA-grid calendar internals.
- * The forwardRef lands on the inline root / the modal dialog panel.
+ *
+ * selectionMode="range" — official M3 date-range selection in BOTH
+ * presentations: the first tap sets the start, a tap ≥ start completes the
+ * range, a tap < start (or any tap once complete) restarts; in-between
+ * days carry a continuous primary-container band (start cell = right half
+ * with rounded-left edge under the circle, end cell = left half with
+ * rounded-right edge, mid cells square, square cuts at week-row edges, a
+ * 4dp vertical inset keeps adjacent week stripes separate) while start/end
+ * days are 40dp circles; hovering/focusing while only the start is set
+ * previews the tentative range. ARIA: start/end/in-between days are
+ * aria-selected with "start/end of range" label suffixes; arrow-key
+ * navigation is unchanged. In the modal the header shows Start/End date
+ * placeholders (or the formatted pair) and closeOnSelect only closes once
+ * the range is complete — Escape/scrim mid-selection never fabricate an
+ * end. The forwardRef lands on the inline root / the modal dialog panel.
  */
 declare const DatePicker: React.ForwardRefExoticComponent<DatePickerProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -1657,4 +1763,4 @@ declare const themeIds: string[];
 /** Flatten a scheme into the --md-* CSS custom property map. */
 declare function schemeToCssVars(scheme: M3ColorScheme): Record<string, string>;
 
-export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Checkbox, type CheckboxProps, Chip, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };
+export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Carousel, type CarouselAlignment, type CarouselItem, type CarouselLayout, type CarouselProps, type CarouselShape, type CarouselTone, Checkbox, type CheckboxProps, Chip, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, type DateRange, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };

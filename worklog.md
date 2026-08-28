@@ -719,3 +719,72 @@ Most complete state yet: **41 components** (Carousel added — the last major mi
 - Hero layout ratio is 0.66/0.34 (≈1.94:1) vs the official 360:240dp (1.5:1) illustration — implemented to fill the row; flag in meta if strictness is ever needed.
 - CI yaml remains untested (no git remote); vr:check in CI needs a served app step.
 - Next candidates: date-picker min/max×range edge tests; MCP stateful SSE sessions; real npm publish when registry access exists; Carousel arrow-button affordances (M3 has optional nav arrows — could add); playground expansion to remaining 31 components (specs are data-driven — cheap per-component adds); tag/README badges.
+
+---
+Task ID: 8-c
+Agent: playground-expander
+Task: Expand Props Playground specs from 10 to 18 components
+
+Work Log:
+- Verified all 8 real component APIs from source before writing specs: Checkbox (checked/indeterminate/onChange/label/disabled/error), Radio (checked/onChange/label/disabled/error), TextField (variant, TextFieldSize = xs|sm|md|lg — wider than the brief's "sm|md" guess, helperText/error/leadingIcon/trailingIcon/fullWidth), LinearProgress (value/wavey/height/label/fullWidth + LinearProgressColor = primary|secondary|tertiary|error, includes error), LoadingIndicator (size 48 / active / LoadingIndicatorColor = primary|secondary|tertiary|error), Tooltip (content/rich/title/actionLabel/placement top|bottom), Card (variant/shape medium|extraLarge/interactive), Snackbar (open/message/actionLabel/onClose/duration 4000 + className passes through cn() = tailwind-merge, so the demo's bottom-24/left-1/2 override the base bottom-6/left-6). Confirmed all 8 ids exist in meta.ts registry and Card/MaterialSymbol etc. are exported from the package barrel (for honest generated imports).
+- Edited ONLY src/components/showcase/playground-specs.tsx: +14 imports, banner comment 10 → 18, 8 new spec entries appended after circular-progress in brief order (checkbox, radio, text-field, linear-progress, loading-indicator, tooltip, card, snackbar) using the existing helpers (pgStr/pgNum/joinCode/sizeOptions), existing control kinds, stageKey on linear-progress mode and tooltip rich, and the file's `/* ---- */` separators. No other file touched.
+- Checkbox/Radio render live interactive (onChange → set("checked", …); radio always set(true)); text-field renders a 280px field with helperText control disabledWhen error; linear-progress renders fullWidth inside a fixed 320px stage wrapper (a bare fullWidth track collapses to 0px inside the stage's fit-content wrapper) with value slider disabledWhen mode!=="determinate"; loading-indicator slider 24–96 step 8 + "Animate" switch; tooltip renders the prescribed `<Button variant="outlined" size="sm">Hover me</Button>` trigger and its code emits the two-in-one import line `import { Tooltip, Button } from "m3-expressive-react";`; card renders a 280×160 card (MaterialSymbol image 28, md-title-medium headline, md-body-medium supporting text that becomes "Click me" when Clickable is on, onClick + code onClick={handleClick} when interactive); snackbar is trigger-driven (Show snackbar button → set("open", true), Snackbar mounted next to the button with className="bottom-24 left-1/2 -translate-x-1/2", onClose → set("open", false)).
+- Interpretation deviations from the brief (flagged): (1) checkbox code emits `label="…"` as a prop and stays self-closing instead of `joinCode("Checkbox", props, label)` — Checkbox has no children rendering, so a body would be dead code and break the "mirror controls 1:1" rule; (2) text-field exposes no size control (brief's explicit control list omits it, so size never appears in code); (3) linear-progress color options use the REAL union incl. "error" (brief said to verify); (4) fullWidth is a stage-layout choice (like divider's wrappers) and is not in the generated code since no control drives it; (5) snackbar code omits duration (no duration control, per brief).
+- Verification: `bunx tsc --noEmit` → exactly the 4 pre-existing errors (examples/websocket ×2, skills ×2), zero mentioning src/. `bun run lint` → 0 errors, 1 pre-existing layout.tsx warning. agent-browser live on :3000: #/component/checkbox → [aria-label=Playground] present, zero page errors; clicking the stage checkbox flips aria-checked false→true and the code block updates to checked + onChange={setChecked} + label="Sync account"; #/component/text-field → Playground present, zero errors; bonus #/component/snackbar → "Show snackbar" click opens the fixed-position snackbar with "Archived / Undo / close", zero errors.
+
+Stage Summary:
+- Props Playground now covers 18 components (10 pilot + checkbox, radio, text-field, linear-progress, loading-indicator, tooltip, card, snackbar); generated code mirrors control state 1:1 with real-API props only; non-playground pages unaffected (ComponentView renders the section only when a spec exists).
+- tsc clean in src/ (4 pre-existing non-src errors only), lint 0 errors/1 documented warning, live browser checks green with zero page errors.
+- Orchestrator TODO: VR baselines for the 8 changed pages need a `--force` refresh (checkbox, radio, text-field, linear-progress, loading-indicator, tooltip, card, snackbar each gained a Playground section), then a full `bun run vr:check`.
+
+---
+Task ID: 8-b
+Agent: orchestrator (Z.ai Code)
+Task: Carousel optional navigation arrows (arrows="auto" | "always" | "never")
+
+Work Log:
+- src/components/m3/Carousel.tsx: new exported type CarouselArrows + `arrows` prop (default "auto"). Structure: scroller now wrapped in a `relative w-full` div that owns pointer/focus handlers (pointerType!=='touch' guard; React onFocus/onBlur double as focus-within for keyboard reveal); public ref/role/aria-label/tabIndex/keyboard roving remain on the scroller; className still applies to the scroller so existing gap/width usage is unchanged.
+- Overflow tracking (mirrors Tabs pattern): scroll listener (passive) + ResizeObserver on the scroller AND on every [data-carousel-item] — item widths spring-animate on hover, which changes scrollWidth without a scroll event; canScrollStart/End drive per-direction arrow presence (±4px tolerance). Arrows render only while overflow exists in their direction (M3 scrolling-rows behavior).
+- Arrow styling/detail: motion.button 48dp circular (size-12), bg-m3-surface-container-high + on-surface icon 24dp, m3-elevation-1, m3-state + Ripple + m3-focus, absolute left-3/right-3 vertically centered over the slides; reveal animation opacity 0→1 + scale 0.6→1 on springs.fastSpatial; hidden state also sets pointerEvents:none so slides are never blocked. aria-label "Previous/Next items" + aria-controls={scrollerId} (useId, colons stripped); tabIndex 0 only in "always" mode (auto arrows are a pointer affordance — keyboard users rove slides with Arrow keys).
+- scrollByItem(dir): layout-agnostic one-item advance via live getBoundingClientRect offsets vs the scroller's left edge (next slide not flush at start / last slide off-screen to the left), scrollIntoView smooth with the alignment-aware inline; fallback scrollBy(clientWidth). Works for multi-browse (variable slots), hero (mixed widths), inline (full-width).
+- Wiring: meta.ts carouselMeta — props entry for arrows, anatomy bullet (48dp circular, elevation 1, one item per press, overflow-directional), states bullets (arrows reveal in auto on hover/focus; overflow-end arrow hides). Demo: inline section caption now mentions arrows and passes arrows="always" (inline = arrows most useful, one item per view).
+- Lesson recorded: this environment's MultiEdit is NOT atomic — it applied edits 1–2 then aborted on 3, leaving a duplicated CarouselArrows type block; recovered by re-reading the full file and fixing with small single-purpose Edits. Prefer small Edit calls for multi-hunk work here.
+- Verification (agent-browser, :3000): tsc 0 src errors; arrows="always" inline carousel → 48×48px, opacity 1, borderRadius full, elevation shadow present, aria-controls set; click Next → scrollLeft 0→842 (exactly one 834px slide + gap) and the Previous arrow appears (opacity 0→1, directional correctness); auto mode multi-browse → real CDP mouse move reveals (opacity → 0.994→1, pointerEvents auto); synthetic pointerenter does NOT trigger React enter/leave (test with `agent-browser mouse move x y`, not dispatched events). npm package rebuilt (build:package) — dist/index.js contains the arrows (2 matches).
+
+Stage Summary:
+- Carousel now ships the optional M3 scrolling-row navigation affordance with three modes; default "auto" leaves every existing page visually identical until hover/focus (no VR churn), demo showcases "always" on the inline section; meta/anatomy/states updated so MCP + agent APIs expose the new prop automatically.
+
+---
+Task ID: 8-a
+Agent: orchestrator (Z.ai Code)
+Task: Live-verify + reconcile stale audit claims (snackbar swipe, tabs underline, segmented 48dp)
+
+Work Log:
+- Discovery: three documented audit limitations were already fixed in code by later rounds but their audit notes were never updated. Verified each LIVE via agent-browser before touching docs:
+  1. audit/feedback.md §5 Snackbar "No swipe-to-dismiss" → STALE. Code has full framer drag (free axes, elastic 0.25, 0-constraints) with 80px-offset / 500px/s-velocity thresholds and direction-aware exit (AnimatePresence dynamic custom variant: x ±160 / y ±60; non-drag dismissals reset to slide-down). Note rewritten as Resolved (round 8, task 8-a) with the implementation summary.
+  2. audit/navigation.md §1 Tabs limitation 6 "underline w-1/3, measurement deferred" → STALE. Live check on #/component/tabs: active indicator width 37.1px == label text width 37.1px (3px height) — per-label ResizeObserver + document.fonts.ready measurement is live; w-1/3 is only the pre-measurement fallback. Note rewritten as Resolved with the live numbers.
+  3. audit/actions.md §"48dp touch targets" "SegmentedButton is the one exception (container-bound)" → STALE. Live check on #/component/segmented-button: elementFromPoint 5px ABOVE the 38px-tall pill still resolves to the segment <button> (::before vertical-only -inset-y-2 expander → 56px ≥ 48dp; horizontal deliberately un-expanded to avoid dead zones). Note rewritten as Resolved with the method + numbers.
+
+Stage Summary:
+- All three "remaining limitations" in the audit corpus that were actually closed are now marked Resolved with live-verified evidence; the only audit notes left open are deliberate/documented design decisions (e.g. rail container tint, top-app-bar collapse threshold, tooltip viewport flipping, hero ratio).
+
+---
+Task ID: 8-final
+Agent: orchestrator (Z.ai Code)
+Task: Round-8 integration QA + handover
+
+## Current project status
+Feature-complete M3E library, now with interactive authoring depth: **41 components**, MCP 14 tools + 6 resources + 3 prompts (stdio + HTTP :3210), **Props Playground on 18 of 41 component pages** (was 10), Carousel navigation arrows (new affordance), audit corpus fully reconciled with code reality. All gates green.
+
+## Completed this round (verification results)
+- QA at start: dev.log clean (all 200s), MCP health {"tools":14,"components":41,"status":"ok"}, tsc 0 src errors (4 pre-existing in examples/skills only), lint 0 errors (1 documented warning), vr:check PASS after a stale agent-browser session was reset (CDP channel closed → `agent-browser close` + fresh open fixed it), zero page errors across 6 key routes.
+- 8-c (agent playground-expander): Playground expanded 10 → 18 components (checkbox, radio, text-field, linear-progress, loading-indicator, tooltip, card, snackbar), all props verified against real component APIs, live-interactive stage renders, code gen mirrors 1:1; tsc/lint/live checks green at handoff; 5 documented interpretation deviations, all sound (e.g. checkbox code stays self-closing because Checkbox renders no children).
+- 8-b (orchestrator): Carousel arrows="auto"|"always"|"never" — 48dp circular elevation-1 buttons, hover/focus reveal (springs.fastSpatial), per-direction overflow gating with slide-aware ResizeObserver, one-item-per-press scrollIntoView advance, full a11y (aria-controls, labels, tabIndex policy); meta + demo wired; package dist rebuilt with the feature.
+- 8-a (orchestrator): three stale audit limitations verified live and marked Resolved (snackbar swipe-to-dismiss, tabs underline text-width measurement, segmented-button 48dp targets).
+- Integration QA: 9 VR baselines refreshed (carousel + the 8 new playground pages; NOTE --only takes a comma list, positional ids silently no-op) → full vr:check **PASS: identical 38 · minor 3 · changed 0 (41/41)**; tsc 0 src errors; lint 0 errors; npm build:package succeeds with arrows in dist; fresh-load browser sweep (/, carousel, checkbox, agent) → zero page errors (one transient HMR parse error seen mid-edit disappears on reload — verify from a fresh page state).
+
+## Unresolved issues / risks / next-phase priorities
+- Playground covers 18/41; remaining 23 are mostly container/navigation components that need richer stage scaffolding (dialogs, sheets, app bars) or stateful demos — specs are data-driven, so pilot 2–3 with local stage state first.
+- Hero layout ratio remains 0.66/0.34 (≈1.94:1) vs the official 3:2 illustration — documented, unchanged.
+- CI yaml still untested (no git remote); vr:check in CI needs a served app step; real npm publish blocked on registry access (build:package verified green).
+- Next candidates: date-picker min/max × range edge tests; MCP stateful SSE sessions; date-picker range selection; README badges/tag; a11y spot-audit of the 8 new playground stages at mobile widths (375px) — controls column stacks under the stage via lg: breakpoint.

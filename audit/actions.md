@@ -324,7 +324,11 @@ Updated only my 8 metas, small unique-anchor edits:
    sub-48dp control (buttons xs/sm, icon buttons xs/sm/md, small FAB, FabMenu 40/32dp, button-group
    segments vertically). Expanded areas can overlap siblings by a few px in dense rows — the
    standard tradeoff for meeting the minimum-target guideline without breaking 40dp visuals.
-   SegmentedButton is the one exception (container-bound, recorded).
+   ~~SegmentedButton is the one exception (container-bound, recorded).~~ **Resolved (round 8,
+   task 8-a verification):** SegmentedButton segments carry the same invisible vertical-only
+   `::before` hit-expander (`before:-inset-y-2` → 40+2×8 = 56px ≥ 48dp); horizontal is left
+   un-expanded so adjacent segments don't dead-zone each other. Live check: `elementFromPoint`
+   5px above the 38px-tall pill still resolves to the segment `<button>`.
 5. **Motion**: all transitions resolve to `springs.*` / `durations.*` tokens directly (the local
    `spring()` shims are gone from every file in this family — tokens.ts was centrally fixed in
    task 4-6). The stagger uses `durations.short1`, the spinner uses `durations.extraLong4`.

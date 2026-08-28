@@ -247,6 +247,7 @@ export const carouselMeta: M3ComponentMeta = {
     { name: "alignment", type: `'start' | 'end'`, default: `'start'`, description: "Scroll-snap alignment of items." },
     { name: "itemCount", type: `number`, default: `4`, description: "multi-browse only: visible-item hint, clamped to 1–5." },
     { name: "shape", type: `'round' | 'square'`, default: `'round'`, description: "Item corners: 28dp (M3E extra-large) or square." },
+    { name: "arrows", type: `'auto' | 'always' | 'never'`, default: `'auto'`, description: "Optional navigation arrows: circular 48dp buttons that scroll one item per press and only appear while content overflows in their direction. 'auto' reveals on hover/focus, 'always' keeps them visible (keyboard-reachable), 'never' hides them." },
     { name: "ariaLabel", type: `string`, description: "Accessible name of the carousel region (defaults to a derived label)." },
     { name: "className", type: `string`, description: "Extra classes for the scroller." },
   ],
@@ -257,8 +258,8 @@ export const carouselMeta: M3ComponentMeta = {
       "Use hero when one featured item deserves emphasis and the rest are secondary.",
       "Use inline for full-bleed, one-item-per-view browsing.",
     ],
-    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12×, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)"],
-    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12×, neighbors shrink)", "Focus (3px focus ring; same width-grow as hover)", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)"],
+    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12×, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)", "Optional navigation arrows (48dp circular, elevation 1, one item per press, overflow-directional)"],
+    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12×, neighbors shrink; arrows reveal in 'auto')", "Focus (3px focus ring; same width-grow as hover; arrows reveal in 'auto')", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)", "Overflow end reached (arrow for that direction hides)"],
     dos: [
       "Use multi-browse for mixed or equal-importance content, hero for featured + rest, inline for full-bleed imagery",
       "Keep 1–5 items visible (official multi-browse range)",

@@ -323,12 +323,15 @@ var datePickerMeta = {
   id: "date-picker",
   name: "Date Picker",
   category: "selection",
-  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons.",
+  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons. selectionMode='range' adds the official M3 date-range selection (androidx DateRangePicker conventions): tap start then end, in-between days carry a continuous primary-container band behind 40dp start/end circles, hover previews the tentative range, and the modal header shows Start/End date placeholders until the pair is complete.",
   importLine: `import { DatePicker } from "@/components/m3";`,
-  variants: ["month-view", "year-view", "modal"],
+  variants: ["month-view", "year-view", "modal", "range \xB7 inline", "range \xB7 modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
-    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked." },
+    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked (single mode)." },
+    { name: "selectionMode", type: `'single' | 'range'`, default: `'single'`, description: "Pick one date, or a start/end range: tap start, then end (tap \u2265 start completes); tapping before the start or once complete restarts with a fresh start." },
+    { name: "range", type: `{ start?: Date; end?: Date }`, description: "Range mode \u2014 controlled selected range; omit for uncontrolled state. Partial ranges (start only) are valid states." },
+    { name: "onRangeChange", type: `(range: { start?: Date; end?: Date }) => void`, description: "Range mode \u2014 fires on every tap with the next range (partial ranges included)." },
     { name: "minDate", type: `Date`, description: "Earliest selectable date; earlier days render disabled (38%)." },
     { name: "maxDate", type: `Date`, description: "Latest selectable date; later days render disabled (38%)." },
     { name: "presentation", type: `'inline' | 'modal'`, default: `'inline'`, description: "Embedded calendar grid, or the official modal picker (328\xD7512dp portrait / 568\xD7368dp landscape at viewport \u2265 600px) with selected-date header and 32% scrim." },
@@ -344,19 +347,21 @@ var datePickerMeta = {
       "Use minDate/maxDate to constrain scheduling to valid ranges.",
       "Pair with a readout chip to show the formatted selected date.",
       'Use presentation="modal" for the official picker dialog \u2014 328\xD7512dp portrait / 568\xD7368dp landscape with selected-date header, 32% scrim and live-apply selection.',
-      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it."
+      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it.",
+      "Use selectionMode='range' for check-in/check-out and event spans \u2014 the band reads as one stripe per week row between the start/end circles."
     ],
-    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column", "Range band (selectionMode='range'): per-cell layer behind the day buttons \u2014 start cell right half (rounded-l-full, hidden under the circle), end cell left half (rounded-r-full), in-between cells full-width square, square cuts at week-row edges, 4dp vertical inset (inset-y-1) keeps adjacent week stripes separate; color = primary-container at 44% (color-mix over the m3 primary-container token \u2014 androidx maps its range container to primary-container; attenuated so mid-band days keep on-surface text); start/end days stay 40dp circles (inline primary \xB7 modal primary-container)"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)", "Range (selectionMode='range'): start/end days 40dp circles with \u201Cstart/end of range\u201D label suffixes, in-between days on the primary-container/44 band (all aria-selected), 24% band + primary outline previews the tentative range while only the start is set, modal header shows Start/End date placeholders or the \u201CAug 21 \u2013 Aug 28\u201D pair (headline-small) and closes only on a complete pick"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
-      "Keep the selected-day pill circular and high-contrast (primary/on-primary)"
+      "Keep the selected-day pill circular and high-contrast (primary/on-primary)",
+      "Show start/end placeholders until both dates are picked \u2014 the modal header and readouts echo the partial range"
     ],
     donts: [
       "Don't force users to scroll years one month at a time \u2014 use the year grid",
       "Don't hide disabled days entirely; dim them to 38%",
-      "Don't use the picker for date ranges (extend it deliberately)",
+      "Don't close the modal picker before the range is complete \u2014 a start-only day tap must keep it open",
       "Don't add confirm/cancel buttons to the modal \u2014 M3 applies the selection live and Escape/scrim dismiss"
     ]
   },
@@ -377,6 +382,21 @@ const [open, setOpen] = React.useState(false);
   onOpenChange={setOpen}
   value={date}
   onChange={setDate}
+/>
+
+// Range selection (selectionMode="range") \u2014 tap start, then end
+const [range, setRange] = React.useState<{ start?: Date; end?: Date }>({});
+<DatePicker selectionMode="range" range={range} onRangeChange={setRange} />
+
+// Range modal \u2014 header shows Start/End date placeholders until the pair is
+// complete; it closes only after the second pick (Escape/scrim always dismiss)
+<DatePicker
+  presentation="modal"
+  selectionMode="range"
+  open={open}
+  onOpenChange={setOpen}
+  range={range}
+  onRangeChange={setRange}
 />`,
   related: ["time-picker", "card", "bottom-sheet"],
   demoName: "DatePickerDemo"
@@ -426,6 +446,63 @@ var sideSheetMeta = {
 </SideSheet>`,
   related: ["bottom-sheet", "card", "list"],
   demoName: "SideSheetDemo"
+};
+var carouselMeta = {
+  id: "carousel",
+  name: "Carousel",
+  category: "containment",
+  description: "New in Material 3 Expressive: a horizontally scrollable, scroll-snapped collection of items with three official layout strategies \u2014 multi-browse (flexible equal widths with a peek), hero (one large leading item, the rest smaller) and inline (one full-width item per view). Items sit 8dp apart, are shaped (28dp corners by default) and, in the multi-browse layout, play the signature M3E dynamic-width treatment: the hovered or focused item springs to ~1.12\xD7 its width while the neighbors give up the difference.",
+  importLine: `import { Carousel } from "@/components/m3";`,
+  variants: ["multi-browse", "hero", "inline"],
+  props: [
+    { name: "items", type: `CarouselItem[]`, description: "Snap items: id, optional label, MaterialSymbol icon, container tone ('primary' | 'secondary' | 'tertiary' | 'surface'), optional href/onClick (makes the whole item a button/link)." },
+    { name: "layout", type: `'multi-browse' | 'hero' | 'inline'`, default: `'multi-browse'`, description: "Official strategy: flexible equal widths with a 24px peek \xB7 one large (66%) + smaller (34%) items \xB7 one full-width item per view." },
+    { name: "alignment", type: `'start' | 'end'`, default: `'start'`, description: "Scroll-snap alignment of items." },
+    { name: "itemCount", type: `number`, default: `4`, description: "multi-browse only: visible-item hint, clamped to 1\u20135." },
+    { name: "shape", type: `'round' | 'square'`, default: `'round'`, description: "Item corners: 28dp (M3E extra-large) or square." },
+    { name: "arrows", type: `'auto' | 'always' | 'never'`, default: `'auto'`, description: "Optional navigation arrows: circular 48dp buttons that scroll one item per press and only appear while content overflows in their direction. 'auto' reveals on hover/focus, 'always' keeps them visible (keyboard-reachable), 'never' hides them." },
+    { name: "ariaLabel", type: `string`, description: "Accessible name of the carousel region (defaults to a derived label)." },
+    { name: "className", type: `string`, description: "Extra classes for the scroller." }
+  ],
+  guidelines: {
+    whenToUse: [
+      "Use carousels to browse a small, visually rich collection of similar content (media cards, destination tiles).",
+      "Use multi-browse when items share equal importance and flexible widths should show several at once.",
+      "Use hero when one featured item deserves emphasis and the rest are secondary.",
+      "Use inline for full-bleed, one-item-per-view browsing."
+    ],
+    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12\xD7, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)", "Optional navigation arrows (48dp circular, elevation 1, one item per press, overflow-directional)"],
+    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12\xD7, neighbors shrink; arrows reveal in 'auto')", "Focus (3px focus ring; same width-grow as hover; arrows reveal in 'auto')", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)", "Overflow end reached (arrow for that direction hides)"],
+    dos: [
+      "Use multi-browse for mixed or equal-importance content, hero for featured + rest, inline for full-bleed imagery",
+      "Keep 1\u20135 items visible (official multi-browse range)",
+      "Give every item a label (or accessible name) so the carousel is describable",
+      "Keep item heights in one carousel consistent (hero large:small \u2248 3:2)"
+    ],
+    donts: [
+      "Don't nest carousels inside carousels",
+      "Don't put primary actions inside carousel items (items are browse/navigation, not task buttons)",
+      "Don't allow tiny peeks that hide content \u2014 the 24px peek only hints that more exists",
+      "Don't use the dynamic-width grow in hero/inline \u2014 flexible widths are a multi-browse trait"
+    ]
+  },
+  exampleCode: `<Carousel
+  layout="multi-browse"
+  itemCount={4}
+  ariaLabel="Weekend getaways"
+  items={[
+    { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary", onClick: open },
+    { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary", onClick: open },
+    { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+    { id: "food", label: "Food tours", icon: "restaurant", tone: "surface" },
+  ]}
+/>
+
+<Carousel layout="hero" items={featured} />
+<Carousel layout="inline" items={fullBleed} />`,
+  m3e: true,
+  related: ["card", "list", "bottom-sheet"],
+  demoName: "CarouselDemo"
 };
 var dialogMeta = {
   id: "dialog",
@@ -4204,15 +4281,309 @@ var SideSheet = React17.forwardRef(function SideSheet2({
   ] }) });
 });
 
-// ../../src/components/m3/TextField.tsx
+// ../../src/components/m3/Carousel.tsx
 import * as React18 from "react";
 import { motion as motion21 } from "framer-motion";
 import { Fragment as Fragment3, jsx as jsx24, jsxs as jsxs21 } from "react/jsx-runtime";
+var GAP = 8;
+var PEEK = 24;
+var GROW = 1.12;
+var HEIGHT = {
+  "multi-browse": 280,
+  inline: 320
+};
+var HERO_LARGE_H = 360;
+var HERO_SMALL_H = 240;
+var HERO_LARGE_W = 0.66;
+var HERO_SMALL_W = 0.34;
+var toneStyles = {
+  primary: "bg-m3-primary-container text-m3-on-primary-container",
+  secondary: "bg-m3-secondary-container text-m3-on-secondary-container",
+  tertiary: "bg-m3-tertiary-container text-m3-on-tertiary-container",
+  surface: "bg-m3-surface-container-high text-m3-on-surface"
+};
+var clampCount = (n) => Math.min(5, Math.max(1, Math.round(n)));
+var Carousel = React18.forwardRef(function Carousel2({
+  items,
+  layout = "multi-browse",
+  alignment = "start",
+  itemCount = 4,
+  shape = "round",
+  arrows = "auto",
+  ariaLabel,
+  className,
+  ...props
+}, ref) {
+  const n = clampCount(itemCount);
+  const scrollerRef = React18.useRef(null);
+  const [vw, setVw] = React18.useState(0);
+  const [hoverId, setHoverId] = React18.useState(null);
+  const [focusId, setFocusId] = React18.useState(null);
+  const hot = hoverId ?? focusId;
+  const hotIndex = items.findIndex((it) => it.id === hot);
+  const grows = layout === "multi-browse" && n > 1;
+  React18.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0;
+      setVw((prev) => Math.abs(prev - width) > 0.5 ? width : prev);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const setScrollerRef = React18.useCallback(
+    (node) => {
+      scrollerRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
+  const showArrows = arrows !== "never";
+  const scrollerId = React18.useId().replace(/[:]/g, "");
+  const [canScrollStart, setCanScrollStart] = React18.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React18.useState(false);
+  const [hoverArrows, setHoverArrows] = React18.useState(false);
+  const [kbWithin, setKbWithin] = React18.useState(false);
+  const revealed = arrows === "always" || hoverArrows || kbWithin;
+  const updateOverflow = React18.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanScrollStart(el.scrollLeft > 4);
+    setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+  React18.useEffect(() => {
+    if (!showArrows) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateOverflow();
+    el.addEventListener("scroll", updateOverflow, { passive: true });
+    const ro = new ResizeObserver(updateOverflow);
+    ro.observe(el);
+    el.querySelectorAll("[data-carousel-item]").forEach((node) => ro.observe(node));
+    return () => {
+      el.removeEventListener("scroll", updateOverflow);
+      ro.disconnect();
+    };
+  }, [updateOverflow, showArrows, items.length]);
+  const scrollByItem = (dir) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    if (slides.length === 0) return;
+    const elLeft = el.getBoundingClientRect().left;
+    let target;
+    if (dir === 1) {
+      target = slides.find((s) => s.getBoundingClientRect().left - elLeft > 2);
+    } else {
+      for (let i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].getBoundingClientRect().left - elLeft < -2) {
+          target = slides[i];
+          break;
+        }
+      }
+    }
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        inline: alignment === "end" ? "end" : "start",
+        block: "nearest"
+      });
+    } else {
+      el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+    }
+  };
+  const slot = layout === "multi-browse" ? Math.max(0, (vw - n * GAP - PEEK) / n) : 0;
+  const coldSlot = slot * ((n - GROW) / (n - 1));
+  const heroInner = Math.max(0, vw - 2 * GAP);
+  const heroLarge = heroInner * HERO_LARGE_W;
+  const heroSmall = heroInner * HERO_SMALL_W;
+  const fallbackWidth = (i) => {
+    if (layout === "inline") return "100%";
+    if (layout === "hero") {
+      return i === 0 ? `calc((100% - ${2 * GAP}px) * ${HERO_LARGE_W})` : `calc((100% - ${2 * GAP}px) * ${HERO_SMALL_W})`;
+    }
+    return `calc((100% - ${n * GAP + PEEK}px) / ${n})`;
+  };
+  const widthFor = (i) => {
+    if (vw <= 0) return fallbackWidth(i);
+    if (layout === "inline") return vw;
+    if (layout === "hero") return i === 0 ? heroLarge : heroSmall;
+    if (!grows) return slot;
+    if (hotIndex === i) return slot * GROW;
+    return hotIndex === -1 ? slot : coldSlot;
+  };
+  const focusSlide = (idx) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    if (slides.length === 0) return;
+    const target = slides[Math.min(slides.length - 1, Math.max(0, idx))];
+    const focusable = target.querySelector("a[href], button") ?? target;
+    focusable.focus({ preventScroll: true });
+    target.scrollIntoView({
+      behavior: "smooth",
+      inline: alignment === "end" ? "end" : "start",
+      block: "nearest"
+    });
+  };
+  const handleKeyDown = (e) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    const active = document.activeElement;
+    const current = slides.findIndex((node) => node === active || node.contains(active));
+    if (current === -1) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      focusSlide(current + 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      focusSlide(current - 1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      focusSlide(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      focusSlide(slides.length - 1);
+    }
+  };
+  const arrowsUI = showArrows && (canScrollStart || canScrollEnd) && /* @__PURE__ */ jsxs21(Fragment3, { children: [
+    canScrollStart && /* @__PURE__ */ jsxs21(
+      motion21.button,
+      {
+        type: "button",
+        tabIndex: arrows === "always" ? 0 : -1,
+        "aria-label": "Previous items",
+        "aria-controls": scrollerId,
+        onClick: () => scrollByItem(-1),
+        initial: false,
+        animate: { opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 },
+        transition: springs.fastSpatial,
+        style: { pointerEvents: revealed ? "auto" : "none" },
+        className: "m3-state m3-focus absolute left-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none",
+        children: [
+          /* @__PURE__ */ jsx24(Ripple, {}),
+          /* @__PURE__ */ jsx24(MaterialSymbol, { icon: "chevron_left", size: 24 })
+        ]
+      }
+    ),
+    canScrollEnd && /* @__PURE__ */ jsxs21(
+      motion21.button,
+      {
+        type: "button",
+        tabIndex: arrows === "always" ? 0 : -1,
+        "aria-label": "Next items",
+        "aria-controls": scrollerId,
+        onClick: () => scrollByItem(1),
+        initial: false,
+        animate: { opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 },
+        transition: springs.fastSpatial,
+        style: { pointerEvents: revealed ? "auto" : "none" },
+        className: "m3-state m3-focus absolute right-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none",
+        children: [
+          /* @__PURE__ */ jsx24(Ripple, {}),
+          /* @__PURE__ */ jsx24(MaterialSymbol, { icon: "chevron_right", size: 24 })
+        ]
+      }
+    )
+  ] });
+  return /* @__PURE__ */ jsxs21(
+    "div",
+    {
+      className: "relative w-full",
+      onPointerEnter: (e) => {
+        if (e.pointerType !== "touch") setHoverArrows(true);
+      },
+      onPointerLeave: () => setHoverArrows(false),
+      onFocus: () => setKbWithin(true),
+      onBlur: () => setKbWithin(false),
+      children: [
+        /* @__PURE__ */ jsx24(
+          "div",
+          {
+            ref: setScrollerRef,
+            role: "region",
+            "aria-roledescription": "carousel",
+            "aria-label": ariaLabel ?? `Carousel, ${items.length} items`,
+            tabIndex: 0,
+            onKeyDown: handleKeyDown,
+            className: cn(
+              "m3-focus flex w-full select-none gap-2 outline-none",
+              "snap-x snap-mandatory overflow-x-auto",
+              "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+              layout === "hero" && "items-center",
+              className
+            ),
+            ...props,
+            children: items.map((item, i) => {
+              const actionable = Boolean(item.onClick || item.href);
+              const Inner = item.href ? "a" : actionable ? "button" : "div";
+              const height = layout === "hero" ? i === 0 ? HERO_LARGE_H : HERO_SMALL_H : HEIGHT[layout];
+              const width = widthFor(i);
+              const hotSlide = grows && hotIndex === i;
+              return /* @__PURE__ */ jsx24(
+                motion21.div,
+                {
+                  "data-carousel-item": true,
+                  "data-carousel-index": i,
+                  role: "group",
+                  "aria-roledescription": "slide",
+                  "aria-label": `${i + 1} of ${items.length}${item.label ? `: ${item.label}` : ""}`,
+                  tabIndex: actionable ? -1 : 0,
+                  onFocus: () => setFocusId(item.id),
+                  onBlur: () => setFocusId((cur) => cur === item.id ? null : cur),
+                  onPointerEnter: (e) => {
+                    if (e.pointerType !== "touch") setHoverId(item.id);
+                  },
+                  onPointerLeave: () => setHoverId((cur) => cur === item.id ? null : cur),
+                  animate: vw > 0 ? { width } : void 0,
+                  transition: springs.defaultSpatial,
+                  style: { width, height, flex: "none" },
+                  className: cn("snap-start shrink-0", alignment === "end" && "snap-end"),
+                  children: /* @__PURE__ */ jsxs21(
+                    Inner,
+                    {
+                      href: item.href,
+                      type: item.href || !actionable ? void 0 : "button",
+                      onClick: item.onClick ? () => item.onClick(item) : void 0,
+                      "aria-label": actionable ? item.label ?? `Slide ${i + 1}` : void 0,
+                      "data-hot": hotSlide || void 0,
+                      className: cn(
+                        "relative flex h-full w-full flex-col overflow-hidden p-5 md-label-large",
+                        toneStyles[item.tone ?? "secondary"],
+                        shape === "round" ? "rounded-[28px]" : "rounded-none",
+                        actionable ? "m3-state m3-focus cursor-pointer outline-none" : "cursor-default outline-none"
+                      ),
+                      children: [
+                        actionable && /* @__PURE__ */ jsx24(Ripple, {}),
+                        /* @__PURE__ */ jsx24("span", { className: "flex min-h-0 flex-1 items-center justify-center", children: item.icon && /* @__PURE__ */ jsx24(MaterialSymbol, { icon: item.icon, size: 44, opticalSize: 40 }) }),
+                        item.label && /* @__PURE__ */ jsx24("span", { className: "truncate text-left md-label-large", children: item.label })
+                      ]
+                    }
+                  )
+                },
+                item.id
+              );
+            })
+          }
+        ),
+        arrowsUI
+      ]
+    }
+  );
+});
+
+// ../../src/components/m3/TextField.tsx
+import * as React19 from "react";
+import { motion as motion22 } from "framer-motion";
+import { Fragment as Fragment4, jsx as jsx25, jsxs as jsxs22 } from "react/jsx-runtime";
 var springs2 = springs;
 var sizeHeights = { xs: 32, sm: 40, md: 56, lg: 72 };
 var fieldRadius = "rounded-m3-xs";
 var fieldTopRadius = "rounded-t-m3-xs";
-var TextField = React18.forwardRef(function TextField2({
+var TextField = React19.forwardRef(function TextField2({
   variant = "outlined",
   size = "md",
   label,
@@ -4233,8 +4604,8 @@ var TextField = React18.forwardRef(function TextField2({
   onBlur,
   ...props
 }, ref) {
-  const [focused, setFocused] = React18.useState(false);
-  const autoId = React18.useId();
+  const [focused, setFocused] = React19.useState(false);
+  const autoId = React19.useId();
   const inputId = id ?? `m3-tf-${autoId.replace(/:/g, "")}`;
   const helperId = helperText ? `${inputId}-helper` : void 0;
   const hasValue = value != null && String(value).length > 0;
@@ -4247,8 +4618,8 @@ var TextField = React18.forwardRef(function TextField2({
   const labelRestClass = compact ? "md-body-medium" : "md-body-large";
   const labelRestHalf = compact ? 10 : 12;
   const showPlaceholder = placeholder != null && (!label || floated);
-  return /* @__PURE__ */ jsxs21("div", { className: cn("relative", fullWidth && "w-full", className), children: [
-    /* @__PURE__ */ jsxs21(
+  return /* @__PURE__ */ jsxs22("div", { className: cn("relative", fullWidth && "w-full", className), children: [
+    /* @__PURE__ */ jsxs22(
       "div",
       {
         className: cn(
@@ -4261,7 +4632,7 @@ var TextField = React18.forwardRef(function TextField2({
         ),
         style: { height },
         children: [
-          leadingIcon && /* @__PURE__ */ jsx24(
+          leadingIcon && /* @__PURE__ */ jsx25(
             MaterialSymbol,
             {
               icon: leadingIcon,
@@ -4273,7 +4644,7 @@ var TextField = React18.forwardRef(function TextField2({
               )
             }
           ),
-          /* @__PURE__ */ jsx24(
+          /* @__PURE__ */ jsx25(
             "input",
             {
               ref,
@@ -4305,7 +4676,7 @@ var TextField = React18.forwardRef(function TextField2({
               ...props
             }
           ),
-          (error || trailingIcon) && /* @__PURE__ */ jsx24(
+          (error || trailingIcon) && /* @__PURE__ */ jsx25(
             MaterialSymbol,
             {
               icon: error ? "error" : trailingIcon,
@@ -4318,8 +4689,8 @@ var TextField = React18.forwardRef(function TextField2({
               )
             }
           ),
-          variant === "filled" && /* @__PURE__ */ jsxs21(Fragment3, { children: [
-            /* @__PURE__ */ jsx24(
+          variant === "filled" && /* @__PURE__ */ jsxs22(Fragment4, { children: [
+            /* @__PURE__ */ jsx25(
               "div",
               {
                 className: cn(
@@ -4328,8 +4699,8 @@ var TextField = React18.forwardRef(function TextField2({
                 )
               }
             ),
-            /* @__PURE__ */ jsx24(
-              motion21.div,
+            /* @__PURE__ */ jsx25(
+              motion22.div,
               {
                 className: cn(
                   "pointer-events-none absolute inset-x-0 bottom-0 h-[2px] origin-center",
@@ -4341,8 +4712,8 @@ var TextField = React18.forwardRef(function TextField2({
               }
             )
           ] }),
-          label && /* @__PURE__ */ jsxs21(
-            motion21.label,
+          label && /* @__PURE__ */ jsxs22(
+            motion22.label,
             {
               htmlFor: inputId,
               className: cn(
@@ -4360,14 +4731,14 @@ var TextField = React18.forwardRef(function TextField2({
               transition: springs2.fastSpatial,
               children: [
                 label,
-                required && /* @__PURE__ */ jsx24("span", { className: "text-m3-error", children: " *" })
+                required && /* @__PURE__ */ jsx25("span", { className: "text-m3-error", children: " *" })
               ]
             }
           )
         ]
       }
     ),
-    helperText && /* @__PURE__ */ jsx24(
+    helperText && /* @__PURE__ */ jsx25(
       "div",
       {
         id: helperId,
@@ -4379,12 +4750,12 @@ var TextField = React18.forwardRef(function TextField2({
 });
 
 // ../../src/components/m3/SearchBar.tsx
-import * as React19 from "react";
-import { motion as motion22 } from "framer-motion";
-import { jsx as jsx25, jsxs as jsxs22 } from "react/jsx-runtime";
+import * as React20 from "react";
+import { motion as motion23 } from "framer-motion";
+import { jsx as jsx26, jsxs as jsxs23 } from "react/jsx-runtime";
 var springs3 = springs;
 var sizeHeights2 = { sm: 40, md: 56, lg: 72 };
-var SearchBar = React19.forwardRef(function SearchBar2({
+var SearchBar = React20.forwardRef(function SearchBar2({
   value,
   onChange,
   placeholder = "Search",
@@ -4397,9 +4768,9 @@ var SearchBar = React19.forwardRef(function SearchBar2({
   className,
   ...props
 }, ref) {
-  const [focused, setFocused] = React19.useState(false);
+  const [focused, setFocused] = React20.useState(false);
   const trailingHit = size === "sm" ? "h-8 w-8" : "h-12 w-12";
-  return /* @__PURE__ */ jsx25("div", { className: cn("relative inline-flex", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className), children: /* @__PURE__ */ jsxs22(
+  return /* @__PURE__ */ jsx26("div", { className: cn("relative inline-flex", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className), children: /* @__PURE__ */ jsxs23(
     "div",
     {
       className: cn(
@@ -4408,8 +4779,8 @@ var SearchBar = React19.forwardRef(function SearchBar2({
       ),
       style: { height: sizeHeights2[size] },
       children: [
-        leadingIcon && /* @__PURE__ */ jsx25(MaterialSymbol, { icon: leadingIcon, size: 24, className: "ml-4 shrink-0 text-m3-on-surface-variant" }),
-        /* @__PURE__ */ jsx25(
+        leadingIcon && /* @__PURE__ */ jsx26(MaterialSymbol, { icon: leadingIcon, size: 24, className: "ml-4 shrink-0 text-m3-on-surface-variant" }),
+        /* @__PURE__ */ jsx26(
           "input",
           {
             ref,
@@ -4432,8 +4803,8 @@ var SearchBar = React19.forwardRef(function SearchBar2({
             ...props
           }
         ),
-        trailingIcons.map((icon) => /* @__PURE__ */ jsxs22(
-          motion22.button,
+        trailingIcons.map((icon) => /* @__PURE__ */ jsxs23(
+          motion23.button,
           {
             type: "button",
             "aria-label": icon.replace(/_/g, " "),
@@ -4445,25 +4816,25 @@ var SearchBar = React19.forwardRef(function SearchBar2({
               trailingHit
             ),
             children: [
-              /* @__PURE__ */ jsx25(Ripple, { disabled }),
-              /* @__PURE__ */ jsx25(MaterialSymbol, { icon, size: 24 })
+              /* @__PURE__ */ jsx26(Ripple, { disabled }),
+              /* @__PURE__ */ jsx26(MaterialSymbol, { icon, size: 24 })
             ]
           },
           icon
         )),
-        trailingIcons.length > 0 && /* @__PURE__ */ jsx25("span", { className: "mr-3" })
+        trailingIcons.length > 0 && /* @__PURE__ */ jsx26("span", { className: "mr-3" })
       ]
     }
   ) });
 });
 
 // ../../src/components/m3/SearchView.tsx
-import * as React20 from "react";
-import { AnimatePresence as AnimatePresence11, motion as motion23 } from "framer-motion";
-import { jsx as jsx26, jsxs as jsxs23 } from "react/jsx-runtime";
+import * as React21 from "react";
+import { AnimatePresence as AnimatePresence11, motion as motion24 } from "framer-motion";
+import { jsx as jsx27, jsxs as jsxs24 } from "react/jsx-runtime";
 var springs4 = springs;
 var FOCUSABLE4 = 'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-var SearchView = React20.forwardRef(function SearchView2({
+var SearchView = React21.forwardRef(function SearchView2({
   open,
   onOpenChange,
   mode = "full-screen",
@@ -4481,17 +4852,17 @@ var SearchView = React20.forwardRef(function SearchView2({
   className
 }, ref) {
   const fullScreen = mode === "full-screen";
-  const panelRef = React20.useRef(null);
-  const inputRef = React20.useRef(null);
-  const restoreFocusRef = React20.useRef(null);
-  const [active, setActive] = React20.useState(-1);
-  const reactId = React20.useId();
+  const panelRef = React21.useRef(null);
+  const inputRef = React21.useRef(null);
+  const restoreFocusRef = React21.useRef(null);
+  const [active, setActive] = React21.useState(-1);
+  const reactId = React21.useId();
   const listId = `m3-sv-${reactId.replace(/:/g, "")}`;
-  React20.useImperativeHandle(ref, () => inputRef.current, []);
+  React21.useImperativeHandle(ref, () => inputRef.current, []);
   const isControlled = value !== void 0;
-  const [inner, setInner] = React20.useState(defaultValue ?? "");
+  const [inner, setInner] = React21.useState(defaultValue ?? "");
   const query = isControlled ? value : inner;
-  const setQuery = React20.useCallback(
+  const setQuery = React21.useCallback(
     (v) => {
       if (!isControlled) setInner(v);
       onValueChange?.(v);
@@ -4508,7 +4879,7 @@ var SearchView = React20.forwardRef(function SearchView2({
     onRecentRemove?.(q);
     setActive(-1);
   };
-  React20.useEffect(() => {
+  React21.useEffect(() => {
     if (!open || !fullScreen) return;
     const onKey = (e) => {
       if (e.key === "Escape") onOpenChange(false);
@@ -4521,7 +4892,7 @@ var SearchView = React20.forwardRef(function SearchView2({
       document.body.style.overflow = prevOverflow;
     };
   }, [open, fullScreen, onOpenChange]);
-  React20.useEffect(() => {
+  React21.useEffect(() => {
     if (!open || !fullScreen) return;
     restoreFocusRef.current = document.activeElement;
     let timer = 0;
@@ -4567,8 +4938,8 @@ var SearchView = React20.forwardRef(function SearchView2({
       onOpenChange(false);
     }
   };
-  const panel = /* @__PURE__ */ jsxs23(
-    motion23.div,
+  const panel = /* @__PURE__ */ jsxs24(
+    motion24.div,
     {
       ref: panelRef,
       role: "dialog",
@@ -4586,8 +4957,8 @@ var SearchView = React20.forwardRef(function SearchView2({
         className
       ),
       children: [
-        /* @__PURE__ */ jsxs23("div", { className: "flex h-14 shrink-0 items-center bg-m3-surface-container-high", children: [
-          /* @__PURE__ */ jsxs23(
+        /* @__PURE__ */ jsxs24("div", { className: "flex h-14 shrink-0 items-center bg-m3-surface-container-high", children: [
+          /* @__PURE__ */ jsxs24(
             "button",
             {
               type: "button",
@@ -4595,12 +4966,12 @@ var SearchView = React20.forwardRef(function SearchView2({
               "aria-label": "Close search",
               className: "m3-state relative ml-1 grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface",
               children: [
-                /* @__PURE__ */ jsx26(Ripple, {}),
-                leadingIcon ?? /* @__PURE__ */ jsx26(MaterialSymbol, { icon: "arrow_back", size: 24 })
+                /* @__PURE__ */ jsx27(Ripple, {}),
+                leadingIcon ?? /* @__PURE__ */ jsx27(MaterialSymbol, { icon: "arrow_back", size: 24 })
               ]
             }
           ),
-          /* @__PURE__ */ jsx26(
+          /* @__PURE__ */ jsx27(
             "input",
             {
               ref: inputRef,
@@ -4622,7 +4993,7 @@ var SearchView = React20.forwardRef(function SearchView2({
               className: "h-full min-w-0 flex-1 bg-transparent px-4 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
             }
           ),
-          query !== "" && /* @__PURE__ */ jsxs23(
+          query !== "" && /* @__PURE__ */ jsxs24(
             "button",
             {
               type: "button",
@@ -4634,16 +5005,16 @@ var SearchView = React20.forwardRef(function SearchView2({
               "aria-label": "Clear search text",
               className: "m3-state relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface",
               children: [
-                /* @__PURE__ */ jsx26(Ripple, {}),
-                /* @__PURE__ */ jsx26(MaterialSymbol, { icon: "close", size: 24 })
+                /* @__PURE__ */ jsx27(Ripple, {}),
+                /* @__PURE__ */ jsx27(MaterialSymbol, { icon: "close", size: 24 })
               ]
             }
           ),
-          trailingActions && /* @__PURE__ */ jsx26("div", { className: "flex shrink-0 items-center pr-1", children: trailingActions })
+          trailingActions && /* @__PURE__ */ jsx27("div", { className: "flex shrink-0 items-center pr-1", children: trailingActions })
         ] }),
-        /* @__PURE__ */ jsx26("div", { "aria-hidden": "true", className: "h-px w-full shrink-0 bg-m3-outline-variant" }),
-        /* @__PURE__ */ jsxs23("div", { className: "m3-scroll min-h-0 flex-1 overflow-y-auto py-2", children: [
-          showRecents && /* @__PURE__ */ jsx26("ul", { id: listId, role: "listbox", "aria-label": "Recent searches", className: "py-1", children: recentSearches.map((q, i) => /* @__PURE__ */ jsxs23(
+        /* @__PURE__ */ jsx27("div", { "aria-hidden": "true", className: "h-px w-full shrink-0 bg-m3-outline-variant" }),
+        /* @__PURE__ */ jsxs24("div", { className: "m3-scroll min-h-0 flex-1 overflow-y-auto py-2", children: [
+          showRecents && /* @__PURE__ */ jsx27("ul", { id: listId, role: "listbox", "aria-label": "Recent searches", className: "py-1", children: recentSearches.map((q, i) => /* @__PURE__ */ jsxs24(
             "li",
             {
               id: `${listId}-${i}`,
@@ -4659,8 +5030,8 @@ var SearchView = React20.forwardRef(function SearchView2({
                 active === i && "bg-m3-on-surface/8"
               ),
               children: [
-                /* @__PURE__ */ jsx26(Ripple, {}),
-                /* @__PURE__ */ jsx26(
+                /* @__PURE__ */ jsx27(Ripple, {}),
+                /* @__PURE__ */ jsx27(
                   MaterialSymbol,
                   {
                     icon: "history",
@@ -4668,8 +5039,8 @@ var SearchView = React20.forwardRef(function SearchView2({
                     className: "mr-3 shrink-0 text-m3-on-surface-variant"
                   }
                 ),
-                /* @__PURE__ */ jsx26("span", { className: "flex-1 truncate md-label-large text-m3-on-surface", children: q }),
-                onRecentRemove && /* @__PURE__ */ jsxs23(
+                /* @__PURE__ */ jsx27("span", { className: "flex-1 truncate md-label-large text-m3-on-surface", children: q }),
+                onRecentRemove && /* @__PURE__ */ jsxs24(
                   "button",
                   {
                     type: "button",
@@ -4680,8 +5051,8 @@ var SearchView = React20.forwardRef(function SearchView2({
                     },
                     className: "m3-state relative -mr-2 grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface-variant",
                     children: [
-                      /* @__PURE__ */ jsx26(Ripple, {}),
-                      /* @__PURE__ */ jsx26(MaterialSymbol, { icon: "close", size: 20 })
+                      /* @__PURE__ */ jsx27(Ripple, {}),
+                      /* @__PURE__ */ jsx27(MaterialSymbol, { icon: "close", size: 20 })
                     ]
                   }
                 )
@@ -4694,30 +5065,30 @@ var SearchView = React20.forwardRef(function SearchView2({
       ]
     }
   );
-  return /* @__PURE__ */ jsx26(AnimatePresence11, { children: open && panel });
+  return /* @__PURE__ */ jsx27(AnimatePresence11, { children: open && panel });
 });
 
 // ../../src/components/m3/Autocomplete.tsx
-import * as React21 from "react";
-import { AnimatePresence as AnimatePresence12, motion as motion24 } from "framer-motion";
-import { jsx as jsx27, jsxs as jsxs24 } from "react/jsx-runtime";
+import * as React22 from "react";
+import { AnimatePresence as AnimatePresence12, motion as motion25 } from "framer-motion";
+import { jsx as jsx28, jsxs as jsxs25 } from "react/jsx-runtime";
 var springs5 = springs;
-var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, onChange, label, placeholder = "Type to filter", fullWidth = false, disabled = false, className }, ref) {
-  const [open, setOpen] = React21.useState(false);
-  const [highlighted, setHighlighted] = React21.useState(-1);
-  const rootRef = React21.useRef(null);
-  const reactId = React21.useId();
+var Autocomplete = React22.forwardRef(function Autocomplete2({ options, value, onChange, label, placeholder = "Type to filter", fullWidth = false, disabled = false, className }, ref) {
+  const [open, setOpen] = React22.useState(false);
+  const [highlighted, setHighlighted] = React22.useState(-1);
+  const rootRef = React22.useRef(null);
+  const reactId = React22.useId();
   const listId = `m3-ac-${reactId.replace(/:/g, "")}`;
-  const filtered = React21.useMemo(() => {
+  const filtered = React22.useMemo(() => {
     const q = value.trim().toLowerCase();
     return q ? options.filter((o) => o.toLowerCase().includes(q)) : options;
   }, [options, value]);
-  const openMenu = React21.useCallback(() => {
+  const openMenu = React22.useCallback(() => {
     if (disabled) return;
     setOpen(true);
     setHighlighted(-1);
   }, [disabled]);
-  React21.useEffect(() => {
+  React22.useEffect(() => {
     if (!open) return;
     const onPointerDown = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
@@ -4757,14 +5128,14 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
       setOpen(false);
     }
   };
-  return /* @__PURE__ */ jsxs24(
+  return /* @__PURE__ */ jsxs25(
     "div",
     {
       ref: rootRef,
       className: cn("relative", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className),
       children: [
-        label && /* @__PURE__ */ jsx27("div", { className: "mb-1 px-1 md-body-small text-m3-on-surface-variant", children: label }),
-        /* @__PURE__ */ jsxs24(
+        label && /* @__PURE__ */ jsx28("div", { className: "mb-1 px-1 md-body-small text-m3-on-surface-variant", children: label }),
+        /* @__PURE__ */ jsxs25(
           "div",
           {
             className: cn(
@@ -4772,7 +5143,7 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
               open && !disabled ? "border-m3-primary shadow-[inset_0_0_0_1px_var(--md-primary)]" : disabled ? "border-m3-outline/12" : "border-m3-outline hover:border-m3-on-surface"
             ),
             children: [
-              /* @__PURE__ */ jsx27(
+              /* @__PURE__ */ jsx28(
                 "input",
                 {
                   ref,
@@ -4796,8 +5167,8 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
                   className: "h-full w-full bg-transparent pl-4 pr-12 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
                 }
               ),
-              /* @__PURE__ */ jsxs24(
-                motion24.button,
+              /* @__PURE__ */ jsxs25(
+                motion25.button,
                 {
                   type: "button",
                   "aria-label": "Toggle suggestions",
@@ -4807,15 +5178,15 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
                   onClick: () => open ? setOpen(false) : openMenu(),
                   className: "m3-state absolute right-1.5 grid h-9 w-9 place-items-center overflow-hidden rounded-full text-m3-on-surface-variant",
                   children: [
-                    /* @__PURE__ */ jsx27(Ripple, { disabled }),
-                    /* @__PURE__ */ jsx27(
-                      motion24.span,
+                    /* @__PURE__ */ jsx28(Ripple, { disabled }),
+                    /* @__PURE__ */ jsx28(
+                      motion25.span,
                       {
                         initial: false,
                         animate: { rotate: open ? 180 : 0 },
                         transition: springs5.fastSpatial,
                         className: "inline-flex",
-                        children: /* @__PURE__ */ jsx27(MaterialSymbol, { icon: "arrow_drop_down", size: 24 })
+                        children: /* @__PURE__ */ jsx28(MaterialSymbol, { icon: "arrow_drop_down", size: 24 })
                       }
                     )
                   ]
@@ -4824,9 +5195,9 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
             ]
           }
         ),
-        /* @__PURE__ */ jsxs24(AnimatePresence12, { children: [
-          open && filtered.length > 0 && /* @__PURE__ */ jsx27(
-            motion24.ul,
+        /* @__PURE__ */ jsxs25(AnimatePresence12, { children: [
+          open && filtered.length > 0 && /* @__PURE__ */ jsx28(
+            motion25.ul,
             {
               id: listId,
               role: "listbox",
@@ -4839,7 +5210,7 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
               children: filtered.map((option, i) => {
                 const isSelected = option === value;
                 const isHighlighted = i === highlighted;
-                return /* @__PURE__ */ jsxs24(
+                return /* @__PURE__ */ jsxs25(
                   "li",
                   {
                     id: `${listId}-${i}`,
@@ -4855,9 +5226,9 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
                       isHighlighted && "bg-m3-on-surface/8"
                     ),
                     children: [
-                      /* @__PURE__ */ jsx27(Ripple, {}),
-                      /* @__PURE__ */ jsx27("span", { className: "flex-1 truncate", children: option }),
-                      isSelected && /* @__PURE__ */ jsx27(MaterialSymbol, { icon: "check", size: 20, fill: true, className: "text-m3-primary" })
+                      /* @__PURE__ */ jsx28(Ripple, {}),
+                      /* @__PURE__ */ jsx28("span", { className: "flex-1 truncate", children: option }),
+                      isSelected && /* @__PURE__ */ jsx28(MaterialSymbol, { icon: "check", size: 20, fill: true, className: "text-m3-primary" })
                     ]
                   },
                   option
@@ -4865,8 +5236,8 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
               })
             }
           ),
-          open && filtered.length === 0 && /* @__PURE__ */ jsx27(
-            motion24.div,
+          open && filtered.length === 0 && /* @__PURE__ */ jsx28(
+            motion25.div,
             {
               initial: { opacity: 0, y: -4 },
               animate: { opacity: 1, y: 0 },
@@ -4884,18 +5255,18 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
 });
 
 // ../../src/components/m3/Checkbox.tsx
-import * as React22 from "react";
-import { motion as motion25 } from "framer-motion";
-import { jsx as jsx28, jsxs as jsxs25 } from "react/jsx-runtime";
+import * as React23 from "react";
+import { motion as motion26 } from "framer-motion";
+import { jsx as jsx29, jsxs as jsxs26 } from "react/jsx-runtime";
 var springs6 = springs;
-var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className }, ref) {
+var Checkbox = React23.forwardRef(function Checkbox2({ checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className }, ref) {
   const isFilled = checked || indeterminate;
   const handleToggle = () => {
     if (disabled) return;
     onChange?.(indeterminate ? true : !checked);
   };
-  return /* @__PURE__ */ jsxs25(
-    motion25.button,
+  return /* @__PURE__ */ jsxs26(
+    motion26.button,
     {
       ref,
       type: "button",
@@ -4912,9 +5283,9 @@ var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterm
         className
       ),
       children: [
-        /* @__PURE__ */ jsx28(Ripple, { disabled }),
-        /* @__PURE__ */ jsx28("span", { className: "grid h-12 w-12 shrink-0 place-items-center", children: /* @__PURE__ */ jsxs25(
-          motion25.span,
+        /* @__PURE__ */ jsx29(Ripple, { disabled }),
+        /* @__PURE__ */ jsx29("span", { className: "grid h-12 w-12 shrink-0 place-items-center", children: /* @__PURE__ */ jsxs26(
+          motion26.span,
           {
             className: cn(
               "relative grid h-[18px] w-[18px] place-items-center rounded-[2px] border-2 transition-colors duration-150",
@@ -4923,8 +5294,8 @@ var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterm
             whileTap: disabled ? void 0 : { scale: 0.85 },
             transition: springs6.expressive,
             children: [
-              /* @__PURE__ */ jsx28("svg", { viewBox: "0 0 24 24", "aria-hidden": "true", className: "h-3 w-3", children: /* @__PURE__ */ jsx28(
-                motion25.path,
+              /* @__PURE__ */ jsx29("svg", { viewBox: "0 0 24 24", "aria-hidden": "true", className: "h-3 w-3", children: /* @__PURE__ */ jsx29(
+                motion26.path,
                 {
                   d: "M20 6 9 17l-5-5",
                   fill: "none",
@@ -4937,8 +5308,8 @@ var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterm
                   transition: springs6.expressive
                 }
               ) }),
-              indeterminate && /* @__PURE__ */ jsx28(
-                motion25.span,
+              indeterminate && /* @__PURE__ */ jsx29(
+                motion26.span,
                 {
                   className: cn("absolute h-[2px] w-[10px] rounded-full", error ? "bg-m3-on-error" : "bg-m3-on-primary"),
                   initial: { scale: 0 },
@@ -4949,20 +5320,20 @@ var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterm
             ]
           }
         ) }),
-        label && /* @__PURE__ */ jsx28("span", { className: "pr-3 text-m3-on-surface md-body-large", children: label })
+        label && /* @__PURE__ */ jsx29("span", { className: "pr-3 text-m3-on-surface md-body-large", children: label })
       ]
     }
   );
 });
 
 // ../../src/components/m3/Radio.tsx
-import * as React23 from "react";
-import { motion as motion26 } from "framer-motion";
-import { jsx as jsx29, jsxs as jsxs26 } from "react/jsx-runtime";
+import * as React24 from "react";
+import { motion as motion27 } from "framer-motion";
+import { jsx as jsx30, jsxs as jsxs27 } from "react/jsx-runtime";
 var springs7 = springs;
-var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, label, disabled = false, error = false, className }, ref) {
-  return /* @__PURE__ */ jsxs26(
-    motion26.button,
+var Radio = React24.forwardRef(function Radio2({ checked = false, onChange, label, disabled = false, error = false, className }, ref) {
+  return /* @__PURE__ */ jsxs27(
+    motion27.button,
     {
       ref,
       type: "button",
@@ -4979,16 +5350,16 @@ var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, labe
         className
       ),
       children: [
-        /* @__PURE__ */ jsx29(Ripple, { disabled }),
-        /* @__PURE__ */ jsx29("span", { className: "grid h-12 w-12 shrink-0 place-items-center", children: /* @__PURE__ */ jsx29(
+        /* @__PURE__ */ jsx30(Ripple, { disabled }),
+        /* @__PURE__ */ jsx30("span", { className: "grid h-12 w-12 shrink-0 place-items-center", children: /* @__PURE__ */ jsx30(
           "span",
           {
             className: cn(
               "grid h-5 w-5 place-items-center rounded-full border-2 transition-colors duration-150",
               error ? "border-m3-error" : checked ? "border-m3-primary" : "border-m3-on-surface-variant"
             ),
-            children: /* @__PURE__ */ jsx29(
-              motion26.span,
+            children: /* @__PURE__ */ jsx30(
+              motion27.span,
               {
                 className: cn("h-[10px] w-[10px] rounded-full", error ? "bg-m3-error" : "bg-m3-primary"),
                 initial: false,
@@ -4998,13 +5369,13 @@ var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, labe
             )
           }
         ) }),
-        label && /* @__PURE__ */ jsx29("span", { className: "pr-3 text-m3-on-surface md-body-large", children: label })
+        label && /* @__PURE__ */ jsx30("span", { className: "pr-3 text-m3-on-surface md-body-large", children: label })
       ]
     }
   );
 });
 function RadioGroup({ label, className, children }) {
-  const onKeyDown = React23.useCallback((e) => {
+  const onKeyDown = React24.useCallback((e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowRight" && e.key !== "ArrowUp" && e.key !== "ArrowLeft") return;
     const root = e.currentTarget;
     const radios = Array.from(root.querySelectorAll('[role="radio"]:not([disabled])'));
@@ -5017,20 +5388,20 @@ function RadioGroup({ label, className, children }) {
     radios[next].focus();
     radios[next].click();
   }, []);
-  return /* @__PURE__ */ jsx29("div", { role: "radiogroup", "aria-label": label, onKeyDown, className: cn("flex flex-col", className), children });
+  return /* @__PURE__ */ jsx30("div", { role: "radiogroup", "aria-label": label, onKeyDown, className: cn("flex flex-col", className), children });
 }
 
 // ../../src/components/m3/Switch.tsx
-import * as React24 from "react";
-import { AnimatePresence as AnimatePresence13, motion as motion27 } from "framer-motion";
-import { jsx as jsx30 } from "react/jsx-runtime";
+import * as React25 from "react";
+import { AnimatePresence as AnimatePresence13, motion as motion28 } from "framer-motion";
+import { jsx as jsx31 } from "react/jsx-runtime";
 var springs8 = springs;
-var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedChange, disabled = false, className }, ref) {
-  const [pressed, setPressed] = React24.useState(false);
+var Switch = React25.forwardRef(function Switch2({ checked = false, onCheckedChange, disabled = false, className }, ref) {
+  const [pressed, setPressed] = React25.useState(false);
   const thumbSize = pressed ? 28 : checked ? 24 : 16;
   const thumbX = checked ? pressed ? 20 : 24 : 4;
-  return /* @__PURE__ */ jsx30(
-    motion27.button,
+  return /* @__PURE__ */ jsx31(
+    motion28.button,
     {
       ref,
       type: "button",
@@ -5047,8 +5418,8 @@ var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedCha
         disabled && "pointer-events-none opacity-38",
         className
       ),
-      children: /* @__PURE__ */ jsx30(
-        motion27.span,
+      children: /* @__PURE__ */ jsx31(
+        motion28.span,
         {
           className: cn(
             "absolute left-0 top-1/2 grid place-items-center rounded-full shadow-[0_1px_3px_1px_rgba(0,0,0,0.15)] transition-colors duration-150",
@@ -5057,15 +5428,15 @@ var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedCha
           initial: false,
           animate: { x: thumbX, y: "-50%", width: thumbSize, height: thumbSize },
           transition: springs8.defaultSpatial,
-          children: /* @__PURE__ */ jsx30(AnimatePresence13, { initial: false, children: checked && /* @__PURE__ */ jsx30(
-            motion27.span,
+          children: /* @__PURE__ */ jsx31(AnimatePresence13, { initial: false, children: checked && /* @__PURE__ */ jsx31(
+            motion28.span,
             {
               className: "grid place-items-center",
               initial: { opacity: 0, scale: 0.5 },
               animate: { opacity: 1, scale: 1 },
               exit: { opacity: 0, scale: 0.5 },
               transition: springs8.fastVisual,
-              children: /* @__PURE__ */ jsx30(MaterialSymbol, { icon: "check", size: 16, className: "text-m3-primary" })
+              children: /* @__PURE__ */ jsx31(MaterialSymbol, { icon: "check", size: 16, className: "text-m3-primary" })
             },
             "check"
           ) })
@@ -5076,11 +5447,11 @@ var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedCha
 });
 
 // ../../src/components/m3/Slider.tsx
-import * as React25 from "react";
-import { AnimatePresence as AnimatePresence14, motion as motion28 } from "framer-motion";
-import { jsx as jsx31, jsxs as jsxs27 } from "react/jsx-runtime";
+import * as React26 from "react";
+import { AnimatePresence as AnimatePresence14, motion as motion29 } from "framer-motion";
+import { jsx as jsx32, jsxs as jsxs28 } from "react/jsx-runtime";
 var springs9 = springs;
-var Slider = React25.forwardRef(function Slider2({
+var Slider = React26.forwardRef(function Slider2({
   value,
   onChange,
   min = 0,
@@ -5093,9 +5464,9 @@ var Slider = React25.forwardRef(function Slider2({
   className,
   ...rest
 }, ref) {
-  const trackRef = React25.useRef(null);
-  const [active, setActive] = React25.useState(false);
-  const [hover, setHover] = React25.useState(false);
+  const trackRef = React26.useRef(null);
+  const [active, setActive] = React26.useState(false);
+  const [hover, setHover] = React26.useState(false);
   const safeStep = step > 0 ? step : 1;
   const clamp = (v) => Math.min(max, Math.max(min, v));
   const snap = (v) => {
@@ -5157,12 +5528,12 @@ var Slider = React25.forwardRef(function Slider2({
   const engaged = active || hover;
   const handleWidth = engaged ? 6 : 4;
   const tickCount = discrete ? Math.max(2, Math.min(24, Math.round((max - min) / safeStep) + 1)) : 0;
-  return /* @__PURE__ */ jsx31(
+  return /* @__PURE__ */ jsx32(
     "div",
     {
       ref,
       className: cn("relative select-none", fullWidth ? "w-full" : "w-64", disabled && "pointer-events-none opacity-38", className),
-      children: /* @__PURE__ */ jsxs27(
+      children: /* @__PURE__ */ jsxs28(
         "div",
         {
           ref: trackRef,
@@ -5185,15 +5556,15 @@ var Slider = React25.forwardRef(function Slider2({
           ...rest,
           className: "m3-focus relative flex h-12 w-full cursor-pointer touch-none items-center rounded-full outline-none",
           children: [
-            /* @__PURE__ */ jsxs27("div", { className: "relative h-4 w-full", children: [
-              /* @__PURE__ */ jsxs27("div", { className: "absolute inset-0 flex overflow-hidden rounded-full", children: [
-                /* @__PURE__ */ jsx31("div", { className: "h-full bg-m3-primary", style: { width: `${fraction * 100}%` } }),
-                /* @__PURE__ */ jsx31("div", { className: "h-full flex-1 bg-m3-surface-container-highest" })
+            /* @__PURE__ */ jsxs28("div", { className: "relative h-4 w-full", children: [
+              /* @__PURE__ */ jsxs28("div", { className: "absolute inset-0 flex overflow-hidden rounded-full", children: [
+                /* @__PURE__ */ jsx32("div", { className: "h-full bg-m3-primary", style: { width: `${fraction * 100}%` } }),
+                /* @__PURE__ */ jsx32("div", { className: "h-full flex-1 bg-m3-surface-container-highest" })
               ] }),
-              discrete && tickCount > 1 ? /* @__PURE__ */ jsx31("div", { className: "pointer-events-none absolute inset-x-[6px] inset-y-0", "aria-hidden": "true", children: Array.from({ length: tickCount }, (_, i) => {
+              discrete && tickCount > 1 ? /* @__PURE__ */ jsx32("div", { className: "pointer-events-none absolute inset-x-[6px] inset-y-0", "aria-hidden": "true", children: Array.from({ length: tickCount }, (_, i) => {
                 const f = i / (tickCount - 1);
                 if (f <= fraction) return null;
-                return /* @__PURE__ */ jsx31(
+                return /* @__PURE__ */ jsx32(
                   "span",
                   {
                     className: "absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-on-surface",
@@ -5201,20 +5572,20 @@ var Slider = React25.forwardRef(function Slider2({
                   },
                   i
                 );
-              }) }) : /* @__PURE__ */ jsx31("div", { className: "pointer-events-none absolute inset-y-0 right-[6px] flex items-center", "aria-hidden": "true", children: /* @__PURE__ */ jsx31(
+              }) }) : /* @__PURE__ */ jsx32("div", { className: "pointer-events-none absolute inset-y-0 right-[6px] flex items-center", "aria-hidden": "true", children: /* @__PURE__ */ jsx32(
                 "span",
                 {
                   className: "h-1 w-1 rounded-full bg-m3-on-surface transition-opacity duration-150",
                   style: { opacity: fraction >= 1 ? 0 : 1 }
                 }
               ) }),
-              /* @__PURE__ */ jsx31(
+              /* @__PURE__ */ jsx32(
                 "span",
                 {
                   className: "pointer-events-none absolute top-1/2",
                   style: { left: `${fraction * 100}%`, transform: "translate(-50%, -50%)" },
-                  children: /* @__PURE__ */ jsx31(
-                    motion28.span,
+                  children: /* @__PURE__ */ jsx32(
+                    motion29.span,
                     {
                       className: "block rounded-full bg-m3-primary",
                       initial: false,
@@ -5225,8 +5596,8 @@ var Slider = React25.forwardRef(function Slider2({
                 }
               )
             ] }),
-            /* @__PURE__ */ jsx31(AnimatePresence14, { children: showValueLabel && engaged && /* @__PURE__ */ jsx31(
-              motion28.span,
+            /* @__PURE__ */ jsx32(AnimatePresence14, { children: showValueLabel && engaged && /* @__PURE__ */ jsx32(
+              motion29.span,
               {
                 className: "pointer-events-none absolute bottom-full mb-2 inline-block whitespace-nowrap rounded-full bg-m3-primary px-2 py-0.5 text-m3-on-primary md-label-medium",
                 style: { left: `${fraction * 100}%`, x: "-50%" },
@@ -5246,12 +5617,12 @@ var Slider = React25.forwardRef(function Slider2({
 });
 
 // ../../src/components/m3/Chip.tsx
-import * as React26 from "react";
-import { AnimatePresence as AnimatePresence15, motion as motion29 } from "framer-motion";
-import { jsx as jsx32, jsxs as jsxs28 } from "react/jsx-runtime";
+import * as React27 from "react";
+import { AnimatePresence as AnimatePresence15, motion as motion30 } from "framer-motion";
+import { jsx as jsx33, jsxs as jsxs29 } from "react/jsx-runtime";
 var springs10 = springs;
 var sizeHeights3 = { xs: 28, sm: 32, md: 40 };
-var Chip = React26.forwardRef(function Chip2({
+var Chip = React27.forwardRef(function Chip2({
   variant = "assist",
   selected = false,
   onSelect,
@@ -5271,8 +5642,8 @@ var Chip = React26.forwardRef(function Chip2({
     if (disabled) return;
     if (isSelectable) onSelect?.(!selected);
   };
-  return /* @__PURE__ */ jsxs28(
-    motion29.button,
+  return /* @__PURE__ */ jsxs29(
+    motion30.button,
     {
       ref,
       type: "button",
@@ -5289,32 +5660,32 @@ var Chip = React26.forwardRef(function Chip2({
       ),
       style: { height: sizeHeights3[size] },
       children: [
-        /* @__PURE__ */ jsx32(Ripple, { disabled }),
-        /* @__PURE__ */ jsx32(AnimatePresence15, { initial: false, mode: "wait", children: showCheck ? /* @__PURE__ */ jsx32(
-          motion29.span,
+        /* @__PURE__ */ jsx33(Ripple, { disabled }),
+        /* @__PURE__ */ jsx33(AnimatePresence15, { initial: false, mode: "wait", children: showCheck ? /* @__PURE__ */ jsx33(
+          motion30.span,
           {
             className: "inline-flex shrink-0 items-center justify-center overflow-hidden",
             initial: { width: 0, opacity: 0 },
             animate: { width: 18, opacity: 1 },
             exit: { width: 0, opacity: 0 },
             transition: springs10.fastSpatial,
-            children: /* @__PURE__ */ jsx32(MaterialSymbol, { icon: "check", size: 18 })
+            children: /* @__PURE__ */ jsx33(MaterialSymbol, { icon: "check", size: 18 })
           },
           "check"
-        ) : leadingIcon && /* @__PURE__ */ jsx32(
-          motion29.span,
+        ) : leadingIcon && /* @__PURE__ */ jsx33(
+          motion30.span,
           {
             className: "inline-flex shrink-0 items-center",
             initial: { opacity: 0 },
             animate: { opacity: 1 },
             exit: { opacity: 0 },
             transition: springs10.fastVisual,
-            children: /* @__PURE__ */ jsx32(MaterialSymbol, { icon: leadingIcon, size: 18 })
+            children: /* @__PURE__ */ jsx33(MaterialSymbol, { icon: leadingIcon, size: 18 })
           },
           "leading"
         ) }),
-        /* @__PURE__ */ jsx32("span", { className: "truncate", children }),
-        isInput && onRemove && /* @__PURE__ */ jsx32(
+        /* @__PURE__ */ jsx33("span", { className: "truncate", children }),
+        isInput && onRemove && /* @__PURE__ */ jsx33(
           "span",
           {
             role: "button",
@@ -5332,19 +5703,19 @@ var Chip = React26.forwardRef(function Chip2({
               }
             },
             className: "m3-state -mr-2 grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface-variant transition-colors duration-150 hover:text-m3-on-surface",
-            children: /* @__PURE__ */ jsx32(MaterialSymbol, { icon: "cancel", size: 18 })
+            children: /* @__PURE__ */ jsx33(MaterialSymbol, { icon: "cancel", size: 18 })
           }
         ),
-        !isInput && trailingIcon && /* @__PURE__ */ jsx32(MaterialSymbol, { icon: trailingIcon, size: 18, className: "shrink-0" })
+        !isInput && trailingIcon && /* @__PURE__ */ jsx33(MaterialSymbol, { icon: trailingIcon, size: 18, className: "shrink-0" })
       ]
     }
   );
 });
 
 // ../../src/components/m3/Tabs.tsx
-import * as React27 from "react";
-import { motion as motion30 } from "framer-motion";
-import { jsx as jsx33, jsxs as jsxs29 } from "react/jsx-runtime";
+import * as React28 from "react";
+import { motion as motion31 } from "framer-motion";
+import { jsx as jsx34, jsxs as jsxs30 } from "react/jsx-runtime";
 function spring2(transition) {
   return { ...transition, type: "spring" };
 }
@@ -5356,20 +5727,20 @@ function Tabs({
   fullWidth = false,
   className
 }) {
-  const uid = React27.useId();
+  const uid = React28.useId();
   const indicatorId = `m3-tab-indicator-${uid}`;
   const pillId = `m3-tab-pill-${uid}`;
   const isPrimary = variant === "primary";
-  const scrollerRef = React27.useRef(null);
-  const [canScrollStart, setCanScrollStart] = React27.useState(false);
-  const [canScrollEnd, setCanScrollEnd] = React27.useState(false);
-  const updateOverflow = React27.useCallback(() => {
+  const scrollerRef = React28.useRef(null);
+  const [canScrollStart, setCanScrollStart] = React28.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React28.useState(false);
+  const updateOverflow = React28.useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     setCanScrollStart(el.scrollLeft > 4);
     setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }, []);
-  React27.useEffect(() => {
+  React28.useEffect(() => {
     updateOverflow();
     const el = scrollerRef.current;
     if (!el) return;
@@ -5386,7 +5757,7 @@ function Tabs({
     if (!el) return;
     el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.75, 120), behavior: "smooth" });
   };
-  const tabRefs = React27.useRef([]);
+  const tabRefs = React28.useRef([]);
   const onTabKeyDown = (e, index) => {
     let next = null;
     if (e.key === "ArrowRight") next = (index + 1) % items.length;
@@ -5398,9 +5769,9 @@ function Tabs({
     tabRefs.current[next]?.focus();
     onChange(items[next].value);
   };
-  const labelRefs = React27.useRef(/* @__PURE__ */ new Map());
-  const [labelWidths, setLabelWidths] = React27.useState({});
-  const measureLabels = React27.useCallback(() => {
+  const labelRefs = React28.useRef(/* @__PURE__ */ new Map());
+  const [labelWidths, setLabelWidths] = React28.useState({});
+  const measureLabels = React28.useCallback(() => {
     const next = {};
     labelRefs.current.forEach((el, v) => {
       next[v] = el.getBoundingClientRect().width;
@@ -5411,7 +5782,7 @@ function Tabs({
       return unchanged ? prev : next;
     });
   }, []);
-  React27.useLayoutEffect(() => {
+  React28.useLayoutEffect(() => {
     measureLabels();
     const ro = new ResizeObserver(measureLabels);
     labelRefs.current.forEach((el) => ro.observe(el));
@@ -5424,7 +5795,7 @@ function Tabs({
       ro.disconnect();
     };
   }, [measureLabels, items]);
-  const tablist = /* @__PURE__ */ jsx33(
+  const tablist = /* @__PURE__ */ jsx34(
     "div",
     {
       ref: scrollerRef,
@@ -5437,7 +5808,7 @@ function Tabs({
         const active = item.value === value;
         const measuredWidth = labelWidths[item.value] ?? 0;
         const textColor = active ? isPrimary ? "text-m3-primary" : "text-m3-on-secondary-container" : "text-m3-on-surface-variant";
-        return /* @__PURE__ */ jsxs29(
+        return /* @__PURE__ */ jsxs30(
           "button",
           {
             ref: (el) => {
@@ -5457,9 +5828,9 @@ function Tabs({
               textColor
             ),
             children: [
-              /* @__PURE__ */ jsx33(Ripple, {}),
-              isPrimary ? active && /* @__PURE__ */ jsx33(
-                motion30.div,
+              /* @__PURE__ */ jsx34(Ripple, {}),
+              isPrimary ? active && /* @__PURE__ */ jsx34(
+                motion31.div,
                 {
                   layoutId: indicatorId,
                   transition: spring2(springs.expressive),
@@ -5472,20 +5843,20 @@ function Tabs({
                     left: `calc(50% - ${measuredWidth / 2}px)`
                   } : void 0
                 }
-              ) : active && /* @__PURE__ */ jsx33(
-                motion30.div,
+              ) : active && /* @__PURE__ */ jsx34(
+                motion31.div,
                 {
                   layoutId: pillId,
                   transition: spring2(springs.expressive),
                   className: "absolute inset-x-1 inset-y-2 rounded-full bg-m3-secondary-container"
                 }
               ),
-              item.icon && /* @__PURE__ */ jsxs29("span", { className: "relative", children: [
-                /* @__PURE__ */ jsx33(MaterialSymbol, { icon: item.icon, size: 24, fill: active }),
-                item.badge !== void 0 && /* @__PURE__ */ jsx33("span", { className: "absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
+              item.icon && /* @__PURE__ */ jsxs30("span", { className: "relative", children: [
+                /* @__PURE__ */ jsx34(MaterialSymbol, { icon: item.icon, size: 24, fill: active }),
+                item.badge !== void 0 && /* @__PURE__ */ jsx34("span", { className: "absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
               ] }),
-              !item.icon && item.badge !== void 0 && /* @__PURE__ */ jsx33("span", { className: "absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge }),
-              /* @__PURE__ */ jsx33(
+              !item.icon && item.badge !== void 0 && /* @__PURE__ */ jsx34("span", { className: "absolute right-2 top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge }),
+              /* @__PURE__ */ jsx34(
                 "span",
                 {
                   ref: (el) => {
@@ -5503,7 +5874,7 @@ function Tabs({
       })
     }
   );
-  return /* @__PURE__ */ jsxs29(
+  return /* @__PURE__ */ jsxs30(
     "div",
     {
       className: cn(
@@ -5512,7 +5883,7 @@ function Tabs({
         className
       ),
       children: [
-        canScrollStart && /* @__PURE__ */ jsxs29(
+        canScrollStart && /* @__PURE__ */ jsxs30(
           "button",
           {
             type: "button",
@@ -5520,13 +5891,13 @@ function Tabs({
             onClick: () => scrollTabs(-1),
             className: "m3-state relative flex h-12 w-12 shrink-0 items-center justify-center self-center text-m3-on-surface-variant",
             children: [
-              /* @__PURE__ */ jsx33(Ripple, {}),
-              /* @__PURE__ */ jsx33(MaterialSymbol, { icon: "chevron_left", size: 24 })
+              /* @__PURE__ */ jsx34(Ripple, {}),
+              /* @__PURE__ */ jsx34(MaterialSymbol, { icon: "chevron_left", size: 24 })
             ]
           }
         ),
         tablist,
-        canScrollEnd && /* @__PURE__ */ jsxs29(
+        canScrollEnd && /* @__PURE__ */ jsxs30(
           "button",
           {
             type: "button",
@@ -5534,8 +5905,8 @@ function Tabs({
             onClick: () => scrollTabs(1),
             className: "m3-state relative flex h-12 w-12 shrink-0 items-center justify-center self-center text-m3-on-surface-variant",
             children: [
-              /* @__PURE__ */ jsx33(Ripple, {}),
-              /* @__PURE__ */ jsx33(MaterialSymbol, { icon: "chevron_right", size: 24 })
+              /* @__PURE__ */ jsx34(Ripple, {}),
+              /* @__PURE__ */ jsx34(MaterialSymbol, { icon: "chevron_right", size: 24 })
             ]
           }
         )
@@ -5545,9 +5916,9 @@ function Tabs({
 }
 
 // ../../src/components/m3/NavigationBar.tsx
-import * as React28 from "react";
-import { motion as motion31 } from "framer-motion";
-import { jsx as jsx34, jsxs as jsxs30 } from "react/jsx-runtime";
+import * as React29 from "react";
+import { motion as motion32 } from "framer-motion";
+import { jsx as jsx35, jsxs as jsxs31 } from "react/jsx-runtime";
 function spring3(transition) {
   return { ...transition, type: "spring" };
 }
@@ -5558,9 +5929,9 @@ function NavigationBar({
   fullWidth = true,
   className
 }) {
-  const uid = React28.useId();
+  const uid = React29.useId();
   const pillId = `m3-nav-pill-${uid}`;
-  return /* @__PURE__ */ jsx34(
+  return /* @__PURE__ */ jsx35(
     "nav",
     {
       "aria-label": "Primary",
@@ -5571,7 +5942,7 @@ function NavigationBar({
       ),
       children: items.map((item) => {
         const active = item.value === value;
-        return /* @__PURE__ */ jsxs30(
+        return /* @__PURE__ */ jsxs31(
           "button",
           {
             type: "button",
@@ -5579,17 +5950,17 @@ function NavigationBar({
             onClick: () => onChange(item.value),
             className: "m3-state relative flex flex-1 flex-col items-center justify-center gap-1 pt-2",
             children: [
-              /* @__PURE__ */ jsx34(Ripple, {}),
-              /* @__PURE__ */ jsxs30("span", { className: "relative flex h-8 w-16 items-center justify-center rounded-full", children: [
-                active && /* @__PURE__ */ jsx34(
-                  motion31.div,
+              /* @__PURE__ */ jsx35(Ripple, {}),
+              /* @__PURE__ */ jsxs31("span", { className: "relative flex h-8 w-16 items-center justify-center rounded-full", children: [
+                active && /* @__PURE__ */ jsx35(
+                  motion32.div,
                   {
                     layoutId: pillId,
                     transition: spring3(springs.expressive),
                     className: "absolute inset-0 rounded-full bg-m3-secondary-container"
                   }
                 ),
-                item.icon && /* @__PURE__ */ jsx34(
+                item.icon && /* @__PURE__ */ jsx35(
                   MaterialSymbol,
                   {
                     icon: item.icon,
@@ -5598,9 +5969,9 @@ function NavigationBar({
                     className: cn("relative", active ? "text-m3-on-secondary-container" : "text-m3-on-surface-variant")
                   }
                 ),
-                item.badge !== void 0 && /* @__PURE__ */ jsx34("span", { className: "absolute -right-1.5 -top-1 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
+                item.badge !== void 0 && /* @__PURE__ */ jsx35("span", { className: "absolute -right-1.5 -top-1 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
               ] }),
-              /* @__PURE__ */ jsx34("span", { className: cn("md-label-medium", active ? "text-m3-on-surface" : "text-m3-on-surface-variant"), children: item.label })
+              /* @__PURE__ */ jsx35("span", { className: cn("md-label-medium", active ? "text-m3-on-surface" : "text-m3-on-surface-variant"), children: item.label })
             ]
           },
           item.value
@@ -5611,9 +5982,9 @@ function NavigationBar({
 }
 
 // ../../src/components/m3/NavigationDrawer.tsx
-import * as React29 from "react";
-import { motion as motion32, AnimatePresence as AnimatePresence16 } from "framer-motion";
-import { Fragment as Fragment4, jsx as jsx35, jsxs as jsxs31 } from "react/jsx-runtime";
+import * as React30 from "react";
+import { motion as motion33, AnimatePresence as AnimatePresence16 } from "framer-motion";
+import { Fragment as Fragment5, jsx as jsx36, jsxs as jsxs32 } from "react/jsx-runtime";
 function spring4(transition) {
   return { ...transition, type: "spring" };
 }
@@ -5629,18 +6000,18 @@ function NavigationDrawer({
   fullHeight = false,
   className
 }) {
-  const uid = React29.useId();
+  const uid = React30.useId();
   const pillId = `m3-drawer-pill-${uid}`;
   const isControlled = open !== void 0;
-  const [uncontrolledOpen, setUncontrolledOpen] = React29.useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React30.useState(false);
   const showModal = variant === "modal" && (open !== void 0 ? open : uncontrolledOpen);
-  const handleClose = React29.useCallback(() => {
+  const handleClose = React30.useCallback(() => {
     if (!isControlled) setUncontrolledOpen(false);
     onClose?.();
   }, [isControlled, onClose]);
-  const panelRef = React29.useRef(null);
-  const restoreFocusRef = React29.useRef(null);
-  React29.useEffect(() => {
+  const panelRef = React30.useRef(null);
+  const restoreFocusRef = React30.useRef(null);
+  React30.useEffect(() => {
     if (!showModal) return;
     restoreFocusRef.current = document.activeElement;
     const previousOverflow = document.body.style.overflow;
@@ -5680,11 +6051,11 @@ function NavigationDrawer({
       restoreFocusRef.current?.focus?.();
     };
   }, [showModal, handleClose]);
-  const body = /* @__PURE__ */ jsxs31(Fragment4, { children: [
-    header && /* @__PURE__ */ jsx35("div", { className: "px-4 pb-2 pt-4", children: header }),
-    /* @__PURE__ */ jsx35("ul", { className: "flex flex-col gap-1", children: items.map((item) => {
+  const body = /* @__PURE__ */ jsxs32(Fragment5, { children: [
+    header && /* @__PURE__ */ jsx36("div", { className: "px-4 pb-2 pt-4", children: header }),
+    /* @__PURE__ */ jsx36("ul", { className: "flex flex-col gap-1", children: items.map((item) => {
       const active = item.value === value;
-      return /* @__PURE__ */ jsx35("li", { children: /* @__PURE__ */ jsxs31(
+      return /* @__PURE__ */ jsx36("li", { children: /* @__PURE__ */ jsxs32(
         "button",
         {
           type: "button",
@@ -5695,16 +6066,16 @@ function NavigationDrawer({
           },
           className: "m3-state relative flex h-14 w-full items-center rounded-full px-4",
           children: [
-            /* @__PURE__ */ jsx35(Ripple, {}),
-            active && /* @__PURE__ */ jsx35(
-              motion32.div,
+            /* @__PURE__ */ jsx36(Ripple, {}),
+            active && /* @__PURE__ */ jsx36(
+              motion33.div,
               {
                 layoutId: pillId,
                 transition: spring4(springs.expressive),
                 className: "absolute inset-0 rounded-full bg-m3-secondary-container"
               }
             ),
-            item.icon && /* @__PURE__ */ jsx35(
+            item.icon && /* @__PURE__ */ jsx36(
               MaterialSymbol,
               {
                 icon: item.icon,
@@ -5713,7 +6084,7 @@ function NavigationDrawer({
                 className: cn("relative", active ? "text-m3-on-secondary-container" : "text-m3-on-surface-variant")
               }
             ),
-            /* @__PURE__ */ jsx35(
+            /* @__PURE__ */ jsx36(
               "span",
               {
                 className: cn(
@@ -5723,15 +6094,15 @@ function NavigationDrawer({
                 children: item.label
               }
             ),
-            item.badge !== void 0 && /* @__PURE__ */ jsx35("span", { className: "relative ml-auto rounded-full bg-m3-error px-1.5 py-0.5 text-xs font-medium leading-none text-m3-on-error", children: item.badge })
+            item.badge !== void 0 && /* @__PURE__ */ jsx36("span", { className: "relative ml-auto rounded-full bg-m3-error px-1.5 py-0.5 text-xs font-medium leading-none text-m3-on-error", children: item.badge })
           ]
         }
       ) }, item.value);
     }) }),
-    footer && /* @__PURE__ */ jsx35("div", { className: "mt-auto p-2", children: footer })
+    footer && /* @__PURE__ */ jsx36("div", { className: "mt-auto p-2", children: footer })
   ] });
   if (variant === "standard") {
-    return /* @__PURE__ */ jsx35(
+    return /* @__PURE__ */ jsx36(
       "nav",
       {
         "aria-label": "Navigation drawer",
@@ -5744,9 +6115,9 @@ function NavigationDrawer({
       }
     );
   }
-  return /* @__PURE__ */ jsx35(AnimatePresence16, { children: showModal && /* @__PURE__ */ jsxs31("div", { className: "fixed inset-0 z-[75]", role: "dialog", "aria-modal": "true", "aria-label": "Navigation drawer", children: [
-    /* @__PURE__ */ jsx35(
-      motion32.div,
+  return /* @__PURE__ */ jsx36(AnimatePresence16, { children: showModal && /* @__PURE__ */ jsxs32("div", { className: "fixed inset-0 z-[75]", role: "dialog", "aria-modal": "true", "aria-label": "Navigation drawer", children: [
+    /* @__PURE__ */ jsx36(
+      motion33.div,
       {
         className: "absolute inset-0 bg-m3-scrim/32",
         initial: { opacity: 0 },
@@ -5756,8 +6127,8 @@ function NavigationDrawer({
         onClick: handleClose
       }
     ),
-    /* @__PURE__ */ jsx35(
-      motion32.nav,
+    /* @__PURE__ */ jsx36(
+      motion33.nav,
       {
         ref: panelRef,
         tabIndex: -1,
@@ -5774,9 +6145,9 @@ function NavigationDrawer({
 }
 
 // ../../src/components/m3/NavigationRail.tsx
-import * as React30 from "react";
-import { motion as motion33 } from "framer-motion";
-import { jsx as jsx36, jsxs as jsxs32 } from "react/jsx-runtime";
+import * as React31 from "react";
+import { motion as motion34 } from "framer-motion";
+import { jsx as jsx37, jsxs as jsxs33 } from "react/jsx-runtime";
 function spring5(transition) {
   return { ...transition, type: "spring" };
 }
@@ -5790,9 +6161,9 @@ function NavigationRail({
   foldingLine = false,
   className
 }) {
-  const uid = React30.useId();
+  const uid = React31.useId();
   const pillId = `m3-rail-pill-${uid}`;
-  return /* @__PURE__ */ jsxs32(
+  return /* @__PURE__ */ jsxs33(
     "nav",
     {
       "aria-label": "Primary",
@@ -5802,7 +6173,7 @@ function NavigationRail({
         className
       ),
       children: [
-        onMenuClick && /* @__PURE__ */ jsxs32(
+        onMenuClick && /* @__PURE__ */ jsxs33(
           "button",
           {
             type: "button",
@@ -5811,15 +6182,15 @@ function NavigationRail({
             onClick: onMenuClick,
             className: "m3-state relative mb-2 flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant",
             children: [
-              /* @__PURE__ */ jsx36(Ripple, {}),
-              /* @__PURE__ */ jsx36(MaterialSymbol, { icon: menuIcon, size: 24 })
+              /* @__PURE__ */ jsx37(Ripple, {}),
+              /* @__PURE__ */ jsx37(MaterialSymbol, { icon: menuIcon, size: 24 })
             ]
           }
         ),
-        header && /* @__PURE__ */ jsx36("div", { className: "mb-2 flex justify-center", children: header }),
-        /* @__PURE__ */ jsx36("ul", { className: "flex flex-col items-center gap-3", children: items.map((item) => {
+        header && /* @__PURE__ */ jsx37("div", { className: "mb-2 flex justify-center", children: header }),
+        /* @__PURE__ */ jsx37("ul", { className: "flex flex-col items-center gap-3", children: items.map((item) => {
           const active = item.value === value;
-          return /* @__PURE__ */ jsx36("li", { children: /* @__PURE__ */ jsxs32(
+          return /* @__PURE__ */ jsx37("li", { children: /* @__PURE__ */ jsxs33(
             "button",
             {
               type: "button",
@@ -5827,17 +6198,17 @@ function NavigationRail({
               onClick: () => onChange(item.value),
               className: "m3-state relative flex w-16 flex-col items-center gap-1 pb-2 pt-1",
               children: [
-                /* @__PURE__ */ jsx36(Ripple, {}),
-                /* @__PURE__ */ jsxs32("span", { className: "relative flex h-8 w-14 items-center justify-center rounded-full", children: [
-                  active && /* @__PURE__ */ jsx36(
-                    motion33.div,
+                /* @__PURE__ */ jsx37(Ripple, {}),
+                /* @__PURE__ */ jsxs33("span", { className: "relative flex h-8 w-14 items-center justify-center rounded-full", children: [
+                  active && /* @__PURE__ */ jsx37(
+                    motion34.div,
                     {
                       layoutId: pillId,
                       transition: spring5(springs.expressive),
                       className: "absolute inset-0 rounded-full bg-m3-secondary-container"
                     }
                   ),
-                  item.icon && /* @__PURE__ */ jsx36(
+                  item.icon && /* @__PURE__ */ jsx37(
                     MaterialSymbol,
                     {
                       icon: item.icon,
@@ -5846,9 +6217,9 @@ function NavigationRail({
                       className: cn("relative", active ? "text-m3-on-secondary-container" : "text-m3-on-surface-variant")
                     }
                   ),
-                  item.badge !== void 0 && /* @__PURE__ */ jsx36("span", { className: "absolute -right-1.5 -top-1 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
+                  item.badge !== void 0 && /* @__PURE__ */ jsx37("span", { className: "absolute -right-1.5 -top-1 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-m3-error px-1 text-[10px] font-semibold leading-none text-m3-on-error", children: item.badge })
                 ] }),
-                /* @__PURE__ */ jsx36("span", { className: cn("md-label-medium", active ? "text-m3-on-surface" : "text-m3-on-surface-variant"), children: item.label })
+                /* @__PURE__ */ jsx37("span", { className: cn("md-label-medium", active ? "text-m3-on-surface" : "text-m3-on-surface-variant"), children: item.label })
               ]
             }
           ) }, item.value);
@@ -5859,9 +6230,9 @@ function NavigationRail({
 }
 
 // ../../src/components/m3/TopAppBar.tsx
-import * as React31 from "react";
-import { motion as motion34, AnimatePresence as AnimatePresence17 } from "framer-motion";
-import { jsx as jsx37, jsxs as jsxs33 } from "react/jsx-runtime";
+import * as React32 from "react";
+import { motion as motion35, AnimatePresence as AnimatePresence17 } from "framer-motion";
+import { jsx as jsx38, jsxs as jsxs34 } from "react/jsx-runtime";
 function spring6(transition) {
   return { ...transition, type: "spring" };
 }
@@ -5872,7 +6243,7 @@ var heights = {
   large: 152
 };
 function AppBarIconButton({ icon, label, onClick }) {
-  return /* @__PURE__ */ jsxs33(
+  return /* @__PURE__ */ jsxs34(
     "button",
     {
       type: "button",
@@ -5881,8 +6252,8 @@ function AppBarIconButton({ icon, label, onClick }) {
       onClick,
       className: "m3-state relative flex h-11 w-11 items-center justify-center rounded-full text-m3-on-surface-variant",
       children: [
-        /* @__PURE__ */ jsx37(Ripple, {}),
-        /* @__PURE__ */ jsx37(MaterialSymbol, { icon, size: 24 })
+        /* @__PURE__ */ jsx38(Ripple, {}),
+        /* @__PURE__ */ jsx38(MaterialSymbol, { icon, size: 24 })
       ]
     }
   );
@@ -5896,11 +6267,11 @@ function TopAppBar({
   fullWidth = true,
   className
 }) {
-  const [scrolled, setScrolled] = React31.useState(false);
+  const [scrolled, setScrolled] = React32.useState(false);
   const isFlexible = variant === "medium" || variant === "large";
   const collapsed = isFlexible && scrolled;
   const threshold = isFlexible ? heights[variant] - 64 : 4;
-  React31.useEffect(() => {
+  React32.useEffect(() => {
     const el = scrollTargetRef?.current ?? null;
     const readTop = () => el ? el.scrollTop : window.scrollY;
     const onScroll = () => setScrolled(readTop() > threshold);
@@ -5910,9 +6281,9 @@ function TopAppBar({
     return () => target.removeEventListener("scroll", onScroll);
   }, [scrollTargetRef, threshold]);
   const barState = scrolled ? "bg-m3-surface-container" : "bg-m3-surface";
-  const actionsRow = /* @__PURE__ */ jsx37("div", { className: "ml-auto flex items-center gap-1", children: actions.map((action, i) => /* @__PURE__ */ jsx37(AppBarIconButton, { icon: action.icon, label: action.label, onClick: action.onClick }, `${action.icon}-${i}`)) });
+  const actionsRow = /* @__PURE__ */ jsx38("div", { className: "ml-auto flex items-center gap-1", children: actions.map((action, i) => /* @__PURE__ */ jsx38(AppBarIconButton, { icon: action.icon, label: action.label, onClick: action.onClick }, `${action.icon}-${i}`)) });
   if (!isFlexible) {
-    return /* @__PURE__ */ jsx37(
+    return /* @__PURE__ */ jsx38(
       "header",
       {
         style: { transitionDuration: `${durations.medium2}ms`, transitionTimingFunction: easings.standard },
@@ -5922,9 +6293,9 @@ function TopAppBar({
           fullWidth && "w-full",
           className
         ),
-        children: /* @__PURE__ */ jsxs33("div", { className: "relative flex h-16 items-center px-1", children: [
-          onBack && /* @__PURE__ */ jsx37(AppBarIconButton, { icon: "arrow_back", label: "Back", onClick: onBack }),
-          /* @__PURE__ */ jsx37(
+        children: /* @__PURE__ */ jsxs34("div", { className: "relative flex h-16 items-center px-1", children: [
+          onBack && /* @__PURE__ */ jsx38(AppBarIconButton, { icon: "arrow_back", label: "Back", onClick: onBack }),
+          /* @__PURE__ */ jsx38(
             "span",
             {
               className: cn(
@@ -5939,8 +6310,8 @@ function TopAppBar({
       }
     );
   }
-  return /* @__PURE__ */ jsxs33(
-    motion34.header,
+  return /* @__PURE__ */ jsxs34(
+    motion35.header,
     {
       animate: {
         height: collapsed ? 64 : heights[variant],
@@ -5956,10 +6327,10 @@ function TopAppBar({
         className
       ),
       children: [
-        /* @__PURE__ */ jsxs33("div", { className: "absolute inset-x-0 top-0 flex h-16 items-center px-1", children: [
-          onBack && /* @__PURE__ */ jsx37(AppBarIconButton, { icon: "arrow_back", label: "Back", onClick: onBack }),
-          /* @__PURE__ */ jsx37(AnimatePresence17, { children: collapsed && /* @__PURE__ */ jsx37(
-            motion34.span,
+        /* @__PURE__ */ jsxs34("div", { className: "absolute inset-x-0 top-0 flex h-16 items-center px-1", children: [
+          onBack && /* @__PURE__ */ jsx38(AppBarIconButton, { icon: "arrow_back", label: "Back", onClick: onBack }),
+          /* @__PURE__ */ jsx38(AnimatePresence17, { children: collapsed && /* @__PURE__ */ jsx38(
+            motion35.span,
             {
               initial: { opacity: 0 },
               animate: { opacity: 1 },
@@ -5971,15 +6342,15 @@ function TopAppBar({
           ) }),
           actionsRow
         ] }),
-        /* @__PURE__ */ jsx37(AnimatePresence17, { children: !collapsed && /* @__PURE__ */ jsx37(
-          motion34.div,
+        /* @__PURE__ */ jsx38(AnimatePresence17, { children: !collapsed && /* @__PURE__ */ jsx38(
+          motion35.div,
           {
             initial: { opacity: 0, y: 12 },
             animate: { opacity: 1, y: 0 },
             exit: { opacity: 0, y: 12 },
             transition: spring6(springs.defaultSpatial),
             className: "absolute inset-x-4 bottom-1",
-            children: /* @__PURE__ */ jsx37("span", { className: cn("block truncate", variant === "large" ? "md-headline-large" : "md-headline-small"), children: title })
+            children: /* @__PURE__ */ jsx38("span", { className: cn("block truncate", variant === "large" ? "md-headline-large" : "md-headline-small"), children: title })
           },
           "hero-title"
         ) })
@@ -5989,9 +6360,9 @@ function TopAppBar({
 }
 
 // ../../src/components/m3/BottomAppBar.tsx
-import * as React32 from "react";
-import { motion as motion35 } from "framer-motion";
-import { jsx as jsx38, jsxs as jsxs34 } from "react/jsx-runtime";
+import * as React33 from "react";
+import { motion as motion36 } from "framer-motion";
+import { jsx as jsx39, jsxs as jsxs35 } from "react/jsx-runtime";
 function spring7(transition) {
   return { ...transition, type: "spring" };
 }
@@ -6003,8 +6374,8 @@ function BottomAppBar({
   fullWidth = true,
   className
 }) {
-  const [fabPressed, setFabPressed] = React32.useState(false);
-  return /* @__PURE__ */ jsxs34(
+  const [fabPressed, setFabPressed] = React33.useState(false);
+  return /* @__PURE__ */ jsxs35(
     "div",
     {
       className: cn(
@@ -6013,8 +6384,8 @@ function BottomAppBar({
         className
       ),
       children: [
-        /* @__PURE__ */ jsxs34("div", { className: "flex items-center gap-1", children: [
-          navigationIcon && /* @__PURE__ */ jsxs34(
+        /* @__PURE__ */ jsxs35("div", { className: "flex items-center gap-1", children: [
+          navigationIcon && /* @__PURE__ */ jsxs35(
             "button",
             {
               type: "button",
@@ -6023,12 +6394,12 @@ function BottomAppBar({
               onClick: navigationIcon.onClick,
               className: "m3-state relative flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant",
               children: [
-                /* @__PURE__ */ jsx38(Ripple, {}),
-                /* @__PURE__ */ jsx38(MaterialSymbol, { icon: navigationIcon.icon, size: 24 })
+                /* @__PURE__ */ jsx39(Ripple, {}),
+                /* @__PURE__ */ jsx39(MaterialSymbol, { icon: navigationIcon.icon, size: 24 })
               ]
             }
           ),
-          actions.map((action, i) => /* @__PURE__ */ jsxs34(
+          actions.map((action, i) => /* @__PURE__ */ jsxs35(
             "button",
             {
               type: "button",
@@ -6037,15 +6408,15 @@ function BottomAppBar({
               onClick: action.onClick,
               className: "m3-state relative flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant",
               children: [
-                /* @__PURE__ */ jsx38(Ripple, {}),
-                /* @__PURE__ */ jsx38(MaterialSymbol, { icon: action.icon, size: 24 })
+                /* @__PURE__ */ jsx39(Ripple, {}),
+                /* @__PURE__ */ jsx39(MaterialSymbol, { icon: action.icon, size: 24 })
               ]
             },
             `${action.icon}-${i}`
           ))
         ] }),
-        fab && /* @__PURE__ */ jsx38("span", { className: "absolute -top-7 left-1/2 z-10 -translate-x-1/2", children: /* @__PURE__ */ jsxs34(
-          motion35.button,
+        fab && /* @__PURE__ */ jsx39("span", { className: "absolute -top-7 left-1/2 z-10 -translate-x-1/2", children: /* @__PURE__ */ jsxs35(
+          motion36.button,
           {
             type: "button",
             "aria-label": fab.icon,
@@ -6057,20 +6428,20 @@ function BottomAppBar({
             transition: spring7(springs.expressiveEffects),
             className: "m3-state m3-elevation-3 relative flex h-14 w-14 items-center justify-center bg-m3-primary-container",
             children: [
-              /* @__PURE__ */ jsx38(Ripple, {}),
-              /* @__PURE__ */ jsx38(MaterialSymbol, { icon: fab.icon, size: 24, fill: true, className: "text-m3-on-primary-container" })
+              /* @__PURE__ */ jsx39(Ripple, {}),
+              /* @__PURE__ */ jsx39(MaterialSymbol, { icon: fab.icon, size: 24, fill: true, className: "text-m3-on-primary-container" })
             ]
           }
         ) }),
-        /* @__PURE__ */ jsx38("div", { className: "flex items-center gap-1", children: trailingIcons.map((icon, i) => /* @__PURE__ */ jsxs34(
+        /* @__PURE__ */ jsx39("div", { className: "flex items-center gap-1", children: trailingIcons.map((icon, i) => /* @__PURE__ */ jsxs35(
           "button",
           {
             type: "button",
             "aria-label": icon,
             className: "m3-state relative flex h-12 w-12 items-center justify-center rounded-full text-m3-on-surface-variant",
             children: [
-              /* @__PURE__ */ jsx38(Ripple, {}),
-              /* @__PURE__ */ jsx38(MaterialSymbol, { icon, size: 24 })
+              /* @__PURE__ */ jsx39(Ripple, {}),
+              /* @__PURE__ */ jsx39(MaterialSymbol, { icon, size: 24 })
             ]
           },
           `${icon}-${i}`
@@ -6081,8 +6452,8 @@ function BottomAppBar({
 }
 
 // ../../src/components/m3/Toolbar.tsx
-import { motion as motion36 } from "framer-motion";
-import { jsx as jsx39, jsxs as jsxs35 } from "react/jsx-runtime";
+import { motion as motion37 } from "framer-motion";
+import { jsx as jsx40, jsxs as jsxs36 } from "react/jsx-runtime";
 function spring8(transition) {
   return { ...transition, type: "spring" };
 }
@@ -6103,7 +6474,7 @@ function Toolbar({
   className
 }) {
   const c = colorStyles2[color];
-  const renderIconButton = (item, i) => /* @__PURE__ */ jsxs35(
+  const renderIconButton = (item, i) => /* @__PURE__ */ jsxs36(
     "button",
     {
       type: "button",
@@ -6117,14 +6488,14 @@ function Toolbar({
         item.active && c.activeBg
       ),
       children: [
-        /* @__PURE__ */ jsx39(Ripple, {}),
-        /* @__PURE__ */ jsx39(MaterialSymbol, { icon: item.icon, size: 24, fill: item.active })
+        /* @__PURE__ */ jsx40(Ripple, {}),
+        /* @__PURE__ */ jsx40(MaterialSymbol, { icon: item.icon, size: 24, fill: item.active })
       ]
     },
     `${item.icon}-${i}`
   );
   if (variant === "dockable") {
-    return /* @__PURE__ */ jsx39("div", { className: cn("w-full", className), children: /* @__PURE__ */ jsx39(
+    return /* @__PURE__ */ jsx40("div", { className: cn("w-full", className), children: /* @__PURE__ */ jsx40(
       "div",
       {
         style: {
@@ -6141,8 +6512,8 @@ function Toolbar({
       }
     ) });
   }
-  return /* @__PURE__ */ jsx39(
-    motion36.div,
+  return /* @__PURE__ */ jsx40(
+    motion37.div,
     {
       initial: { opacity: 0, x: fullWidth ? 0 : "-50%", y: position === "bottom" ? 12 : -12, scale: 0.96 },
       animate: { opacity: 1, x: fullWidth ? 0 : "-50%", y: 0, scale: 1 },
@@ -6161,9 +6532,9 @@ function Toolbar({
 }
 
 // ../../src/components/m3/Menu.tsx
-import * as React33 from "react";
-import { motion as motion37, AnimatePresence as AnimatePresence18 } from "framer-motion";
-import { jsx as jsx40, jsxs as jsxs36 } from "react/jsx-runtime";
+import * as React34 from "react";
+import { motion as motion38, AnimatePresence as AnimatePresence18 } from "framer-motion";
+import { jsx as jsx41, jsxs as jsxs37 } from "react/jsx-runtime";
 function spring9(transition) {
   return { ...transition, type: "spring" };
 }
@@ -6176,26 +6547,26 @@ function Menu({
   className
 }) {
   const isControlled = open !== void 0;
-  const [internalOpen, setInternalOpen] = React33.useState(false);
+  const [internalOpen, setInternalOpen] = React34.useState(false);
   const isOpen = open !== void 0 ? open : internalOpen;
-  const rootRef = React33.useRef(null);
-  const triggerAreaRef = React33.useRef(null);
-  const itemRefs = React33.useRef([]);
-  const setOpen = React33.useCallback(
+  const rootRef = React34.useRef(null);
+  const triggerAreaRef = React34.useRef(null);
+  const itemRefs = React34.useRef([]);
+  const setOpen = React34.useCallback(
     (next) => {
       if (!isControlled) setInternalOpen(next);
       onOpenChange?.(next);
     },
     [isControlled, onOpenChange]
   );
-  const getEnabledIndexes = React33.useCallback(() => {
+  const getEnabledIndexes = React34.useCallback(() => {
     const idxs = [];
     items.forEach((item, index) => {
       if ((item.type ?? "item") === "item" && !item.disabled) idxs.push(index);
     });
     return idxs;
   }, [items]);
-  const focusItemAt = React33.useCallback(
+  const focusItemAt = React34.useCallback(
     (pos) => {
       const idxs = getEnabledIndexes();
       if (idxs.length === 0) return;
@@ -6204,7 +6575,7 @@ function Menu({
     },
     [getEnabledIndexes]
   );
-  const restoreTriggerFocus = React33.useCallback(() => {
+  const restoreTriggerFocus = React34.useCallback(() => {
     const area = triggerAreaRef.current;
     if (!area) return;
     const target = area.querySelector(
@@ -6212,7 +6583,7 @@ function Menu({
     );
     (target ?? area).focus();
   }, []);
-  React33.useEffect(() => {
+  React34.useEffect(() => {
     if (!isOpen) return;
     const onMouseDown = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
@@ -6227,7 +6598,7 @@ function Menu({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [isOpen, setOpen]);
-  React33.useEffect(() => {
+  React34.useEffect(() => {
     if (!isOpen) return;
     const raf = requestAnimationFrame(() => focusItemAt(0));
     return () => cancelAnimationFrame(raf);
@@ -6257,8 +6628,8 @@ function Menu({
       setOpen(false);
     }
   };
-  const originalOnClick = React33.isValidElement(trigger) ? trigger.props.onClick : void 0;
-  const originalOnKeyDown = React33.isValidElement(trigger) ? trigger.props.onKeyDown : void 0;
+  const originalOnClick = React34.isValidElement(trigger) ? trigger.props.onClick : void 0;
+  const originalOnKeyDown = React34.isValidElement(trigger) ? trigger.props.onKeyDown : void 0;
   const handleTriggerClick = (e) => {
     originalOnClick?.(e);
     setOpen(!isOpen);
@@ -6274,18 +6645,18 @@ function Menu({
     "aria-haspopup": "menu",
     "aria-expanded": isOpen
   };
-  const triggerNode = React33.isValidElement(trigger) ? React33.cloneElement(
+  const triggerNode = React34.isValidElement(trigger) ? React34.cloneElement(
     trigger,
     {
       onClick: handleTriggerClick,
       onKeyDown: handleTriggerKeyDown,
       ...triggerAriaProps
     }
-  ) : /* @__PURE__ */ jsx40("button", { type: "button", onClick: handleTriggerClick, onKeyDown: handleTriggerKeyDown, ...triggerAriaProps, className: "inline-flex", children: trigger });
-  return /* @__PURE__ */ jsxs36("span", { ref: rootRef, className: cn("relative inline-flex", className), children: [
-    /* @__PURE__ */ jsx40("span", { ref: triggerAreaRef, tabIndex: -1, className: "inline-flex focus:outline-none", children: triggerNode }),
-    /* @__PURE__ */ jsx40(AnimatePresence18, { children: isOpen && /* @__PURE__ */ jsx40(
-      motion37.div,
+  ) : /* @__PURE__ */ jsx41("button", { type: "button", onClick: handleTriggerClick, onKeyDown: handleTriggerKeyDown, ...triggerAriaProps, className: "inline-flex", children: trigger });
+  return /* @__PURE__ */ jsxs37("span", { ref: rootRef, className: cn("relative inline-flex", className), children: [
+    /* @__PURE__ */ jsx41("span", { ref: triggerAreaRef, tabIndex: -1, className: "inline-flex focus:outline-none", children: triggerNode }),
+    /* @__PURE__ */ jsx41(AnimatePresence18, { children: isOpen && /* @__PURE__ */ jsx41(
+      motion38.div,
       {
         role: "menu",
         "aria-orientation": "vertical",
@@ -6302,12 +6673,12 @@ function Menu({
         children: items.map((item, i) => {
           const type = item.type ?? "item";
           if (type === "divider") {
-            return /* @__PURE__ */ jsx40("div", { role: "separator", className: "my-2 h-px bg-m3-outline-variant" }, i);
+            return /* @__PURE__ */ jsx41("div", { role: "separator", className: "my-2 h-px bg-m3-outline-variant" }, i);
           }
           if (type === "label") {
-            return /* @__PURE__ */ jsx40("div", { className: "md-label-small px-3 pb-1 pt-2 text-m3-on-surface-variant", children: item.label }, i);
+            return /* @__PURE__ */ jsx41("div", { className: "md-label-small px-3 pb-1 pt-2 text-m3-on-surface-variant", children: item.label }, i);
           }
-          return /* @__PURE__ */ jsxs36(
+          return /* @__PURE__ */ jsxs37(
             "button",
             {
               ref: (el) => {
@@ -6327,8 +6698,8 @@ function Menu({
                 item.disabled ? "pointer-events-none opacity-38" : item.destructive ? "text-m3-error" : "text-m3-on-surface"
               ),
               children: [
-                /* @__PURE__ */ jsx40(Ripple, {}),
-                item.icon && /* @__PURE__ */ jsx40(
+                /* @__PURE__ */ jsx41(Ripple, {}),
+                item.icon && /* @__PURE__ */ jsx41(
                   MaterialSymbol,
                   {
                     icon: item.icon,
@@ -6336,8 +6707,8 @@ function Menu({
                     className: cn(!item.destructive && "text-m3-on-surface-variant")
                   }
                 ),
-                /* @__PURE__ */ jsx40("span", { className: "truncate", children: item.label }),
-                item.shortcut && /* @__PURE__ */ jsx40("span", { className: "md-label-small ml-auto pl-4 text-m3-on-surface-variant", children: item.shortcut })
+                /* @__PURE__ */ jsx41("span", { className: "truncate", children: item.label }),
+                item.shortcut && /* @__PURE__ */ jsx41("span", { className: "md-label-small ml-auto pl-4 text-m3-on-surface-variant", children: item.shortcut })
               ]
             },
             i
@@ -6349,9 +6720,9 @@ function Menu({
 }
 
 // ../../src/components/m3/DatePicker.tsx
-import * as React34 from "react";
-import { AnimatePresence as AnimatePresence19, motion as motion38 } from "framer-motion";
-import { Fragment as Fragment5, jsx as jsx41, jsxs as jsxs37 } from "react/jsx-runtime";
+import * as React35 from "react";
+import { AnimatePresence as AnimatePresence19, motion as motion39 } from "framer-motion";
+import { Fragment as Fragment6, jsx as jsx42, jsxs as jsxs38 } from "react/jsx-runtime";
 var MONTH_NAMES = [
   "January",
   "February",
@@ -6402,6 +6773,17 @@ function getMonthGrid(cursor) {
 function formatHeadline(d) {
   return `${WEEKDAYS[d.getDay()].long.slice(0, 3)}, ${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
 }
+function formatShort(d) {
+  return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+}
+function advanceRange(current, d) {
+  if (!current.start) return { start: d, end: void 0 };
+  if (!current.end) {
+    if (startOfDay(d) >= startOfDay(current.start)) return { start: current.start, end: d };
+    return { start: d, end: void 0 };
+  }
+  return { start: d, end: void 0 };
+}
 var FOCUSABLE5 = 'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
 function DatePickerCalendar({
   value,
@@ -6409,30 +6791,38 @@ function DatePickerCalendar({
   minDate,
   maxDate,
   tone = "primary",
-  animatedHeader = false
+  animatedHeader = false,
+  selectionMode = "single",
+  range,
+  onRangeChange
 }) {
-  const [internal, setInternal] = React34.useState(void 0);
+  const [internal, setInternal] = React35.useState(void 0);
   const selected = value ?? internal;
-  const [cursor, setCursor] = React34.useState(() => startOfMonth(value ?? /* @__PURE__ */ new Date()));
-  const [view, setView] = React34.useState("month");
-  const [rovingOverride, setRovingOverride] = React34.useState(null);
-  const pillId = React34.useId();
-  const selectedYearRef = React34.useRef(null);
-  const gridRef = React34.useRef(null);
-  React34.useEffect(() => {
+  const [internalRange, setInternalRange] = React35.useState({});
+  const rangeOn = selectionMode === "range";
+  const rangeSel = rangeOn ? range ?? internalRange : void 0;
+  const [hoverDate, setHoverDate] = React35.useState(void 0);
+  const previewFrom = rangeOn && rangeSel?.start !== void 0 && rangeSel?.end === void 0 ? rangeSel.start : void 0;
+  const [cursor, setCursor] = React35.useState(() => startOfMonth(value ?? /* @__PURE__ */ new Date()));
+  const [view, setView] = React35.useState("month");
+  const [rovingOverride, setRovingOverride] = React35.useState(null);
+  const pillId = React35.useId();
+  const selectedYearRef = React35.useRef(null);
+  const gridRef = React35.useRef(null);
+  React35.useEffect(() => {
     if (view === "year") selectedYearRef.current?.scrollIntoView({ block: "center" });
   }, [view]);
-  React34.useEffect(() => {
+  React35.useEffect(() => {
     setRovingOverride(null);
   }, [cursor]);
-  const cells = React34.useMemo(() => getMonthGrid(cursor), [cursor]);
-  const years = React34.useMemo(() => {
+  const cells = React35.useMemo(() => getMonthGrid(cursor), [cursor]);
+  const years = React35.useMemo(() => {
     const list = [];
     const last = (/* @__PURE__ */ new Date()).getFullYear() + 10;
     for (let y = FIRST_YEAR; y <= last; y++) list.push(y);
     return list;
   }, []);
-  const isDisabledDay = React34.useCallback(
+  const isDisabledDay = React35.useCallback(
     (d) => {
       if (minDate && startOfDay(d) < startOfDay(minDate)) return true;
       if (maxDate && startOfDay(d) > startOfDay(maxDate)) return true;
@@ -6441,6 +6831,12 @@ function DatePickerCalendar({
     [minDate, maxDate]
   );
   const handleSelect = (d) => {
+    if (rangeOn) {
+      const next = advanceRange(rangeSel ?? {}, d);
+      setInternalRange(next);
+      onRangeChange?.(next);
+      return;
+    }
     setInternal(d);
     onChange?.(d);
   };
@@ -6450,13 +6846,14 @@ function DatePickerCalendar({
     );
   };
   const today = /* @__PURE__ */ new Date();
-  const highlightYear = (selected ?? cursor).getFullYear();
-  const activeIso = React34.useMemo(() => {
+  const anchor = rangeOn ? rangeSel?.start : selected;
+  const highlightYear = (anchor ?? cursor).getFullYear();
+  const activeIso = React35.useMemo(() => {
     if (rovingOverride) return rovingOverride;
     const inView = (d) => cells.some((c) => sameDay(c, d));
-    const pick = (selected && inView(selected) && !isDisabledDay(selected) ? selected : void 0) ?? (inView(today) && !isDisabledDay(today) ? today : void 0) ?? cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)) ?? cells.find((c) => !isDisabledDay(c)) ?? cells[0];
+    const pick = (anchor && inView(anchor) && !isDisabledDay(anchor) ? anchor : void 0) ?? (inView(today) && !isDisabledDay(today) ? today : void 0) ?? cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)) ?? cells.find((c) => !isDisabledDay(c)) ?? cells[0];
     return isoOf(pick);
-  }, [rovingOverride, cells, selected, today, cursor, isDisabledDay]);
+  }, [rovingOverride, cells, anchor, today, cursor, isDisabledDay]);
   const focusCell = (iso) => {
     requestAnimationFrame(() => {
       gridRef.current?.querySelector(`button[data-iso="${iso}"]`)?.focus();
@@ -6487,16 +6884,16 @@ function DatePickerCalendar({
   const headerLabel = view === "year" ? String(cursor.getFullYear()) : `${MONTH_NAMES[cursor.getMonth()]} ${cursor.getFullYear()}`;
   const selectedPillClass = tone === "primary-container" ? "bg-m3-primary-container" : "bg-m3-primary";
   const selectedTextClass = tone === "primary-container" ? "text-m3-on-primary-container" : "text-m3-on-primary";
-  return /* @__PURE__ */ jsxs37(Fragment5, { children: [
-    /* @__PURE__ */ jsxs37("div", { className: "mb-1 flex items-center justify-between", children: [
-      /* @__PURE__ */ jsx41(
+  return /* @__PURE__ */ jsxs38(Fragment6, { children: [
+    /* @__PURE__ */ jsxs38("div", { className: "mb-1 flex items-center justify-between", children: [
+      /* @__PURE__ */ jsx42(
         "button",
         {
           type: "button",
           onClick: () => setView((v) => v === "month" ? "year" : "month"),
           className: "m3-state m3-focus md-title-large cursor-pointer rounded-full px-3 py-1 text-m3-on-surface outline-none",
-          children: animatedHeader ? /* @__PURE__ */ jsx41(AnimatePresence19, { mode: "popLayout", initial: false, children: /* @__PURE__ */ jsx41(
-            motion38.span,
+          children: animatedHeader ? /* @__PURE__ */ jsx42(AnimatePresence19, { mode: "popLayout", initial: false, children: /* @__PURE__ */ jsx42(
+            motion39.span,
             {
               initial: { opacity: 0, y: 6 },
               animate: { opacity: 1, y: 0 },
@@ -6509,31 +6906,31 @@ function DatePickerCalendar({
           ) }) : headerLabel
         }
       ),
-      /* @__PURE__ */ jsxs37("div", { className: "flex items-center", children: [
-        /* @__PURE__ */ jsx41(
+      /* @__PURE__ */ jsxs38("div", { className: "flex items-center", children: [
+        /* @__PURE__ */ jsx42(
           "button",
           {
             type: "button",
             "aria-label": view === "year" ? "Previous years" : "Previous month",
             onClick: () => navigate(-1),
             className: "m3-state m3-focus flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none",
-            children: /* @__PURE__ */ jsx41(MaterialSymbol, { icon: "chevron_left" })
+            children: /* @__PURE__ */ jsx42(MaterialSymbol, { icon: "chevron_left" })
           }
         ),
-        /* @__PURE__ */ jsx41(
+        /* @__PURE__ */ jsx42(
           "button",
           {
             type: "button",
             "aria-label": view === "year" ? "Next years" : "Next month",
             onClick: () => navigate(1),
             className: "m3-state m3-focus flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-m3-on-surface outline-none",
-            children: /* @__PURE__ */ jsx41(MaterialSymbol, { icon: "chevron_right" })
+            children: /* @__PURE__ */ jsx42(MaterialSymbol, { icon: "chevron_right" })
           }
         )
       ] })
     ] }),
-    view === "month" ? /* @__PURE__ */ jsxs37("div", { role: "grid", ref: gridRef, children: [
-      /* @__PURE__ */ jsx41("div", { role: "row", className: "grid grid-cols-7 justify-items-center", children: WEEKDAYS.map((w, i) => /* @__PURE__ */ jsx41(
+    view === "month" ? /* @__PURE__ */ jsxs38("div", { role: "grid", ref: gridRef, children: [
+      /* @__PURE__ */ jsx42("div", { role: "row", className: "grid grid-cols-7 justify-items-center", children: WEEKDAYS.map((w, i) => /* @__PURE__ */ jsx42(
         "span",
         {
           role: "columnheader",
@@ -6543,59 +6940,114 @@ function DatePickerCalendar({
         },
         `${w.long}-${i}`
       )) }),
-      weekRows.map((week, r) => /* @__PURE__ */ jsx41("div", { role: "row", className: "grid grid-cols-7 justify-items-center", children: week.map((day, c) => {
+      weekRows.map((week, r) => /* @__PURE__ */ jsx42("div", { role: "row", className: "grid grid-cols-7 justify-items-center", children: week.map((day, c) => {
         const iso = isoOf(day);
         const idx = r * 7 + c;
-        const isSelected = selected !== void 0 && sameDay(day, selected);
+        const isSelected = !rangeOn && selected !== void 0 && sameDay(day, selected);
         const isToday = sameDay(day, today);
         const inMonth = day.getMonth() === cursor.getMonth();
         const disabled = isDisabledDay(day);
-        return /* @__PURE__ */ jsx41(
+        const isRangeStart = rangeOn && rangeSel?.start !== void 0 && sameDay(day, rangeSel.start);
+        const isRangeEnd = rangeOn && rangeSel?.end !== void 0 && sameDay(day, rangeSel.end);
+        const inCommittedRange = rangeOn && rangeSel?.start !== void 0 && rangeSel?.end !== void 0 && startOfDay(day) > startOfDay(rangeSel.start) && startOfDay(day) < startOfDay(rangeSel.end);
+        const previewEnd = previewFrom !== void 0 && hoverDate !== void 0 && sameDay(day, hoverDate) && startOfDay(day) > startOfDay(previewFrom);
+        const inPreviewRange = previewFrom !== void 0 && hoverDate !== void 0 && startOfDay(day) > startOfDay(previewFrom) && startOfDay(day) < startOfDay(hoverDate);
+        const previewRestart = previewFrom !== void 0 && hoverDate !== void 0 && sameDay(day, hoverDate) && startOfDay(day) < startOfDay(previewFrom);
+        const bandKind = isRangeStart && !isRangeEnd ? "start" : isRangeEnd && !isRangeStart ? "end" : inCommittedRange ? "mid" : previewEnd ? "preview-end" : inPreviewRange ? "preview-mid" : null;
+        const rangeProps = rangeOn && previewFrom !== void 0 ? {
+          onMouseEnter: () => setHoverDate(day),
+          onMouseLeave: () => setHoverDate(void 0),
+          onFocus: () => setHoverDate(day),
+          onBlur: () => setHoverDate(void 0)
+        } : {};
+        return /* @__PURE__ */ jsxs38(
           "div",
           {
             role: "gridcell",
-            "aria-selected": isSelected || void 0,
+            "aria-selected": isSelected || isRangeStart || isRangeEnd || inCommittedRange || void 0,
             "aria-current": isToday ? "date" : void 0,
             "aria-disabled": disabled || void 0,
-            className: "flex items-center justify-center",
-            children: /* @__PURE__ */ jsxs37(
-              "button",
-              {
-                type: "button",
-                "data-iso": iso,
-                disabled,
-                tabIndex: iso === activeIso ? 0 : -1,
-                "aria-label": `${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}`,
-                onClick: () => handleSelect(day),
-                onKeyDown: (e) => handleDayKeyDown(e, idx),
-                className: cn(
-                  "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
-                  disabled && "pointer-events-none opacity-38",
-                  !isSelected && isToday && "border border-m3-primary text-m3-primary",
-                  !isSelected && !isToday && (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
-                ),
-                children: [
-                  isSelected && /* @__PURE__ */ jsx41(
-                    motion38.span,
-                    {
-                      layoutId: pillId,
-                      className: cn("absolute inset-0 rounded-full", selectedPillClass),
-                      transition: springs.expressive
-                    }
+            className: "relative flex w-full items-center justify-center",
+            children: [
+              bandKind && /* @__PURE__ */ jsx42(
+                "span",
+                {
+                  "aria-hidden": "true",
+                  className: cn(
+                    "pointer-events-none absolute inset-y-1",
+                    bandKind === "start" && "left-1/2 right-0 rounded-l-full bg-m3-primary-container/44",
+                    bandKind === "end" && "left-0 right-1/2 rounded-r-full bg-m3-primary-container/44",
+                    bandKind === "mid" && "inset-x-0 bg-m3-primary-container/44",
+                    bandKind === "preview-end" && "left-0 right-1/2 rounded-r-full bg-m3-primary-container/24",
+                    bandKind === "preview-mid" && "inset-x-0 bg-m3-primary-container/24"
+                  )
+                }
+              ),
+              /* @__PURE__ */ jsxs38(
+                "button",
+                {
+                  type: "button",
+                  "data-iso": iso,
+                  disabled,
+                  tabIndex: iso === activeIso ? 0 : -1,
+                  "aria-label": `${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}${isRangeStart ? ", start of range" : isRangeEnd ? ", end of range" : ""}`,
+                  onClick: () => handleSelect(day),
+                  onKeyDown: (e) => handleDayKeyDown(e, idx),
+                  ...rangeProps,
+                  className: cn(
+                    "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
+                    disabled && "pointer-events-none opacity-38",
+                    !isSelected && isToday && "border border-m3-primary text-m3-primary",
+                    !isSelected && (previewEnd || previewRestart) && "border border-m3-primary",
+                    !isSelected && !isToday && !previewEnd && !previewRestart && (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
                   ),
-                  /* @__PURE__ */ jsx41("span", { className: cn("relative z-10", isSelected && selectedTextClass), children: day.getDate() })
-                ]
-              }
-            )
+                  children: [
+                    rangeOn ? isRangeStart && /* @__PURE__ */ jsx42(
+                      motion39.span,
+                      {
+                        layoutId: `${pillId}-start`,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ) : isSelected && /* @__PURE__ */ jsx42(
+                      motion39.span,
+                      {
+                        layoutId: pillId,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ),
+                    rangeOn && isRangeEnd && !isRangeStart && /* @__PURE__ */ jsx42(
+                      motion39.span,
+                      {
+                        layoutId: `${pillId}-end`,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ),
+                    /* @__PURE__ */ jsx42(
+                      "span",
+                      {
+                        className: cn(
+                          "relative z-10",
+                          (isSelected || isRangeStart || isRangeEnd) && selectedTextClass
+                        ),
+                        children: day.getDate()
+                      }
+                    )
+                  ]
+                }
+              )
+            ]
           },
           iso
         );
       }) }, `week-${r}`))
     ] }) : (
       /* Year grid: 4 columns, 1988 → current year + 10 */
-      /* @__PURE__ */ jsx41("div", { className: "m3-scroll grid h-[300px] grid-cols-4 content-start gap-1 overflow-y-auto pt-2", children: years.map((y) => {
+      /* @__PURE__ */ jsx42("div", { className: "m3-scroll grid h-[300px] grid-cols-4 content-start gap-1 overflow-y-auto pt-2", children: years.map((y) => {
         const isCurrent = y === highlightYear;
-        return /* @__PURE__ */ jsx41(
+        return /* @__PURE__ */ jsx42(
           "button",
           {
             type: "button",
@@ -6616,20 +7068,35 @@ function DatePickerCalendar({
     )
   ] });
 }
-var DatePickerModal = React34.forwardRef(
-  function DatePickerModal2({ value, onChange, minDate, maxDate, open = false, onOpenChange, closeOnSelect = true, className }, ref) {
-    const panelRef = React34.useRef(null);
-    const restoreFocusRef = React34.useRef(null);
-    const [landscape, setLandscape] = React34.useState(false);
-    const [picked, setPicked] = React34.useState(void 0);
-    React34.useEffect(() => {
+var DatePickerModal = React35.forwardRef(
+  function DatePickerModal2({
+    value,
+    onChange,
+    minDate,
+    maxDate,
+    open = false,
+    onOpenChange,
+    closeOnSelect = true,
+    className,
+    selectionMode = "single",
+    range,
+    onRangeChange
+  }, ref) {
+    const panelRef = React35.useRef(null);
+    const restoreFocusRef = React35.useRef(null);
+    const [landscape, setLandscape] = React35.useState(false);
+    const [picked, setPicked] = React35.useState(void 0);
+    const [pickedRange, setPickedRange] = React35.useState({});
+    const rangeOn = selectionMode === "range";
+    const rangeSel = rangeOn ? range ?? pickedRange : void 0;
+    React35.useEffect(() => {
       const mq = window.matchMedia("(min-width: 600px)");
       const update = () => setLandscape(mq.matches);
       update();
       mq.addEventListener("change", update);
       return () => mq.removeEventListener("change", update);
     }, []);
-    React34.useEffect(() => {
+    React35.useEffect(() => {
       if (!open) return;
       const onKey = (e) => {
         if (e.key === "Escape") onOpenChange?.(false);
@@ -6642,7 +7109,7 @@ var DatePickerModal = React34.forwardRef(
         document.body.style.overflow = prevOverflow;
       };
     }, [open, onOpenChange]);
-    React34.useEffect(() => {
+    React35.useEffect(() => {
       if (!open) return;
       restoreFocusRef.current = document.activeElement;
       const timer = window.setTimeout(() => {
@@ -6682,11 +7149,29 @@ var DatePickerModal = React34.forwardRef(
       onChange?.(d);
       if (closeOnSelect) onOpenChange?.(false);
     };
+    const handleRangeChange = (r) => {
+      setPickedRange(r);
+      onRangeChange?.(r);
+      if (r.start && r.end && closeOnSelect) onOpenChange?.(false);
+    };
     const headlineDate = value ?? picked ?? /* @__PURE__ */ new Date();
     const headline = formatHeadline(headlineDate);
-    return /* @__PURE__ */ jsx41(AnimatePresence19, { children: open && /* @__PURE__ */ jsxs37("div", { className: "fixed inset-0 z-[80] flex items-center justify-center p-4", children: [
-      /* @__PURE__ */ jsx41(
-        motion38.div,
+    let rangeHeadline;
+    if (rangeSel?.start && rangeSel?.end) {
+      rangeHeadline = `${formatShort(rangeSel.start)} \u2013 ${formatShort(rangeSel.end)}`;
+    } else if (rangeSel?.start) {
+      rangeHeadline = /* @__PURE__ */ jsxs38(Fragment6, { children: [
+        formatShort(rangeSel.start),
+        " \u2013 ",
+        /* @__PURE__ */ jsx42("span", { className: "text-m3-on-surface-variant", children: "End date" })
+      ] });
+    } else {
+      rangeHeadline = /* @__PURE__ */ jsx42("span", { className: "text-m3-on-surface-variant", children: "Start date" });
+    }
+    const headerLabel = rangeOn ? "Selected dates" : "Selected date";
+    return /* @__PURE__ */ jsx42(AnimatePresence19, { children: open && /* @__PURE__ */ jsxs38("div", { className: "fixed inset-0 z-[80] flex items-center justify-center p-4", children: [
+      /* @__PURE__ */ jsx42(
+        motion39.div,
         {
           initial: { opacity: 0 },
           animate: { opacity: 1 },
@@ -6699,13 +7184,13 @@ var DatePickerModal = React34.forwardRef(
           onClick: () => onOpenChange?.(false)
         }
       ),
-      /* @__PURE__ */ jsx41(
-        motion38.div,
+      /* @__PURE__ */ jsx42(
+        motion39.div,
         {
           ref: panelRef,
           role: "dialog",
           "aria-modal": "true",
-          "aria-label": "Choose date",
+          "aria-label": rangeOn ? "Choose date range" : "Choose date",
           tabIndex: -1,
           onKeyDown: handleTab,
           initial: { scale: 0.9, opacity: 0 },
@@ -6717,12 +7202,12 @@ var DatePickerModal = React34.forwardRef(
             landscape ? "h-[368px] max-h-[calc(100dvh-32px)] w-[568px] max-w-[calc(100vw-32px)]" : "h-[512px] max-h-[calc(100dvh-32px)] w-[328px] max-w-[calc(100vw-32px)] flex-col",
             className
           ),
-          children: landscape ? /* @__PURE__ */ jsxs37(Fragment5, { children: [
-            /* @__PURE__ */ jsxs37("div", { className: "flex w-[168px] shrink-0 flex-col justify-center gap-1 px-4", children: [
-              /* @__PURE__ */ jsx41("span", { className: "md-label-large text-m3-on-surface-variant", children: "Selected date" }),
-              /* @__PURE__ */ jsx41("span", { className: "md-headline-small leading-tight text-m3-on-surface", children: headline })
+          children: landscape ? /* @__PURE__ */ jsxs38(Fragment6, { children: [
+            /* @__PURE__ */ jsxs38("div", { className: "flex w-[168px] shrink-0 flex-col justify-center gap-1 px-4", children: [
+              /* @__PURE__ */ jsx42("span", { className: "md-label-large text-m3-on-surface-variant", children: headerLabel }),
+              rangeOn ? /* @__PURE__ */ jsx42("span", { className: "md-headline-small leading-tight text-m3-on-surface", children: rangeHeadline }) : /* @__PURE__ */ jsx42("span", { className: "md-headline-small leading-tight text-m3-on-surface", children: headline })
             ] }),
-            /* @__PURE__ */ jsx41("div", { className: "m3-scroll min-w-0 flex-1 overflow-y-auto px-4 py-1", children: /* @__PURE__ */ jsx41(
+            /* @__PURE__ */ jsx42("div", { className: "m3-scroll min-w-0 flex-1 overflow-y-auto px-4 py-1", children: /* @__PURE__ */ jsx42(
               DatePickerCalendar,
               {
                 value: value ?? picked,
@@ -6730,16 +7215,19 @@ var DatePickerModal = React34.forwardRef(
                 minDate,
                 maxDate,
                 tone: "primary-container",
-                animatedHeader: true
+                animatedHeader: true,
+                selectionMode,
+                range,
+                onRangeChange: rangeOn ? handleRangeChange : void 0
               }
             ) })
-          ] }) : /* @__PURE__ */ jsxs37(Fragment5, { children: [
-            /* @__PURE__ */ jsxs37("div", { className: "flex shrink-0 flex-col gap-1 px-6 pb-3 pt-6", children: [
-              /* @__PURE__ */ jsx41("span", { className: "md-label-large text-m3-on-surface-variant", children: "Selected date" }),
-              /* @__PURE__ */ jsx41("span", { className: "md-display-small text-m3-on-surface", children: headline })
+          ] }) : /* @__PURE__ */ jsxs38(Fragment6, { children: [
+            /* @__PURE__ */ jsxs38("div", { className: "flex shrink-0 flex-col gap-1 px-6 pb-3 pt-6", children: [
+              /* @__PURE__ */ jsx42("span", { className: "md-label-large text-m3-on-surface-variant", children: headerLabel }),
+              rangeOn ? /* @__PURE__ */ jsx42("span", { className: "md-headline-small leading-tight text-m3-on-surface", children: rangeHeadline }) : /* @__PURE__ */ jsx42("span", { className: "md-display-small text-m3-on-surface", children: headline })
             ] }),
-            /* @__PURE__ */ jsx41("div", { className: "h-px w-full shrink-0 bg-m3-outline-variant" }),
-            /* @__PURE__ */ jsx41("div", { className: "m3-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-2", children: /* @__PURE__ */ jsx41(
+            /* @__PURE__ */ jsx42("div", { className: "h-px w-full shrink-0 bg-m3-outline-variant" }),
+            /* @__PURE__ */ jsx42("div", { className: "m3-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-2", children: /* @__PURE__ */ jsx42(
               DatePickerCalendar,
               {
                 value: value ?? picked,
@@ -6747,7 +7235,10 @@ var DatePickerModal = React34.forwardRef(
                 minDate,
                 maxDate,
                 tone: "primary-container",
-                animatedHeader: true
+                animatedHeader: true,
+                selectionMode,
+                range,
+                onRangeChange: rangeOn ? handleRangeChange : void 0
               }
             ) })
           ] })
@@ -6757,7 +7248,7 @@ var DatePickerModal = React34.forwardRef(
   }
 );
 DatePickerModal.displayName = "DatePickerModal";
-var DatePicker = React34.forwardRef(function DatePicker2({
+var DatePicker = React35.forwardRef(function DatePicker2({
   value,
   onChange,
   minDate,
@@ -6767,10 +7258,13 @@ var DatePicker = React34.forwardRef(function DatePicker2({
   onOpenChange,
   closeOnSelect = true,
   fullWidth = false,
+  selectionMode = "single",
+  range,
+  onRangeChange,
   className
 }, ref) {
   if (presentation === "modal") {
-    return /* @__PURE__ */ jsx41(
+    return /* @__PURE__ */ jsx42(
       DatePickerModal,
       {
         ref,
@@ -6781,11 +7275,14 @@ var DatePicker = React34.forwardRef(function DatePicker2({
         onChange,
         minDate,
         maxDate,
+        selectionMode,
+        range,
+        onRangeChange,
         className
       }
     );
   }
-  return /* @__PURE__ */ jsx41(
+  return /* @__PURE__ */ jsx42(
     "div",
     {
       ref,
@@ -6794,13 +7291,16 @@ var DatePicker = React34.forwardRef(function DatePicker2({
         fullWidth ? "w-full" : "w-[328px]",
         className
       ),
-      children: /* @__PURE__ */ jsx41(
+      children: /* @__PURE__ */ jsx42(
         DatePickerCalendar,
         {
           value,
           onChange,
           minDate,
-          maxDate
+          maxDate,
+          selectionMode,
+          range,
+          onRangeChange
         }
       )
     }
@@ -6808,9 +7308,9 @@ var DatePicker = React34.forwardRef(function DatePicker2({
 });
 
 // ../../src/components/m3/TimePicker.tsx
-import * as React35 from "react";
-import { motion as motion39 } from "framer-motion";
-import { Fragment as Fragment7, jsx as jsx42, jsxs as jsxs38 } from "react/jsx-runtime";
+import * as React36 from "react";
+import { motion as motion40 } from "framer-motion";
+import { Fragment as Fragment8, jsx as jsx43, jsxs as jsxs39 } from "react/jsx-runtime";
 var DIAL_CENTER = 128;
 var DIAL_RADIUS = 104;
 var HOUR_AUTO_SWITCH_MS = 600;
@@ -6829,14 +7329,14 @@ function dialPosition(n, radius = DIAL_RADIUS) {
     y: DIAL_CENTER - radius * Math.cos(theta)
   };
 }
-var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use24h = false, fullWidth = false, className }, ref) {
-  const [internal, setInternal] = React35.useState({ hour: 10, minute: 30 });
+var TimePicker = React36.forwardRef(function TimePicker2({ value, onChange, use24h = false, fullWidth = false, className }, ref) {
+  const [internal, setInternal] = React36.useState({ hour: 10, minute: 30 });
   const time = value ?? internal;
-  const [mode, setMode] = React35.useState("hour");
-  const switchTimer = React35.useRef(null);
-  const amRef = React35.useRef(null);
-  const pmRef = React35.useRef(null);
-  React35.useEffect(() => {
+  const [mode, setMode] = React36.useState("hour");
+  const switchTimer = React36.useRef(null);
+  const amRef = React36.useRef(null);
+  const pmRef = React36.useRef(null);
+  React36.useEffect(() => {
     return () => {
       if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
     };
@@ -6904,7 +7404,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
   const theta = angle * Math.PI / 180;
   const selX = DIAL_CENTER + handleRadius * Math.sin(theta);
   const selY = DIAL_CENTER - handleRadius * Math.cos(theta);
-  const readoutSegment = (label, target) => /* @__PURE__ */ jsx42(
+  const readoutSegment = (label, target) => /* @__PURE__ */ jsx43(
     "button",
     {
       type: "button",
@@ -6920,7 +7420,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
       children: label
     }
   );
-  return /* @__PURE__ */ jsxs38(
+  return /* @__PURE__ */ jsxs39(
     "div",
     {
       ref,
@@ -6931,13 +7431,13 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
         className
       ),
       children: [
-        /* @__PURE__ */ jsxs38("div", { className: "mb-4 flex items-center justify-center gap-3", children: [
-          /* @__PURE__ */ jsxs38("div", { className: "flex items-center justify-center md-display-large tabular-nums", children: [
+        /* @__PURE__ */ jsxs39("div", { className: "mb-4 flex items-center justify-center gap-3", children: [
+          /* @__PURE__ */ jsxs39("div", { className: "flex items-center justify-center md-display-large tabular-nums", children: [
             readoutSegment(hourLabel, "hour"),
-            /* @__PURE__ */ jsx42("span", { "aria-hidden": "true", className: "text-m3-on-surface", children: ":" }),
+            /* @__PURE__ */ jsx43("span", { "aria-hidden": "true", className: "text-m3-on-surface", children: ":" }),
             readoutSegment(pad2(time.minute), "minute")
           ] }),
-          !use24h && /* @__PURE__ */ jsx42(
+          !use24h && /* @__PURE__ */ jsx43(
             "div",
             {
               role: "radiogroup",
@@ -6945,9 +7445,9 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               className: "flex h-20 w-[52px] shrink-0 flex-col items-stretch rounded-full border border-m3-outline",
               children: ["AM", "PM"].map((m, i) => {
                 const isCurrent = m === "AM" === !isPM;
-                return /* @__PURE__ */ jsxs38(React35.Fragment, { children: [
-                  i === 1 && /* @__PURE__ */ jsx42("span", { "aria-hidden": "true", className: "h-px w-full shrink-0 bg-m3-outline" }),
-                  /* @__PURE__ */ jsx42(
+                return /* @__PURE__ */ jsxs39(React36.Fragment, { children: [
+                  i === 1 && /* @__PURE__ */ jsx43("span", { "aria-hidden": "true", className: "h-px w-full shrink-0 bg-m3-outline" }),
+                  /* @__PURE__ */ jsx43(
                     "button",
                     {
                       type: "button",
@@ -6968,9 +7468,9 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
             }
           )
         ] }),
-        /* @__PURE__ */ jsxs38("div", { className: "m3-elevation-1 relative mx-auto h-[256px] w-[256px] select-none rounded-full bg-m3-surface-container-highest", children: [
-          /* @__PURE__ */ jsx42(
-            motion39.span,
+        /* @__PURE__ */ jsxs39("div", { className: "m3-elevation-1 relative mx-auto h-[256px] w-[256px] select-none rounded-full bg-m3-surface-container-highest", children: [
+          /* @__PURE__ */ jsx43(
+            motion40.span,
             {
               className: "absolute z-10 flex h-12 w-12 items-center justify-center rounded-full bg-m3-primary",
               style: { left: selX - 24, top: selY - 24 },
@@ -6979,8 +7479,8 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               transition: springs.expressiveEffects
             }
           ),
-          /* @__PURE__ */ jsx42(
-            motion39.div,
+          /* @__PURE__ */ jsx43(
+            motion40.div,
             {
               className: "pointer-events-none absolute z-0 rounded-full bg-m3-primary",
               style: {
@@ -6994,9 +7494,9 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               transition: springs.defaultVisual
             }
           ),
-          /* @__PURE__ */ jsx42("span", { className: "absolute left-1/2 top-1/2 z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" }),
-          doubleRing && /* @__PURE__ */ jsx42(
-            motion39.span,
+          /* @__PURE__ */ jsx43("span", { className: "absolute left-1/2 top-1/2 z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-m3-primary" }),
+          doubleRing && /* @__PURE__ */ jsx43(
+            motion40.span,
             {
               className: "absolute z-10 h-1.5 w-1.5 rounded-full bg-m3-primary",
               style: {
@@ -7008,11 +7508,11 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               transition: springs.expressiveEffects
             }
           ),
-          doubleRing ? /* @__PURE__ */ jsxs38(Fragment7, { children: [
+          doubleRing ? /* @__PURE__ */ jsxs39(Fragment8, { children: [
             OUTER_RING_HOURS.map((h) => {
               const { x, y } = dialPosition(h === 0 ? 12 : h, OUTER_24H_RADIUS);
               const isActive = h === time.hour;
-              return /* @__PURE__ */ jsx42(
+              return /* @__PURE__ */ jsx43(
                 "button",
                 {
                   type: "button",
@@ -7021,7 +7521,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
                   onKeyDown: handleDialKeyDown,
                   style: { left: x - 20, top: y - 20 },
                   className: "m3-state m3-focus absolute z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full outline-none",
-                  children: /* @__PURE__ */ jsx42(
+                  children: /* @__PURE__ */ jsx43(
                     "span",
                     {
                       className: cn(
@@ -7038,7 +7538,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
             INNER_RING_HOURS.map((h) => {
               const { x, y } = dialPosition(h === 12 ? 12 : h - 12, INNER_24H_RADIUS);
               const isActive = h === time.hour;
-              return /* @__PURE__ */ jsx42(
+              return /* @__PURE__ */ jsx43(
                 "button",
                 {
                   type: "button",
@@ -7047,7 +7547,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
                   onKeyDown: handleDialKeyDown,
                   style: { left: x - 18, top: y - 18 },
                   className: "m3-state m3-focus absolute z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full outline-none",
-                  children: /* @__PURE__ */ jsx42(
+                  children: /* @__PURE__ */ jsx43(
                     "span",
                     {
                       className: cn(
@@ -7067,7 +7567,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               const { x, y } = dialPosition(n);
               const label = mode === "hour" ? String(n) : pad2(n * 5 % 60);
               const isActive = mode === "hour" ? n === hour12 : n * 5 % 60 === time.minute;
-              return /* @__PURE__ */ jsx42(
+              return /* @__PURE__ */ jsx43(
                 "button",
                 {
                   type: "button",
@@ -7076,7 +7576,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
                   onKeyDown: handleDialKeyDown,
                   style: { left: x - 24, top: y - 24 },
                   className: "m3-state m3-focus absolute z-20 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full outline-none",
-                  children: /* @__PURE__ */ jsx42(
+                  children: /* @__PURE__ */ jsx43(
                     "span",
                     {
                       className: cn(
@@ -7131,6 +7631,7 @@ var TABLE = [
   { meta: listMeta, file: "List" },
   { meta: bottomSheetMeta, file: "BottomSheet" },
   { meta: sideSheetMeta, file: "SideSheet" },
+  { meta: carouselMeta, file: "Carousel" },
   { meta: textFieldMeta, file: "TextField" },
   { meta: searchBarMeta, file: "SearchBar" },
   { meta: searchViewMeta, file: "SearchView" },
@@ -7514,6 +8015,7 @@ export {
   Button,
   ButtonGroup,
   Card,
+  Carousel,
   Checkbox,
   Chip,
   CircularProgress,
@@ -7558,6 +8060,7 @@ export {
   buttonGroupMeta,
   buttonMeta,
   cardMeta,
+  carouselMeta,
   categoryLabels,
   checkboxMeta,
   chipMeta,

@@ -2,7 +2,7 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }"use client";
 
 // ../../src/components/m3/Button.tsx
-var _react = require('react'); var React3 = _interopRequireWildcard(_react); var React = _interopRequireWildcard(_react); var React2 = _interopRequireWildcard(_react); var React4 = _interopRequireWildcard(_react); var React5 = _interopRequireWildcard(_react); var React6 = _interopRequireWildcard(_react); var React7 = _interopRequireWildcard(_react); var React8 = _interopRequireWildcard(_react); var React9 = _interopRequireWildcard(_react); var React10 = _interopRequireWildcard(_react); var React11 = _interopRequireWildcard(_react); var React12 = _interopRequireWildcard(_react); var React13 = _interopRequireWildcard(_react); var React14 = _interopRequireWildcard(_react); var React15 = _interopRequireWildcard(_react); var React16 = _interopRequireWildcard(_react); var React17 = _interopRequireWildcard(_react); var React18 = _interopRequireWildcard(_react); var React19 = _interopRequireWildcard(_react); var React20 = _interopRequireWildcard(_react); var React21 = _interopRequireWildcard(_react); var React22 = _interopRequireWildcard(_react); var React23 = _interopRequireWildcard(_react); var React24 = _interopRequireWildcard(_react); var React25 = _interopRequireWildcard(_react); var React26 = _interopRequireWildcard(_react); var React27 = _interopRequireWildcard(_react); var React28 = _interopRequireWildcard(_react); var React29 = _interopRequireWildcard(_react); var React30 = _interopRequireWildcard(_react); var React31 = _interopRequireWildcard(_react); var React32 = _interopRequireWildcard(_react); var React33 = _interopRequireWildcard(_react); var React34 = _interopRequireWildcard(_react); var React35 = _interopRequireWildcard(_react);
+var _react = require('react'); var React3 = _interopRequireWildcard(_react); var React = _interopRequireWildcard(_react); var React2 = _interopRequireWildcard(_react); var React4 = _interopRequireWildcard(_react); var React5 = _interopRequireWildcard(_react); var React6 = _interopRequireWildcard(_react); var React7 = _interopRequireWildcard(_react); var React8 = _interopRequireWildcard(_react); var React9 = _interopRequireWildcard(_react); var React10 = _interopRequireWildcard(_react); var React11 = _interopRequireWildcard(_react); var React12 = _interopRequireWildcard(_react); var React13 = _interopRequireWildcard(_react); var React14 = _interopRequireWildcard(_react); var React15 = _interopRequireWildcard(_react); var React16 = _interopRequireWildcard(_react); var React17 = _interopRequireWildcard(_react); var React18 = _interopRequireWildcard(_react); var React19 = _interopRequireWildcard(_react); var React20 = _interopRequireWildcard(_react); var React21 = _interopRequireWildcard(_react); var React22 = _interopRequireWildcard(_react); var React23 = _interopRequireWildcard(_react); var React24 = _interopRequireWildcard(_react); var React25 = _interopRequireWildcard(_react); var React26 = _interopRequireWildcard(_react); var React27 = _interopRequireWildcard(_react); var React28 = _interopRequireWildcard(_react); var React29 = _interopRequireWildcard(_react); var React30 = _interopRequireWildcard(_react); var React31 = _interopRequireWildcard(_react); var React32 = _interopRequireWildcard(_react); var React33 = _interopRequireWildcard(_react); var React34 = _interopRequireWildcard(_react); var React35 = _interopRequireWildcard(_react); var React36 = _interopRequireWildcard(_react);
 var _framermotion = require('framer-motion');
 
 // ../../src/lib/utils.ts
@@ -324,12 +324,15 @@ var datePickerMeta = {
   id: "date-picker",
   name: "Date Picker",
   category: "selection",
-  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons.",
+  description: "Date pickers let users select a date from a calendar month grid on a surface-container-high panel, with a tappable header that switches to a year grid, ARIA grid semantics with arrow-key day navigation, and clamping via min/max dates. Two presentations share the same calendar internals: the compact inline grid, and the official modal picker \u2014 328\xD7512dp portrait / 568\xD7368dp landscape (viewport \u2265 600px) with a selected-date header, 32% scrim, spring scale+fade entry, live-applied selection and no action buttons. selectionMode='range' adds the official M3 date-range selection (androidx DateRangePicker conventions): tap start then end, in-between days carry a continuous primary-container band behind 40dp start/end circles, hover previews the tentative range, and the modal header shows Start/End date placeholders until the pair is complete.",
   importLine: `import { DatePicker } from "@/components/m3";`,
-  variants: ["month-view", "year-view", "modal"],
+  variants: ["month-view", "year-view", "modal", "range \xB7 inline", "range \xB7 modal"],
   props: [
     { name: "value", type: `Date`, description: "Selected date. Uncontrolled when omitted." },
-    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked." },
+    { name: "onChange", type: `(d: Date) => void`, description: "Fires when a day is picked (single mode)." },
+    { name: "selectionMode", type: `'single' | 'range'`, default: `'single'`, description: "Pick one date, or a start/end range: tap start, then end (tap \u2265 start completes); tapping before the start or once complete restarts with a fresh start." },
+    { name: "range", type: `{ start?: Date; end?: Date }`, description: "Range mode \u2014 controlled selected range; omit for uncontrolled state. Partial ranges (start only) are valid states." },
+    { name: "onRangeChange", type: `(range: { start?: Date; end?: Date }) => void`, description: "Range mode \u2014 fires on every tap with the next range (partial ranges included)." },
     { name: "minDate", type: `Date`, description: "Earliest selectable date; earlier days render disabled (38%)." },
     { name: "maxDate", type: `Date`, description: "Latest selectable date; later days render disabled (38%)." },
     { name: "presentation", type: `'inline' | 'modal'`, default: `'inline'`, description: "Embedded calendar grid, or the official modal picker (328\xD7512dp portrait / 568\xD7368dp landscape at viewport \u2265 600px) with selected-date header and 32% scrim." },
@@ -345,19 +348,21 @@ var datePickerMeta = {
       "Use minDate/maxDate to constrain scheduling to valid ranges.",
       "Pair with a readout chip to show the formatted selected date.",
       'Use presentation="modal" for the official picker dialog \u2014 328\xD7512dp portrait / 568\xD7368dp landscape with selected-date header, 32% scrim and live-apply selection.',
-      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it."
+      "Give the modal a text-field-style trigger that echoes the chosen date, and let Escape/scrim dismiss it.",
+      "Use selectionMode='range' for check-in/check-out and event spans \u2014 the band reads as one stripe per week row between the start/end circles."
     ],
-    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column"],
-    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)"],
+    anatomy: ["Container (28px corners, surface-container-high)", "Header (month-year label + 48dp prev/next chevron targets)", "ARIA grid: weekday row (label-medium columnheaders) + 6\xD77 day grid (40dp circular cells, roving tabindex)", "Year grid (4 columns)", "Modal: dialog on surface-container-high (28dp corners, elevation 3, no action buttons) \u2014 portrait stacks a header block (label-large \u201CSelected date\u201D + display-small headline + divider) above the calendar; landscape puts the header in a 168dp vertically-centered left column", "Range band (selectionMode='range'): per-cell layer behind the day buttons \u2014 start cell right half (rounded-l-full, hidden under the circle), end cell left half (rounded-r-full), in-between cells full-width square, square cuts at week-row edges, 4dp vertical inset (inset-y-1) keeps adjacent week stripes separate; color = primary-container at 44% (color-mix over the m3 primary-container token \u2014 androidx maps its range container to primary-container; attenuated so mid-band days keep on-surface text); start/end days stay 40dp circles (inline primary \xB7 modal primary-container)"],
+    states: ["Idle day", "Hover (8% state layer)", "Today (primary outline + aria-current)", "Selected (inline: primary pill via layoutId \xB7 modal: primary-container circle, androidx SelectedDateContainerColor)", "Other month (on-surface-variant)", "Disabled (38% opacity)", "Keyboard (arrow keys move focus \xB11 day / \xB11 week, Home/End week bounds, Enter selects)", "Modal open (32% scrim + body scroll locked; scale 0.9\u21921 spring entry; focus moves to the selected/today day, Tab trapped, restored to the opener on close)", "Modal dismissal (Escape / scrim tap always dismiss; day pick applies immediately and closes when closeOnSelect)", "Range (selectionMode='range'): start/end days 40dp circles with \u201Cstart/end of range\u201D label suffixes, in-between days on the primary-container/44 band (all aria-selected), 24% band + primary outline previews the tentative range while only the start is set, modal header shows Start/End date placeholders or the \u201CAug 21 \u2013 Aug 28\u201D pair (headline-small) and closes only on a complete pick"],
     dos: [
       "Show the selected date in context next to the picker",
       "Clamp with min/max when dates have real-world constraints",
-      "Keep the selected-day pill circular and high-contrast (primary/on-primary)"
+      "Keep the selected-day pill circular and high-contrast (primary/on-primary)",
+      "Show start/end placeholders until both dates are picked \u2014 the modal header and readouts echo the partial range"
     ],
     donts: [
       "Don't force users to scroll years one month at a time \u2014 use the year grid",
       "Don't hide disabled days entirely; dim them to 38%",
-      "Don't use the picker for date ranges (extend it deliberately)",
+      "Don't close the modal picker before the range is complete \u2014 a start-only day tap must keep it open",
       "Don't add confirm/cancel buttons to the modal \u2014 M3 applies the selection live and Escape/scrim dismiss"
     ]
   },
@@ -378,6 +383,21 @@ const [open, setOpen] = React.useState(false);
   onOpenChange={setOpen}
   value={date}
   onChange={setDate}
+/>
+
+// Range selection (selectionMode="range") \u2014 tap start, then end
+const [range, setRange] = React.useState<{ start?: Date; end?: Date }>({});
+<DatePicker selectionMode="range" range={range} onRangeChange={setRange} />
+
+// Range modal \u2014 header shows Start/End date placeholders until the pair is
+// complete; it closes only after the second pick (Escape/scrim always dismiss)
+<DatePicker
+  presentation="modal"
+  selectionMode="range"
+  open={open}
+  onOpenChange={setOpen}
+  range={range}
+  onRangeChange={setRange}
 />`,
   related: ["time-picker", "card", "bottom-sheet"],
   demoName: "DatePickerDemo"
@@ -427,6 +447,63 @@ var sideSheetMeta = {
 </SideSheet>`,
   related: ["bottom-sheet", "card", "list"],
   demoName: "SideSheetDemo"
+};
+var carouselMeta = {
+  id: "carousel",
+  name: "Carousel",
+  category: "containment",
+  description: "New in Material 3 Expressive: a horizontally scrollable, scroll-snapped collection of items with three official layout strategies \u2014 multi-browse (flexible equal widths with a peek), hero (one large leading item, the rest smaller) and inline (one full-width item per view). Items sit 8dp apart, are shaped (28dp corners by default) and, in the multi-browse layout, play the signature M3E dynamic-width treatment: the hovered or focused item springs to ~1.12\xD7 its width while the neighbors give up the difference.",
+  importLine: `import { Carousel } from "@/components/m3";`,
+  variants: ["multi-browse", "hero", "inline"],
+  props: [
+    { name: "items", type: `CarouselItem[]`, description: "Snap items: id, optional label, MaterialSymbol icon, container tone ('primary' | 'secondary' | 'tertiary' | 'surface'), optional href/onClick (makes the whole item a button/link)." },
+    { name: "layout", type: `'multi-browse' | 'hero' | 'inline'`, default: `'multi-browse'`, description: "Official strategy: flexible equal widths with a 24px peek \xB7 one large (66%) + smaller (34%) items \xB7 one full-width item per view." },
+    { name: "alignment", type: `'start' | 'end'`, default: `'start'`, description: "Scroll-snap alignment of items." },
+    { name: "itemCount", type: `number`, default: `4`, description: "multi-browse only: visible-item hint, clamped to 1\u20135." },
+    { name: "shape", type: `'round' | 'square'`, default: `'round'`, description: "Item corners: 28dp (M3E extra-large) or square." },
+    { name: "arrows", type: `'auto' | 'always' | 'never'`, default: `'auto'`, description: "Optional navigation arrows: circular 48dp buttons that scroll one item per press and only appear while content overflows in their direction. 'auto' reveals on hover/focus, 'always' keeps them visible (keyboard-reachable), 'never' hides them." },
+    { name: "ariaLabel", type: `string`, description: "Accessible name of the carousel region (defaults to a derived label)." },
+    { name: "className", type: `string`, description: "Extra classes for the scroller." }
+  ],
+  guidelines: {
+    whenToUse: [
+      "Use carousels to browse a small, visually rich collection of similar content (media cards, destination tiles).",
+      "Use multi-browse when items share equal importance and flexible widths should show several at once.",
+      "Use hero when one featured item deserves emphasis and the rest are secondary.",
+      "Use inline for full-bleed, one-item-per-view browsing."
+    ],
+    anatomy: ["Scroller (overflow-x, CSS scroll-snap mandatory, hidden scrollbar, focusable)", "Items (tonal container + 44dp MaterialSymbol + md-label-large, 8dp gaps, 28dp corners)", "Dynamic widths (multi-browse: hovered/focused item ~1.12\xD7, neighbors shrink, springs.defaultSpatial)", "24px peek of the next item in multi-browse", "Roving keyboard focus (ArrowLeft/Right, Home/End)", "Optional navigation arrows (48dp circular, elevation 1, one item per press, overflow-directional)"],
+    states: ["Rest (itemCount visible + peek)", "Hover (8% state layer; multi-browse: item grows ~1.12\xD7, neighbors shrink; arrows reveal in 'auto')", "Focus (3px focus ring; same width-grow as hover; arrows reveal in 'auto')", "Pressed (ripple)", "Snapped (scroll-snap mandatory per alignment)", "Actionable item (whole item is a 48dp+ button/link)", "Overflow end reached (arrow for that direction hides)"],
+    dos: [
+      "Use multi-browse for mixed or equal-importance content, hero for featured + rest, inline for full-bleed imagery",
+      "Keep 1\u20135 items visible (official multi-browse range)",
+      "Give every item a label (or accessible name) so the carousel is describable",
+      "Keep item heights in one carousel consistent (hero large:small \u2248 3:2)"
+    ],
+    donts: [
+      "Don't nest carousels inside carousels",
+      "Don't put primary actions inside carousel items (items are browse/navigation, not task buttons)",
+      "Don't allow tiny peeks that hide content \u2014 the 24px peek only hints that more exists",
+      "Don't use the dynamic-width grow in hero/inline \u2014 flexible widths are a multi-browse trait"
+    ]
+  },
+  exampleCode: `<Carousel
+  layout="multi-browse"
+  itemCount={4}
+  ariaLabel="Weekend getaways"
+  items={[
+    { id: "beach", label: "Beach day", icon: "beach_access", tone: "primary", onClick: open },
+    { id: "hike", label: "Hiking", icon: "hiking", tone: "secondary", onClick: open },
+    { id: "museum", label: "Museums", icon: "museum", tone: "tertiary" },
+    { id: "food", label: "Food tours", icon: "restaurant", tone: "surface" },
+  ]}
+/>
+
+<Carousel layout="hero" items={featured} />
+<Carousel layout="inline" items={fullBleed} />`,
+  m3e: true,
+  related: ["card", "list", "bottom-sheet"],
+  demoName: "CarouselDemo"
 };
 var dialogMeta = {
   id: "dialog",
@@ -4205,6 +4282,300 @@ var SideSheet = React17.forwardRef(function SideSheet2({
   ] }) });
 });
 
+// ../../src/components/m3/Carousel.tsx
+
+
+
+var GAP = 8;
+var PEEK = 24;
+var GROW = 1.12;
+var HEIGHT = {
+  "multi-browse": 280,
+  inline: 320
+};
+var HERO_LARGE_H = 360;
+var HERO_SMALL_H = 240;
+var HERO_LARGE_W = 0.66;
+var HERO_SMALL_W = 0.34;
+var toneStyles = {
+  primary: "bg-m3-primary-container text-m3-on-primary-container",
+  secondary: "bg-m3-secondary-container text-m3-on-secondary-container",
+  tertiary: "bg-m3-tertiary-container text-m3-on-tertiary-container",
+  surface: "bg-m3-surface-container-high text-m3-on-surface"
+};
+var clampCount = (n) => Math.min(5, Math.max(1, Math.round(n)));
+var Carousel = React18.forwardRef(function Carousel2({
+  items,
+  layout = "multi-browse",
+  alignment = "start",
+  itemCount = 4,
+  shape = "round",
+  arrows = "auto",
+  ariaLabel,
+  className,
+  ...props
+}, ref) {
+  const n = clampCount(itemCount);
+  const scrollerRef = React18.useRef(null);
+  const [vw, setVw] = React18.useState(0);
+  const [hoverId, setHoverId] = React18.useState(null);
+  const [focusId, setFocusId] = React18.useState(null);
+  const hot = _nullishCoalesce(hoverId, () => ( focusId));
+  const hotIndex = items.findIndex((it) => it.id === hot);
+  const grows = layout === "multi-browse" && n > 1;
+  React18.useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const width = _nullishCoalesce(_optionalChain([entries, 'access', _46 => _46[0], 'optionalAccess', _47 => _47.contentRect, 'access', _48 => _48.width]), () => ( 0));
+      setVw((prev) => Math.abs(prev - width) > 0.5 ? width : prev);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const setScrollerRef = React18.useCallback(
+    (node) => {
+      scrollerRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref]
+  );
+  const showArrows = arrows !== "never";
+  const scrollerId = React18.useId().replace(/[:]/g, "");
+  const [canScrollStart, setCanScrollStart] = React18.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React18.useState(false);
+  const [hoverArrows, setHoverArrows] = React18.useState(false);
+  const [kbWithin, setKbWithin] = React18.useState(false);
+  const revealed = arrows === "always" || hoverArrows || kbWithin;
+  const updateOverflow = React18.useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanScrollStart(el.scrollLeft > 4);
+    setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+  React18.useEffect(() => {
+    if (!showArrows) return;
+    const el = scrollerRef.current;
+    if (!el) return;
+    updateOverflow();
+    el.addEventListener("scroll", updateOverflow, { passive: true });
+    const ro = new ResizeObserver(updateOverflow);
+    ro.observe(el);
+    el.querySelectorAll("[data-carousel-item]").forEach((node) => ro.observe(node));
+    return () => {
+      el.removeEventListener("scroll", updateOverflow);
+      ro.disconnect();
+    };
+  }, [updateOverflow, showArrows, items.length]);
+  const scrollByItem = (dir) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    if (slides.length === 0) return;
+    const elLeft = el.getBoundingClientRect().left;
+    let target;
+    if (dir === 1) {
+      target = slides.find((s) => s.getBoundingClientRect().left - elLeft > 2);
+    } else {
+      for (let i = slides.length - 1; i >= 0; i--) {
+        if (slides[i].getBoundingClientRect().left - elLeft < -2) {
+          target = slides[i];
+          break;
+        }
+      }
+    }
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        inline: alignment === "end" ? "end" : "start",
+        block: "nearest"
+      });
+    } else {
+      el.scrollBy({ left: dir * el.clientWidth, behavior: "smooth" });
+    }
+  };
+  const slot = layout === "multi-browse" ? Math.max(0, (vw - n * GAP - PEEK) / n) : 0;
+  const coldSlot = slot * ((n - GROW) / (n - 1));
+  const heroInner = Math.max(0, vw - 2 * GAP);
+  const heroLarge = heroInner * HERO_LARGE_W;
+  const heroSmall = heroInner * HERO_SMALL_W;
+  const fallbackWidth = (i) => {
+    if (layout === "inline") return "100%";
+    if (layout === "hero") {
+      return i === 0 ? `calc((100% - ${2 * GAP}px) * ${HERO_LARGE_W})` : `calc((100% - ${2 * GAP}px) * ${HERO_SMALL_W})`;
+    }
+    return `calc((100% - ${n * GAP + PEEK}px) / ${n})`;
+  };
+  const widthFor = (i) => {
+    if (vw <= 0) return fallbackWidth(i);
+    if (layout === "inline") return vw;
+    if (layout === "hero") return i === 0 ? heroLarge : heroSmall;
+    if (!grows) return slot;
+    if (hotIndex === i) return slot * GROW;
+    return hotIndex === -1 ? slot : coldSlot;
+  };
+  const focusSlide = (idx) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    if (slides.length === 0) return;
+    const target = slides[Math.min(slides.length - 1, Math.max(0, idx))];
+    const focusable = _nullishCoalesce(target.querySelector("a[href], button"), () => ( target));
+    focusable.focus({ preventScroll: true });
+    target.scrollIntoView({
+      behavior: "smooth",
+      inline: alignment === "end" ? "end" : "start",
+      block: "nearest"
+    });
+  };
+  const handleKeyDown = (e) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slides = Array.from(el.querySelectorAll("[data-carousel-item]"));
+    const active = document.activeElement;
+    const current = slides.findIndex((node) => node === active || node.contains(active));
+    if (current === -1) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      focusSlide(current + 1);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      focusSlide(current - 1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      focusSlide(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      focusSlide(slides.length - 1);
+    }
+  };
+  const arrowsUI = showArrows && (canScrollStart || canScrollEnd) && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+    canScrollStart && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _framermotion.motion.button,
+      {
+        type: "button",
+        tabIndex: arrows === "always" ? 0 : -1,
+        "aria-label": "Previous items",
+        "aria-controls": scrollerId,
+        onClick: () => scrollByItem(-1),
+        initial: false,
+        animate: { opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 },
+        transition: springs.fastSpatial,
+        style: { pointerEvents: revealed ? "auto" : "none" },
+        className: "m3-state m3-focus absolute left-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none",
+        children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Ripple, {}),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, MaterialSymbol, { icon: "chevron_left", size: 24 })
+        ]
+      }
+    ),
+    canScrollEnd && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+      _framermotion.motion.button,
+      {
+        type: "button",
+        tabIndex: arrows === "always" ? 0 : -1,
+        "aria-label": "Next items",
+        "aria-controls": scrollerId,
+        onClick: () => scrollByItem(1),
+        initial: false,
+        animate: { opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 },
+        transition: springs.fastSpatial,
+        style: { pointerEvents: revealed ? "auto" : "none" },
+        className: "m3-state m3-focus absolute right-3 top-1/2 z-10 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-m3-surface-container-high text-m3-on-surface m3-elevation-1 outline-none",
+        children: [
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Ripple, {}),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, MaterialSymbol, { icon: "chevron_right", size: 24 })
+        ]
+      }
+    )
+  ] });
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+    "div",
+    {
+      className: "relative w-full",
+      onPointerEnter: (e) => {
+        if (e.pointerType !== "touch") setHoverArrows(true);
+      },
+      onPointerLeave: () => setHoverArrows(false),
+      onFocus: () => setKbWithin(true),
+      onBlur: () => setKbWithin(false),
+      children: [
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+          "div",
+          {
+            ref: setScrollerRef,
+            role: "region",
+            "aria-roledescription": "carousel",
+            "aria-label": _nullishCoalesce(ariaLabel, () => ( `Carousel, ${items.length} items`)),
+            tabIndex: 0,
+            onKeyDown: handleKeyDown,
+            className: cn(
+              "m3-focus flex w-full select-none gap-2 outline-none",
+              "snap-x snap-mandatory overflow-x-auto",
+              "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+              layout === "hero" && "items-center",
+              className
+            ),
+            ...props,
+            children: items.map((item, i) => {
+              const actionable = Boolean(item.onClick || item.href);
+              const Inner = item.href ? "a" : actionable ? "button" : "div";
+              const height = layout === "hero" ? i === 0 ? HERO_LARGE_H : HERO_SMALL_H : HEIGHT[layout];
+              const width = widthFor(i);
+              const hotSlide = grows && hotIndex === i;
+              return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                _framermotion.motion.div,
+                {
+                  "data-carousel-item": true,
+                  "data-carousel-index": i,
+                  role: "group",
+                  "aria-roledescription": "slide",
+                  "aria-label": `${i + 1} of ${items.length}${item.label ? `: ${item.label}` : ""}`,
+                  tabIndex: actionable ? -1 : 0,
+                  onFocus: () => setFocusId(item.id),
+                  onBlur: () => setFocusId((cur) => cur === item.id ? null : cur),
+                  onPointerEnter: (e) => {
+                    if (e.pointerType !== "touch") setHoverId(item.id);
+                  },
+                  onPointerLeave: () => setHoverId((cur) => cur === item.id ? null : cur),
+                  animate: vw > 0 ? { width } : void 0,
+                  transition: springs.defaultSpatial,
+                  style: { width, height, flex: "none" },
+                  className: cn("snap-start shrink-0", alignment === "end" && "snap-end"),
+                  children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                    Inner,
+                    {
+                      href: item.href,
+                      type: item.href || !actionable ? void 0 : "button",
+                      onClick: item.onClick ? () => item.onClick(item) : void 0,
+                      "aria-label": actionable ? _nullishCoalesce(item.label, () => ( `Slide ${i + 1}`)) : void 0,
+                      "data-hot": hotSlide || void 0,
+                      className: cn(
+                        "relative flex h-full w-full flex-col overflow-hidden p-5 md-label-large",
+                        toneStyles[_nullishCoalesce(item.tone, () => ( "secondary"))],
+                        shape === "round" ? "rounded-[28px]" : "rounded-none",
+                        actionable ? "m3-state m3-focus cursor-pointer outline-none" : "cursor-default outline-none"
+                      ),
+                      children: [
+                        actionable && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Ripple, {}),
+                        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "flex min-h-0 flex-1 items-center justify-center", children: item.icon && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, MaterialSymbol, { icon: item.icon, size: 44, opticalSize: 40 }) }),
+                        item.label && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "truncate text-left md-label-large", children: item.label })
+                      ]
+                    }
+                  )
+                },
+                item.id
+              );
+            })
+          }
+        ),
+        arrowsUI
+      ]
+    }
+  );
+});
+
 // ../../src/components/m3/TextField.tsx
 
 
@@ -4213,7 +4584,7 @@ var springs2 = springs;
 var sizeHeights = { xs: 32, sm: 40, md: 56, lg: 72 };
 var fieldRadius = "rounded-m3-xs";
 var fieldTopRadius = "rounded-t-m3-xs";
-var TextField = React18.forwardRef(function TextField2({
+var TextField = React19.forwardRef(function TextField2({
   variant = "outlined",
   size = "md",
   label,
@@ -4234,8 +4605,8 @@ var TextField = React18.forwardRef(function TextField2({
   onBlur,
   ...props
 }, ref) {
-  const [focused, setFocused] = React18.useState(false);
-  const autoId = React18.useId();
+  const [focused, setFocused] = React19.useState(false);
+  const autoId = React19.useId();
   const inputId = _nullishCoalesce(id, () => ( `m3-tf-${autoId.replace(/:/g, "")}`));
   const helperId = helperText ? `${inputId}-helper` : void 0;
   const hasValue = value != null && String(value).length > 0;
@@ -4289,11 +4660,11 @@ var TextField = React18.forwardRef(function TextField2({
               "aria-describedby": helperId,
               onFocus: (e) => {
                 setFocused(true);
-                _optionalChain([onFocus, 'optionalCall', _46 => _46(e)]);
+                _optionalChain([onFocus, 'optionalCall', _49 => _49(e)]);
               },
               onBlur: (e) => {
                 setFocused(false);
-                _optionalChain([onBlur, 'optionalCall', _47 => _47(e)]);
+                _optionalChain([onBlur, 'optionalCall', _50 => _50(e)]);
               },
               className: cn(
                 "h-full w-full bg-transparent text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant",
@@ -4385,7 +4756,7 @@ var TextField = React18.forwardRef(function TextField2({
 
 var springs3 = springs;
 var sizeHeights2 = { sm: 40, md: 56, lg: 72 };
-var SearchBar = React19.forwardRef(function SearchBar2({
+var SearchBar = React20.forwardRef(function SearchBar2({
   value,
   onChange,
   placeholder = "Search",
@@ -4398,7 +4769,7 @@ var SearchBar = React19.forwardRef(function SearchBar2({
   className,
   ...props
 }, ref) {
-  const [focused, setFocused] = React19.useState(false);
+  const [focused, setFocused] = React20.useState(false);
   const trailingHit = size === "sm" ? "h-8 w-8" : "h-12 w-12";
   return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: cn("relative inline-flex", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className), children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     "div",
@@ -4422,7 +4793,7 @@ var SearchBar = React19.forwardRef(function SearchBar2({
             disabled,
             placeholder,
             onKeyDown: (e) => {
-              if (e.key === "Enter") _optionalChain([onSubmit, 'optionalCall', _48 => _48()]);
+              if (e.key === "Enter") _optionalChain([onSubmit, 'optionalCall', _51 => _51()]);
             },
             onFocus: () => setFocused(true),
             onBlur: () => setFocused(false),
@@ -4464,7 +4835,7 @@ var SearchBar = React19.forwardRef(function SearchBar2({
 
 var springs4 = springs;
 var FOCUSABLE4 = 'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
-var SearchView = React20.forwardRef(function SearchView2({
+var SearchView = React21.forwardRef(function SearchView2({
   open,
   onOpenChange,
   mode = "full-screen",
@@ -4482,20 +4853,20 @@ var SearchView = React20.forwardRef(function SearchView2({
   className
 }, ref) {
   const fullScreen = mode === "full-screen";
-  const panelRef = React20.useRef(null);
-  const inputRef = React20.useRef(null);
-  const restoreFocusRef = React20.useRef(null);
-  const [active, setActive] = React20.useState(-1);
-  const reactId = React20.useId();
+  const panelRef = React21.useRef(null);
+  const inputRef = React21.useRef(null);
+  const restoreFocusRef = React21.useRef(null);
+  const [active, setActive] = React21.useState(-1);
+  const reactId = React21.useId();
   const listId = `m3-sv-${reactId.replace(/:/g, "")}`;
-  React20.useImperativeHandle(ref, () => inputRef.current, []);
+  React21.useImperativeHandle(ref, () => inputRef.current, []);
   const isControlled = value !== void 0;
-  const [inner, setInner] = React20.useState(_nullishCoalesce(defaultValue, () => ( "")));
+  const [inner, setInner] = React21.useState(_nullishCoalesce(defaultValue, () => ( "")));
   const query = isControlled ? value : inner;
-  const setQuery = React20.useCallback(
+  const setQuery = React21.useCallback(
     (v) => {
       if (!isControlled) setInner(v);
-      _optionalChain([onValueChange, 'optionalCall', _49 => _49(v)]);
+      _optionalChain([onValueChange, 'optionalCall', _52 => _52(v)]);
     },
     [isControlled, onValueChange]
   );
@@ -4503,13 +4874,13 @@ var SearchView = React20.forwardRef(function SearchView2({
   const handleRecentSelect = (q) => {
     setQuery(q);
     setActive(-1);
-    _optionalChain([onRecentSelect, 'optionalCall', _50 => _50(q)]);
+    _optionalChain([onRecentSelect, 'optionalCall', _53 => _53(q)]);
   };
   const handleRecentRemove = (q) => {
-    _optionalChain([onRecentRemove, 'optionalCall', _51 => _51(q)]);
+    _optionalChain([onRecentRemove, 'optionalCall', _54 => _54(q)]);
     setActive(-1);
   };
-  React20.useEffect(() => {
+  React21.useEffect(() => {
     if (!open || !fullScreen) return;
     const onKey = (e) => {
       if (e.key === "Escape") onOpenChange(false);
@@ -4522,14 +4893,14 @@ var SearchView = React20.forwardRef(function SearchView2({
       document.body.style.overflow = prevOverflow;
     };
   }, [open, fullScreen, onOpenChange]);
-  React20.useEffect(() => {
+  React21.useEffect(() => {
     if (!open || !fullScreen) return;
     restoreFocusRef.current = document.activeElement;
     let timer = 0;
-    if (autoFocus) timer = window.setTimeout(() => _optionalChain([inputRef, 'access', _52 => _52.current, 'optionalAccess', _53 => _53.focus, 'call', _54 => _54()]), 0);
+    if (autoFocus) timer = window.setTimeout(() => _optionalChain([inputRef, 'access', _55 => _55.current, 'optionalAccess', _56 => _56.focus, 'call', _57 => _57()]), 0);
     return () => {
       window.clearTimeout(timer);
-      _optionalChain([restoreFocusRef, 'access', _55 => _55.current, 'optionalAccess', _56 => _56.focus, 'optionalCall', _57 => _57()]);
+      _optionalChain([restoreFocusRef, 'access', _58 => _58.current, 'optionalAccess', _59 => _59.focus, 'optionalCall', _60 => _60()]);
     };
   }, [open, fullScreen, autoFocus]);
   const handleTab = (e) => {
@@ -4630,7 +5001,7 @@ var SearchView = React20.forwardRef(function SearchView2({
               onClick: () => {
                 setQuery("");
                 setActive(-1);
-                _optionalChain([inputRef, 'access', _58 => _58.current, 'optionalAccess', _59 => _59.focus, 'call', _60 => _60()]);
+                _optionalChain([inputRef, 'access', _61 => _61.current, 'optionalAccess', _62 => _62.focus, 'call', _63 => _63()]);
               },
               "aria-label": "Clear search text",
               className: "m3-state relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full text-m3-on-surface",
@@ -4703,22 +5074,22 @@ var SearchView = React20.forwardRef(function SearchView2({
 
 
 var springs5 = springs;
-var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, onChange, label, placeholder = "Type to filter", fullWidth = false, disabled = false, className }, ref) {
-  const [open, setOpen] = React21.useState(false);
-  const [highlighted, setHighlighted] = React21.useState(-1);
-  const rootRef = React21.useRef(null);
-  const reactId = React21.useId();
+var Autocomplete = React22.forwardRef(function Autocomplete2({ options, value, onChange, label, placeholder = "Type to filter", fullWidth = false, disabled = false, className }, ref) {
+  const [open, setOpen] = React22.useState(false);
+  const [highlighted, setHighlighted] = React22.useState(-1);
+  const rootRef = React22.useRef(null);
+  const reactId = React22.useId();
   const listId = `m3-ac-${reactId.replace(/:/g, "")}`;
-  const filtered = React21.useMemo(() => {
+  const filtered = React22.useMemo(() => {
     const q = value.trim().toLowerCase();
     return q ? options.filter((o) => o.toLowerCase().includes(q)) : options;
   }, [options, value]);
-  const openMenu = React21.useCallback(() => {
+  const openMenu = React22.useCallback(() => {
     if (disabled) return;
     setOpen(true);
     setHighlighted(-1);
   }, [disabled]);
-  React21.useEffect(() => {
+  React22.useEffect(() => {
     if (!open) return;
     const onPointerDown = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
@@ -4889,11 +5260,11 @@ var Autocomplete = React21.forwardRef(function Autocomplete2({ options, value, o
 
 
 var springs6 = springs;
-var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className }, ref) {
+var Checkbox = React23.forwardRef(function Checkbox2({ checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className }, ref) {
   const isFilled = checked || indeterminate;
   const handleToggle = () => {
     if (disabled) return;
-    _optionalChain([onChange, 'optionalCall', _61 => _61(indeterminate ? true : !checked)]);
+    _optionalChain([onChange, 'optionalCall', _64 => _64(indeterminate ? true : !checked)]);
   };
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     _framermotion.motion.button,
@@ -4961,7 +5332,7 @@ var Checkbox = React22.forwardRef(function Checkbox2({ checked = false, indeterm
 
 
 var springs7 = springs;
-var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, label, disabled = false, error = false, className }, ref) {
+var Radio = React24.forwardRef(function Radio2({ checked = false, onChange, label, disabled = false, error = false, className }, ref) {
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     _framermotion.motion.button,
     {
@@ -4970,7 +5341,7 @@ var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, labe
       role: "radio",
       "aria-checked": checked,
       disabled,
-      onClick: () => _optionalChain([onChange, 'optionalCall', _62 => _62()]),
+      onClick: () => _optionalChain([onChange, 'optionalCall', _65 => _65()]),
       whileTap: disabled ? void 0 : { scale: 0.95 },
       transition: springs7.fastVisual,
       className: cn(
@@ -5005,7 +5376,7 @@ var Radio = React23.forwardRef(function Radio2({ checked = false, onChange, labe
   );
 });
 function RadioGroup({ label, className, children }) {
-  const onKeyDown = React23.useCallback((e) => {
+  const onKeyDown = React24.useCallback((e) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowRight" && e.key !== "ArrowUp" && e.key !== "ArrowLeft") return;
     const root = e.currentTarget;
     const radios = Array.from(root.querySelectorAll('[role="radio"]:not([disabled])'));
@@ -5026,8 +5397,8 @@ function RadioGroup({ label, className, children }) {
 
 
 var springs8 = springs;
-var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedChange, disabled = false, className }, ref) {
-  const [pressed, setPressed] = React24.useState(false);
+var Switch = React25.forwardRef(function Switch2({ checked = false, onCheckedChange, disabled = false, className }, ref) {
+  const [pressed, setPressed] = React25.useState(false);
   const thumbSize = pressed ? 28 : checked ? 24 : 16;
   const thumbX = checked ? pressed ? 20 : 24 : 4;
   return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
@@ -5038,7 +5409,7 @@ var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedCha
       role: "switch",
       "aria-checked": checked,
       disabled,
-      onClick: () => _optionalChain([onCheckedChange, 'optionalCall', _63 => _63(!checked)]),
+      onClick: () => _optionalChain([onCheckedChange, 'optionalCall', _66 => _66(!checked)]),
       onPointerDown: () => setPressed(true),
       onPointerUp: () => setPressed(false),
       onPointerLeave: () => setPressed(false),
@@ -5081,7 +5452,7 @@ var Switch = React24.forwardRef(function Switch2({ checked = false, onCheckedCha
 
 
 var springs9 = springs;
-var Slider = React25.forwardRef(function Slider2({
+var Slider = React26.forwardRef(function Slider2({
   value,
   onChange,
   min = 0,
@@ -5094,9 +5465,9 @@ var Slider = React25.forwardRef(function Slider2({
   className,
   ...rest
 }, ref) {
-  const trackRef = React25.useRef(null);
-  const [active, setActive] = React25.useState(false);
-  const [hover, setHover] = React25.useState(false);
+  const trackRef = React26.useRef(null);
+  const [active, setActive] = React26.useState(false);
+  const [hover, setHover] = React26.useState(false);
   const safeStep = step > 0 ? step : 1;
   const clamp = (v) => Math.min(max, Math.max(min, v));
   const snap = (v) => {
@@ -5252,7 +5623,7 @@ var Slider = React25.forwardRef(function Slider2({
 
 var springs10 = springs;
 var sizeHeights3 = { xs: 28, sm: 32, md: 40 };
-var Chip = React26.forwardRef(function Chip2({
+var Chip = React27.forwardRef(function Chip2({
   variant = "assist",
   selected = false,
   onSelect,
@@ -5270,7 +5641,7 @@ var Chip = React26.forwardRef(function Chip2({
   const showCheck = selected && (variant === "filter" || variant === "assist");
   const handleClick = () => {
     if (disabled) return;
-    if (isSelectable) _optionalChain([onSelect, 'optionalCall', _64 => _64(!selected)]);
+    if (isSelectable) _optionalChain([onSelect, 'optionalCall', _67 => _67(!selected)]);
   };
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     _framermotion.motion.button,
@@ -5357,20 +5728,20 @@ function Tabs({
   fullWidth = false,
   className
 }) {
-  const uid = React27.useId();
+  const uid = React28.useId();
   const indicatorId = `m3-tab-indicator-${uid}`;
   const pillId = `m3-tab-pill-${uid}`;
   const isPrimary = variant === "primary";
-  const scrollerRef = React27.useRef(null);
-  const [canScrollStart, setCanScrollStart] = React27.useState(false);
-  const [canScrollEnd, setCanScrollEnd] = React27.useState(false);
-  const updateOverflow = React27.useCallback(() => {
+  const scrollerRef = React28.useRef(null);
+  const [canScrollStart, setCanScrollStart] = React28.useState(false);
+  const [canScrollEnd, setCanScrollEnd] = React28.useState(false);
+  const updateOverflow = React28.useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     setCanScrollStart(el.scrollLeft > 4);
     setCanScrollEnd(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   }, []);
-  React27.useEffect(() => {
+  React28.useEffect(() => {
     updateOverflow();
     const el = scrollerRef.current;
     if (!el) return;
@@ -5387,7 +5758,7 @@ function Tabs({
     if (!el) return;
     el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.75, 120), behavior: "smooth" });
   };
-  const tabRefs = React27.useRef([]);
+  const tabRefs = React28.useRef([]);
   const onTabKeyDown = (e, index) => {
     let next = null;
     if (e.key === "ArrowRight") next = (index + 1) % items.length;
@@ -5396,12 +5767,12 @@ function Tabs({
     else if (e.key === "End") next = items.length - 1;
     if (next === null) return;
     e.preventDefault();
-    _optionalChain([tabRefs, 'access', _65 => _65.current, 'access', _66 => _66[next], 'optionalAccess', _67 => _67.focus, 'call', _68 => _68()]);
+    _optionalChain([tabRefs, 'access', _68 => _68.current, 'access', _69 => _69[next], 'optionalAccess', _70 => _70.focus, 'call', _71 => _71()]);
     onChange(items[next].value);
   };
-  const labelRefs = React27.useRef(/* @__PURE__ */ new Map());
-  const [labelWidths, setLabelWidths] = React27.useState({});
-  const measureLabels = React27.useCallback(() => {
+  const labelRefs = React28.useRef(/* @__PURE__ */ new Map());
+  const [labelWidths, setLabelWidths] = React28.useState({});
+  const measureLabels = React28.useCallback(() => {
     const next = {};
     labelRefs.current.forEach((el, v) => {
       next[v] = el.getBoundingClientRect().width;
@@ -5412,12 +5783,12 @@ function Tabs({
       return unchanged ? prev : next;
     });
   }, []);
-  React27.useLayoutEffect(() => {
+  React28.useLayoutEffect(() => {
     measureLabels();
     const ro = new ResizeObserver(measureLabels);
     labelRefs.current.forEach((el) => ro.observe(el));
     let cancelled = false;
-    _optionalChain([document, 'access', _69 => _69.fonts, 'optionalAccess', _70 => _70.ready, 'access', _71 => _71.then, 'call', _72 => _72(() => {
+    _optionalChain([document, 'access', _72 => _72.fonts, 'optionalAccess', _73 => _73.ready, 'access', _74 => _74.then, 'call', _75 => _75(() => {
       if (!cancelled) measureLabels();
     })]);
     return () => {
@@ -5559,7 +5930,7 @@ function NavigationBar({
   fullWidth = true,
   className
 }) {
-  const uid = React28.useId();
+  const uid = React29.useId();
   const pillId = `m3-nav-pill-${uid}`;
   return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
     "nav",
@@ -5630,23 +6001,23 @@ function NavigationDrawer({
   fullHeight = false,
   className
 }) {
-  const uid = React29.useId();
+  const uid = React30.useId();
   const pillId = `m3-drawer-pill-${uid}`;
   const isControlled = open !== void 0;
-  const [uncontrolledOpen, setUncontrolledOpen] = React29.useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = React30.useState(false);
   const showModal = variant === "modal" && (open !== void 0 ? open : uncontrolledOpen);
-  const handleClose = React29.useCallback(() => {
+  const handleClose = React30.useCallback(() => {
     if (!isControlled) setUncontrolledOpen(false);
-    _optionalChain([onClose, 'optionalCall', _73 => _73()]);
+    _optionalChain([onClose, 'optionalCall', _76 => _76()]);
   }, [isControlled, onClose]);
-  const panelRef = React29.useRef(null);
-  const restoreFocusRef = React29.useRef(null);
-  React29.useEffect(() => {
+  const panelRef = React30.useRef(null);
+  const restoreFocusRef = React30.useRef(null);
+  React30.useEffect(() => {
     if (!showModal) return;
     restoreFocusRef.current = document.activeElement;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    _optionalChain([panelRef, 'access', _74 => _74.current, 'optionalAccess', _75 => _75.focus, 'call', _76 => _76({ preventScroll: true })]);
+    _optionalChain([panelRef, 'access', _77 => _77.current, 'optionalAccess', _78 => _78.focus, 'call', _79 => _79({ preventScroll: true })]);
     const onKeyDown = (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -5678,7 +6049,7 @@ function NavigationDrawer({
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
-      _optionalChain([restoreFocusRef, 'access', _77 => _77.current, 'optionalAccess', _78 => _78.focus, 'optionalCall', _79 => _79()]);
+      _optionalChain([restoreFocusRef, 'access', _80 => _80.current, 'optionalAccess', _81 => _81.focus, 'optionalCall', _82 => _82()]);
     };
   }, [showModal, handleClose]);
   const body = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
@@ -5791,7 +6162,7 @@ function NavigationRail({
   foldingLine = false,
   className
 }) {
-  const uid = React30.useId();
+  const uid = React31.useId();
   const pillId = `m3-rail-pill-${uid}`;
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     "nav",
@@ -5897,12 +6268,12 @@ function TopAppBar({
   fullWidth = true,
   className
 }) {
-  const [scrolled, setScrolled] = React31.useState(false);
+  const [scrolled, setScrolled] = React32.useState(false);
   const isFlexible = variant === "medium" || variant === "large";
   const collapsed = isFlexible && scrolled;
   const threshold = isFlexible ? heights[variant] - 64 : 4;
-  React31.useEffect(() => {
-    const el = _nullishCoalesce(_optionalChain([scrollTargetRef, 'optionalAccess', _80 => _80.current]), () => ( null));
+  React32.useEffect(() => {
+    const el = _nullishCoalesce(_optionalChain([scrollTargetRef, 'optionalAccess', _83 => _83.current]), () => ( null));
     const readTop = () => el ? el.scrollTop : window.scrollY;
     const onScroll = () => setScrolled(readTop() > threshold);
     onScroll();
@@ -6004,7 +6375,7 @@ function BottomAppBar({
   fullWidth = true,
   className
 }) {
-  const [fabPressed, setFabPressed] = React32.useState(false);
+  const [fabPressed, setFabPressed] = React33.useState(false);
   return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     "div",
     {
@@ -6177,35 +6548,35 @@ function Menu({
   className
 }) {
   const isControlled = open !== void 0;
-  const [internalOpen, setInternalOpen] = React33.useState(false);
+  const [internalOpen, setInternalOpen] = React34.useState(false);
   const isOpen = open !== void 0 ? open : internalOpen;
-  const rootRef = React33.useRef(null);
-  const triggerAreaRef = React33.useRef(null);
-  const itemRefs = React33.useRef([]);
-  const setOpen = React33.useCallback(
+  const rootRef = React34.useRef(null);
+  const triggerAreaRef = React34.useRef(null);
+  const itemRefs = React34.useRef([]);
+  const setOpen = React34.useCallback(
     (next) => {
       if (!isControlled) setInternalOpen(next);
-      _optionalChain([onOpenChange, 'optionalCall', _81 => _81(next)]);
+      _optionalChain([onOpenChange, 'optionalCall', _84 => _84(next)]);
     },
     [isControlled, onOpenChange]
   );
-  const getEnabledIndexes = React33.useCallback(() => {
+  const getEnabledIndexes = React34.useCallback(() => {
     const idxs = [];
     items.forEach((item, index) => {
       if ((_nullishCoalesce(item.type, () => ( "item"))) === "item" && !item.disabled) idxs.push(index);
     });
     return idxs;
   }, [items]);
-  const focusItemAt = React33.useCallback(
+  const focusItemAt = React34.useCallback(
     (pos) => {
       const idxs = getEnabledIndexes();
       if (idxs.length === 0) return;
       const wrapped = (pos % idxs.length + idxs.length) % idxs.length;
-      _optionalChain([itemRefs, 'access', _82 => _82.current, 'access', _83 => _83[idxs[wrapped]], 'optionalAccess', _84 => _84.focus, 'call', _85 => _85()]);
+      _optionalChain([itemRefs, 'access', _85 => _85.current, 'access', _86 => _86[idxs[wrapped]], 'optionalAccess', _87 => _87.focus, 'call', _88 => _88()]);
     },
     [getEnabledIndexes]
   );
-  const restoreTriggerFocus = React33.useCallback(() => {
+  const restoreTriggerFocus = React34.useCallback(() => {
     const area = triggerAreaRef.current;
     if (!area) return;
     const target = area.querySelector(
@@ -6213,7 +6584,7 @@ function Menu({
     );
     (_nullishCoalesce(target, () => ( area))).focus();
   }, []);
-  React33.useEffect(() => {
+  React34.useEffect(() => {
     if (!isOpen) return;
     const onMouseDown = (e) => {
       if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
@@ -6228,7 +6599,7 @@ function Menu({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [isOpen, setOpen]);
-  React33.useEffect(() => {
+  React34.useEffect(() => {
     if (!isOpen) return;
     const raf = requestAnimationFrame(() => focusItemAt(0));
     return () => cancelAnimationFrame(raf);
@@ -6258,14 +6629,14 @@ function Menu({
       setOpen(false);
     }
   };
-  const originalOnClick = React33.isValidElement(trigger) ? trigger.props.onClick : void 0;
-  const originalOnKeyDown = React33.isValidElement(trigger) ? trigger.props.onKeyDown : void 0;
+  const originalOnClick = React34.isValidElement(trigger) ? trigger.props.onClick : void 0;
+  const originalOnKeyDown = React34.isValidElement(trigger) ? trigger.props.onKeyDown : void 0;
   const handleTriggerClick = (e) => {
-    _optionalChain([originalOnClick, 'optionalCall', _86 => _86(e)]);
+    _optionalChain([originalOnClick, 'optionalCall', _89 => _89(e)]);
     setOpen(!isOpen);
   };
   const handleTriggerKeyDown = (e) => {
-    _optionalChain([originalOnKeyDown, 'optionalCall', _87 => _87(e)]);
+    _optionalChain([originalOnKeyDown, 'optionalCall', _90 => _90(e)]);
     if (!e.defaultPrevented && e.key === "ArrowDown" && !isOpen) {
       e.preventDefault();
       setOpen(true);
@@ -6275,7 +6646,7 @@ function Menu({
     "aria-haspopup": "menu",
     "aria-expanded": isOpen
   };
-  const triggerNode = React33.isValidElement(trigger) ? React33.cloneElement(
+  const triggerNode = React34.isValidElement(trigger) ? React34.cloneElement(
     trigger,
     {
       onClick: handleTriggerClick,
@@ -6319,7 +6690,7 @@ function Menu({
               tabIndex: -1,
               disabled: item.disabled,
               onClick: () => {
-                _optionalChain([item, 'access', _88 => _88.onClick, 'optionalCall', _89 => _89()]);
+                _optionalChain([item, 'access', _91 => _91.onClick, 'optionalCall', _92 => _92()]);
                 setOpen(false);
                 restoreTriggerFocus();
               },
@@ -6403,6 +6774,17 @@ function getMonthGrid(cursor) {
 function formatHeadline(d) {
   return `${WEEKDAYS[d.getDay()].long.slice(0, 3)}, ${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
 }
+function formatShort(d) {
+  return `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+}
+function advanceRange(current, d) {
+  if (!current.start) return { start: d, end: void 0 };
+  if (!current.end) {
+    if (startOfDay(d) >= startOfDay(current.start)) return { start: current.start, end: d };
+    return { start: d, end: void 0 };
+  }
+  return { start: d, end: void 0 };
+}
 var FOCUSABLE5 = 'a[href], button:not([disabled]), textarea, input, select, details, [tabindex]:not([tabindex="-1"])';
 function DatePickerCalendar({
   value,
@@ -6410,30 +6792,38 @@ function DatePickerCalendar({
   minDate,
   maxDate,
   tone = "primary",
-  animatedHeader = false
+  animatedHeader = false,
+  selectionMode = "single",
+  range,
+  onRangeChange
 }) {
-  const [internal, setInternal] = React34.useState(void 0);
+  const [internal, setInternal] = React35.useState(void 0);
   const selected = _nullishCoalesce(value, () => ( internal));
-  const [cursor, setCursor] = React34.useState(() => startOfMonth(_nullishCoalesce(value, () => ( /* @__PURE__ */ new Date()))));
-  const [view, setView] = React34.useState("month");
-  const [rovingOverride, setRovingOverride] = React34.useState(null);
-  const pillId = React34.useId();
-  const selectedYearRef = React34.useRef(null);
-  const gridRef = React34.useRef(null);
-  React34.useEffect(() => {
-    if (view === "year") _optionalChain([selectedYearRef, 'access', _90 => _90.current, 'optionalAccess', _91 => _91.scrollIntoView, 'call', _92 => _92({ block: "center" })]);
+  const [internalRange, setInternalRange] = React35.useState({});
+  const rangeOn = selectionMode === "range";
+  const rangeSel = rangeOn ? _nullishCoalesce(range, () => ( internalRange)) : void 0;
+  const [hoverDate, setHoverDate] = React35.useState(void 0);
+  const previewFrom = rangeOn && _optionalChain([rangeSel, 'optionalAccess', _93 => _93.start]) !== void 0 && _optionalChain([rangeSel, 'optionalAccess', _94 => _94.end]) === void 0 ? rangeSel.start : void 0;
+  const [cursor, setCursor] = React35.useState(() => startOfMonth(_nullishCoalesce(value, () => ( /* @__PURE__ */ new Date()))));
+  const [view, setView] = React35.useState("month");
+  const [rovingOverride, setRovingOverride] = React35.useState(null);
+  const pillId = React35.useId();
+  const selectedYearRef = React35.useRef(null);
+  const gridRef = React35.useRef(null);
+  React35.useEffect(() => {
+    if (view === "year") _optionalChain([selectedYearRef, 'access', _95 => _95.current, 'optionalAccess', _96 => _96.scrollIntoView, 'call', _97 => _97({ block: "center" })]);
   }, [view]);
-  React34.useEffect(() => {
+  React35.useEffect(() => {
     setRovingOverride(null);
   }, [cursor]);
-  const cells = React34.useMemo(() => getMonthGrid(cursor), [cursor]);
-  const years = React34.useMemo(() => {
+  const cells = React35.useMemo(() => getMonthGrid(cursor), [cursor]);
+  const years = React35.useMemo(() => {
     const list = [];
     const last = (/* @__PURE__ */ new Date()).getFullYear() + 10;
     for (let y = FIRST_YEAR; y <= last; y++) list.push(y);
     return list;
   }, []);
-  const isDisabledDay = React34.useCallback(
+  const isDisabledDay = React35.useCallback(
     (d) => {
       if (minDate && startOfDay(d) < startOfDay(minDate)) return true;
       if (maxDate && startOfDay(d) > startOfDay(maxDate)) return true;
@@ -6442,8 +6832,14 @@ function DatePickerCalendar({
     [minDate, maxDate]
   );
   const handleSelect = (d) => {
+    if (rangeOn) {
+      const next = advanceRange(_nullishCoalesce(rangeSel, () => ( {})), d);
+      setInternalRange(next);
+      _optionalChain([onRangeChange, 'optionalCall', _98 => _98(next)]);
+      return;
+    }
     setInternal(d);
-    _optionalChain([onChange, 'optionalCall', _93 => _93(d)]);
+    _optionalChain([onChange, 'optionalCall', _99 => _99(d)]);
   };
   const navigate = (dir) => {
     setCursor(
@@ -6451,16 +6847,17 @@ function DatePickerCalendar({
     );
   };
   const today = /* @__PURE__ */ new Date();
-  const highlightYear = (_nullishCoalesce(selected, () => ( cursor))).getFullYear();
-  const activeIso = React34.useMemo(() => {
+  const anchor = rangeOn ? _optionalChain([rangeSel, 'optionalAccess', _100 => _100.start]) : selected;
+  const highlightYear = (_nullishCoalesce(anchor, () => ( cursor))).getFullYear();
+  const activeIso = React35.useMemo(() => {
     if (rovingOverride) return rovingOverride;
     const inView = (d) => cells.some((c) => sameDay(c, d));
-    const pick = _nullishCoalesce(_nullishCoalesce(_nullishCoalesce(_nullishCoalesce((selected && inView(selected) && !isDisabledDay(selected) ? selected : void 0), () => ( (inView(today) && !isDisabledDay(today) ? today : void 0))), () => ( cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)))), () => ( cells.find((c) => !isDisabledDay(c)))), () => ( cells[0]));
+    const pick = _nullishCoalesce(_nullishCoalesce(_nullishCoalesce(_nullishCoalesce((anchor && inView(anchor) && !isDisabledDay(anchor) ? anchor : void 0), () => ( (inView(today) && !isDisabledDay(today) ? today : void 0))), () => ( cells.find((c) => c.getMonth() === cursor.getMonth() && !isDisabledDay(c)))), () => ( cells.find((c) => !isDisabledDay(c)))), () => ( cells[0]));
     return isoOf(pick);
-  }, [rovingOverride, cells, selected, today, cursor, isDisabledDay]);
+  }, [rovingOverride, cells, anchor, today, cursor, isDisabledDay]);
   const focusCell = (iso) => {
     requestAnimationFrame(() => {
-      _optionalChain([gridRef, 'access', _94 => _94.current, 'optionalAccess', _95 => _95.querySelector, 'call', _96 => _96(`button[data-iso="${iso}"]`), 'optionalAccess', _97 => _97.focus, 'call', _98 => _98()]);
+      _optionalChain([gridRef, 'access', _101 => _101.current, 'optionalAccess', _102 => _102.querySelector, 'call', _103 => _103(`button[data-iso="${iso}"]`), 'optionalAccess', _104 => _104.focus, 'call', _105 => _105()]);
     });
   };
   const handleDayKeyDown = (e, idx) => {
@@ -6547,47 +6944,102 @@ function DatePickerCalendar({
       weekRows.map((week, r) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { role: "row", className: "grid grid-cols-7 justify-items-center", children: week.map((day, c) => {
         const iso = isoOf(day);
         const idx = r * 7 + c;
-        const isSelected = selected !== void 0 && sameDay(day, selected);
+        const isSelected = !rangeOn && selected !== void 0 && sameDay(day, selected);
         const isToday = sameDay(day, today);
         const inMonth = day.getMonth() === cursor.getMonth();
         const disabled = isDisabledDay(day);
-        return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+        const isRangeStart = rangeOn && _optionalChain([rangeSel, 'optionalAccess', _106 => _106.start]) !== void 0 && sameDay(day, rangeSel.start);
+        const isRangeEnd = rangeOn && _optionalChain([rangeSel, 'optionalAccess', _107 => _107.end]) !== void 0 && sameDay(day, rangeSel.end);
+        const inCommittedRange = rangeOn && _optionalChain([rangeSel, 'optionalAccess', _108 => _108.start]) !== void 0 && _optionalChain([rangeSel, 'optionalAccess', _109 => _109.end]) !== void 0 && startOfDay(day) > startOfDay(rangeSel.start) && startOfDay(day) < startOfDay(rangeSel.end);
+        const previewEnd = previewFrom !== void 0 && hoverDate !== void 0 && sameDay(day, hoverDate) && startOfDay(day) > startOfDay(previewFrom);
+        const inPreviewRange = previewFrom !== void 0 && hoverDate !== void 0 && startOfDay(day) > startOfDay(previewFrom) && startOfDay(day) < startOfDay(hoverDate);
+        const previewRestart = previewFrom !== void 0 && hoverDate !== void 0 && sameDay(day, hoverDate) && startOfDay(day) < startOfDay(previewFrom);
+        const bandKind = isRangeStart && !isRangeEnd ? "start" : isRangeEnd && !isRangeStart ? "end" : inCommittedRange ? "mid" : previewEnd ? "preview-end" : inPreviewRange ? "preview-mid" : null;
+        const rangeProps = rangeOn && previewFrom !== void 0 ? {
+          onMouseEnter: () => setHoverDate(day),
+          onMouseLeave: () => setHoverDate(void 0),
+          onFocus: () => setHoverDate(day),
+          onBlur: () => setHoverDate(void 0)
+        } : {};
+        return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
           "div",
           {
             role: "gridcell",
-            "aria-selected": isSelected || void 0,
+            "aria-selected": isSelected || isRangeStart || isRangeEnd || inCommittedRange || void 0,
             "aria-current": isToday ? "date" : void 0,
             "aria-disabled": disabled || void 0,
-            className: "flex items-center justify-center",
-            children: /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
-              "button",
-              {
-                type: "button",
-                "data-iso": iso,
-                disabled,
-                tabIndex: iso === activeIso ? 0 : -1,
-                "aria-label": `${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}`,
-                onClick: () => handleSelect(day),
-                onKeyDown: (e) => handleDayKeyDown(e, idx),
-                className: cn(
-                  "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
-                  disabled && "pointer-events-none opacity-38",
-                  !isSelected && isToday && "border border-m3-primary text-m3-primary",
-                  !isSelected && !isToday && (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
-                ),
-                children: [
-                  isSelected && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
-                    _framermotion.motion.span,
-                    {
-                      layoutId: pillId,
-                      className: cn("absolute inset-0 rounded-full", selectedPillClass),
-                      transition: springs.expressive
-                    }
+            className: "relative flex w-full items-center justify-center",
+            children: [
+              bandKind && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                "span",
+                {
+                  "aria-hidden": "true",
+                  className: cn(
+                    "pointer-events-none absolute inset-y-1",
+                    bandKind === "start" && "left-1/2 right-0 rounded-l-full bg-m3-primary-container/44",
+                    bandKind === "end" && "left-0 right-1/2 rounded-r-full bg-m3-primary-container/44",
+                    bandKind === "mid" && "inset-x-0 bg-m3-primary-container/44",
+                    bandKind === "preview-end" && "left-0 right-1/2 rounded-r-full bg-m3-primary-container/24",
+                    bandKind === "preview-mid" && "inset-x-0 bg-m3-primary-container/24"
+                  )
+                }
+              ),
+              /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+                "button",
+                {
+                  type: "button",
+                  "data-iso": iso,
+                  disabled,
+                  tabIndex: iso === activeIso ? 0 : -1,
+                  "aria-label": `${MONTH_NAMES[day.getMonth()]} ${day.getDate()}, ${day.getFullYear()}${isRangeStart ? ", start of range" : isRangeEnd ? ", end of range" : ""}`,
+                  onClick: () => handleSelect(day),
+                  onKeyDown: (e) => handleDayKeyDown(e, idx),
+                  ...rangeProps,
+                  className: cn(
+                    "m3-state m3-focus relative my-0.5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full md-body-large outline-none",
+                    disabled && "pointer-events-none opacity-38",
+                    !isSelected && isToday && "border border-m3-primary text-m3-primary",
+                    !isSelected && (previewEnd || previewRestart) && "border border-m3-primary",
+                    !isSelected && !isToday && !previewEnd && !previewRestart && (inMonth ? "text-m3-on-surface" : "text-m3-on-surface-variant")
                   ),
-                  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: cn("relative z-10", isSelected && selectedTextClass), children: day.getDate() })
-                ]
-              }
-            )
+                  children: [
+                    rangeOn ? isRangeStart && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                      _framermotion.motion.span,
+                      {
+                        layoutId: `${pillId}-start`,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ) : isSelected && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                      _framermotion.motion.span,
+                      {
+                        layoutId: pillId,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ),
+                    rangeOn && isRangeEnd && !isRangeStart && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                      _framermotion.motion.span,
+                      {
+                        layoutId: `${pillId}-end`,
+                        className: cn("absolute inset-0 rounded-full", selectedPillClass),
+                        transition: springs.expressive
+                      }
+                    ),
+                    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+                      "span",
+                      {
+                        className: cn(
+                          "relative z-10",
+                          (isSelected || isRangeStart || isRangeEnd) && selectedTextClass
+                        ),
+                        children: day.getDate()
+                      }
+                    )
+                  ]
+                }
+              )
+            ]
           },
           iso
         );
@@ -6617,23 +7069,38 @@ function DatePickerCalendar({
     )
   ] });
 }
-var DatePickerModal = React34.forwardRef(
-  function DatePickerModal2({ value, onChange, minDate, maxDate, open = false, onOpenChange, closeOnSelect = true, className }, ref) {
-    const panelRef = React34.useRef(null);
-    const restoreFocusRef = React34.useRef(null);
-    const [landscape, setLandscape] = React34.useState(false);
-    const [picked, setPicked] = React34.useState(void 0);
-    React34.useEffect(() => {
+var DatePickerModal = React35.forwardRef(
+  function DatePickerModal2({
+    value,
+    onChange,
+    minDate,
+    maxDate,
+    open = false,
+    onOpenChange,
+    closeOnSelect = true,
+    className,
+    selectionMode = "single",
+    range,
+    onRangeChange
+  }, ref) {
+    const panelRef = React35.useRef(null);
+    const restoreFocusRef = React35.useRef(null);
+    const [landscape, setLandscape] = React35.useState(false);
+    const [picked, setPicked] = React35.useState(void 0);
+    const [pickedRange, setPickedRange] = React35.useState({});
+    const rangeOn = selectionMode === "range";
+    const rangeSel = rangeOn ? _nullishCoalesce(range, () => ( pickedRange)) : void 0;
+    React35.useEffect(() => {
       const mq = window.matchMedia("(min-width: 600px)");
       const update = () => setLandscape(mq.matches);
       update();
       mq.addEventListener("change", update);
       return () => mq.removeEventListener("change", update);
     }, []);
-    React34.useEffect(() => {
+    React35.useEffect(() => {
       if (!open) return;
       const onKey = (e) => {
-        if (e.key === "Escape") _optionalChain([onOpenChange, 'optionalCall', _99 => _99(false)]);
+        if (e.key === "Escape") _optionalChain([onOpenChange, 'optionalCall', _110 => _110(false)]);
       };
       window.addEventListener("keydown", onKey);
       const prevOverflow = document.body.style.overflow;
@@ -6643,19 +7110,19 @@ var DatePickerModal = React34.forwardRef(
         document.body.style.overflow = prevOverflow;
       };
     }, [open, onOpenChange]);
-    React34.useEffect(() => {
+    React35.useEffect(() => {
       if (!open) return;
       restoreFocusRef.current = document.activeElement;
       const timer = window.setTimeout(() => {
-        const day = _optionalChain([panelRef, 'access', _100 => _100.current, 'optionalAccess', _101 => _101.querySelector, 'call', _102 => _102(
+        const day = _optionalChain([panelRef, 'access', _111 => _111.current, 'optionalAccess', _112 => _112.querySelector, 'call', _113 => _113(
           'button[data-iso][tabindex="0"]'
         )]);
         if (day) day.focus();
-        else _optionalChain([panelRef, 'access', _103 => _103.current, 'optionalAccess', _104 => _104.focus, 'call', _105 => _105()]);
+        else _optionalChain([panelRef, 'access', _114 => _114.current, 'optionalAccess', _115 => _115.focus, 'call', _116 => _116()]);
       }, 0);
       return () => {
         window.clearTimeout(timer);
-        _optionalChain([restoreFocusRef, 'access', _106 => _106.current, 'optionalAccess', _107 => _107.focus, 'optionalCall', _108 => _108()]);
+        _optionalChain([restoreFocusRef, 'access', _117 => _117.current, 'optionalAccess', _118 => _118.focus, 'optionalCall', _119 => _119()]);
       };
     }, [open]);
     const handleTab = (e) => {
@@ -6680,11 +7147,29 @@ var DatePickerModal = React34.forwardRef(
     };
     const handleSelect = (d) => {
       setPicked(d);
-      _optionalChain([onChange, 'optionalCall', _109 => _109(d)]);
-      if (closeOnSelect) _optionalChain([onOpenChange, 'optionalCall', _110 => _110(false)]);
+      _optionalChain([onChange, 'optionalCall', _120 => _120(d)]);
+      if (closeOnSelect) _optionalChain([onOpenChange, 'optionalCall', _121 => _121(false)]);
+    };
+    const handleRangeChange = (r) => {
+      setPickedRange(r);
+      _optionalChain([onRangeChange, 'optionalCall', _122 => _122(r)]);
+      if (r.start && r.end && closeOnSelect) _optionalChain([onOpenChange, 'optionalCall', _123 => _123(false)]);
     };
     const headlineDate = _nullishCoalesce(_nullishCoalesce(value, () => ( picked)), () => ( /* @__PURE__ */ new Date()));
     const headline = formatHeadline(headlineDate);
+    let rangeHeadline;
+    if (_optionalChain([rangeSel, 'optionalAccess', _124 => _124.start]) && _optionalChain([rangeSel, 'optionalAccess', _125 => _125.end])) {
+      rangeHeadline = `${formatShort(rangeSel.start)} \u2013 ${formatShort(rangeSel.end)}`;
+    } else if (_optionalChain([rangeSel, 'optionalAccess', _126 => _126.start])) {
+      rangeHeadline = /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+        formatShort(rangeSel.start),
+        " \u2013 ",
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "text-m3-on-surface-variant", children: "End date" })
+      ] });
+    } else {
+      rangeHeadline = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "text-m3-on-surface-variant", children: "Start date" });
+    }
+    const headerLabel = rangeOn ? "Selected dates" : "Selected date";
     return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _framermotion.AnimatePresence, { children: open && /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "fixed inset-0 z-[80] flex items-center justify-center p-4", children: [
       /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
         _framermotion.motion.div,
@@ -6697,7 +7182,7 @@ var DatePickerModal = React34.forwardRef(
             ease: "easeOut"
           },
           className: "absolute inset-0 bg-m3-scrim/32",
-          onClick: () => _optionalChain([onOpenChange, 'optionalCall', _111 => _111(false)])
+          onClick: () => _optionalChain([onOpenChange, 'optionalCall', _127 => _127(false)])
         }
       ),
       /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
@@ -6706,7 +7191,7 @@ var DatePickerModal = React34.forwardRef(
           ref: panelRef,
           role: "dialog",
           "aria-modal": "true",
-          "aria-label": "Choose date",
+          "aria-label": rangeOn ? "Choose date range" : "Choose date",
           tabIndex: -1,
           onKeyDown: handleTab,
           initial: { scale: 0.9, opacity: 0 },
@@ -6720,8 +7205,8 @@ var DatePickerModal = React34.forwardRef(
           ),
           children: landscape ? /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
             /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "flex w-[168px] shrink-0 flex-col justify-center gap-1 px-4", children: [
-              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-label-large text-m3-on-surface-variant", children: "Selected date" }),
-              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-headline-small leading-tight text-m3-on-surface", children: headline })
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-label-large text-m3-on-surface-variant", children: headerLabel }),
+              rangeOn ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-headline-small leading-tight text-m3-on-surface", children: rangeHeadline }) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-headline-small leading-tight text-m3-on-surface", children: headline })
             ] }),
             /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "m3-scroll min-w-0 flex-1 overflow-y-auto px-4 py-1", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
               DatePickerCalendar,
@@ -6731,13 +7216,16 @@ var DatePickerModal = React34.forwardRef(
                 minDate,
                 maxDate,
                 tone: "primary-container",
-                animatedHeader: true
+                animatedHeader: true,
+                selectionMode,
+                range,
+                onRangeChange: rangeOn ? handleRangeChange : void 0
               }
             ) })
           ] }) : /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
             /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "flex shrink-0 flex-col gap-1 px-6 pb-3 pt-6", children: [
-              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-label-large text-m3-on-surface-variant", children: "Selected date" }),
-              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-display-small text-m3-on-surface", children: headline })
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-label-large text-m3-on-surface-variant", children: headerLabel }),
+              rangeOn ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-headline-small leading-tight text-m3-on-surface", children: rangeHeadline }) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "md-display-small text-m3-on-surface", children: headline })
             ] }),
             /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "h-px w-full shrink-0 bg-m3-outline-variant" }),
             /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "m3-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-2", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
@@ -6748,7 +7236,10 @@ var DatePickerModal = React34.forwardRef(
                 minDate,
                 maxDate,
                 tone: "primary-container",
-                animatedHeader: true
+                animatedHeader: true,
+                selectionMode,
+                range,
+                onRangeChange: rangeOn ? handleRangeChange : void 0
               }
             ) })
           ] })
@@ -6758,7 +7249,7 @@ var DatePickerModal = React34.forwardRef(
   }
 );
 DatePickerModal.displayName = "DatePickerModal";
-var DatePicker = React34.forwardRef(function DatePicker2({
+var DatePicker = React35.forwardRef(function DatePicker2({
   value,
   onChange,
   minDate,
@@ -6768,6 +7259,9 @@ var DatePicker = React34.forwardRef(function DatePicker2({
   onOpenChange,
   closeOnSelect = true,
   fullWidth = false,
+  selectionMode = "single",
+  range,
+  onRangeChange,
   className
 }, ref) {
   if (presentation === "modal") {
@@ -6782,6 +7276,9 @@ var DatePicker = React34.forwardRef(function DatePicker2({
         onChange,
         minDate,
         maxDate,
+        selectionMode,
+        range,
+        onRangeChange,
         className
       }
     );
@@ -6801,7 +7298,10 @@ var DatePicker = React34.forwardRef(function DatePicker2({
           value,
           onChange,
           minDate,
-          maxDate
+          maxDate,
+          selectionMode,
+          range,
+          onRangeChange
         }
       )
     }
@@ -6830,14 +7330,14 @@ function dialPosition(n, radius = DIAL_RADIUS) {
     y: DIAL_CENTER - radius * Math.cos(theta)
   };
 }
-var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use24h = false, fullWidth = false, className }, ref) {
-  const [internal, setInternal] = React35.useState({ hour: 10, minute: 30 });
+var TimePicker = React36.forwardRef(function TimePicker2({ value, onChange, use24h = false, fullWidth = false, className }, ref) {
+  const [internal, setInternal] = React36.useState({ hour: 10, minute: 30 });
   const time = _nullishCoalesce(value, () => ( internal));
-  const [mode, setMode] = React35.useState("hour");
-  const switchTimer = React35.useRef(null);
-  const amRef = React35.useRef(null);
-  const pmRef = React35.useRef(null);
-  React35.useEffect(() => {
+  const [mode, setMode] = React36.useState("hour");
+  const switchTimer = React36.useRef(null);
+  const amRef = React36.useRef(null);
+  const pmRef = React36.useRef(null);
+  React36.useEffect(() => {
     return () => {
       if (switchTimer.current !== null) window.clearTimeout(switchTimer.current);
     };
@@ -6845,7 +7345,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
   const update = (next) => {
     const merged = { ...time, ...next };
     setInternal(merged);
-    _optionalChain([onChange, 'optionalCall', _112 => _112(merged)]);
+    _optionalChain([onChange, 'optionalCall', _128 => _128(merged)]);
   };
   const isPM = time.hour >= 12;
   const hour12 = time.hour % 12 === 0 ? 12 : time.hour % 12;
@@ -6900,7 +7400,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
     e.preventDefault();
     const target = toAM ? "AM" : "PM";
     handleMeridiem(target);
-    _optionalChain([(toAM ? amRef : pmRef), 'access', _113 => _113.current, 'optionalAccess', _114 => _114.focus, 'call', _115 => _115()]);
+    _optionalChain([(toAM ? amRef : pmRef), 'access', _129 => _129.current, 'optionalAccess', _130 => _130.focus, 'call', _131 => _131()]);
   };
   const theta = angle * Math.PI / 180;
   const selX = DIAL_CENTER + handleRadius * Math.sin(theta);
@@ -6946,7 +7446,7 @@ var TimePicker = React35.forwardRef(function TimePicker2({ value, onChange, use2
               className: "flex h-20 w-[52px] shrink-0 flex-col items-stretch rounded-full border border-m3-outline",
               children: ["AM", "PM"].map((m, i) => {
                 const isCurrent = m === "AM" === !isPM;
-                return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, React35.Fragment, { children: [
+                return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, React36.Fragment, { children: [
                   i === 1 && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { "aria-hidden": "true", className: "h-px w-full shrink-0 bg-m3-outline" }),
                   /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                     "button",
@@ -7132,6 +7632,7 @@ var TABLE = [
   { meta: listMeta, file: "List" },
   { meta: bottomSheetMeta, file: "BottomSheet" },
   { meta: sideSheetMeta, file: "SideSheet" },
+  { meta: carouselMeta, file: "Carousel" },
   { meta: textFieldMeta, file: "TextField" },
   { meta: searchBarMeta, file: "SearchBar" },
   { meta: searchViewMeta, file: "SearchView" },
@@ -7611,5 +8112,7 @@ function schemeToCssVars(scheme) {
 
 
 
-exports.Autocomplete = Autocomplete; exports.Badge = Badge; exports.Banner = Banner; exports.BottomAppBar = BottomAppBar; exports.BottomSheet = BottomSheet; exports.Button = Button; exports.ButtonGroup = ButtonGroup; exports.Card = Card; exports.Checkbox = Checkbox; exports.Chip = Chip; exports.CircularProgress = CircularProgress; exports.DatePicker = DatePicker; exports.Dialog = Dialog; exports.Divider = Divider; exports.ExtendedFab = ExtendedFab; exports.Fab = Fab; exports.FabMenu = FabMenu; exports.IconButton = IconButton; exports.LinearProgress = LinearProgress; exports.List = List; exports.ListItem = ListItem; exports.LoadingIndicator = LoadingIndicator; exports.MaterialSymbol = MaterialSymbol; exports.Menu = Menu; exports.NavigationBar = NavigationBar; exports.NavigationDrawer = NavigationDrawer; exports.NavigationRail = NavigationRail; exports.Radio = Radio; exports.RadioGroup = RadioGroup; exports.Ripple = Ripple; exports.SearchBar = SearchBar; exports.SearchView = SearchView; exports.SegmentedButton = SegmentedButton; exports.SideSheet = SideSheet; exports.Slider = Slider; exports.Snackbar = Snackbar; exports.SplitButton = SplitButton; exports.Switch = Switch; exports.Tabs = Tabs; exports.TextField = TextField; exports.TimePicker = TimePicker; exports.Toolbar = Toolbar; exports.Tooltip = Tooltip; exports.TopAppBar = TopAppBar; exports.autocompleteMeta = autocompleteMeta; exports.badgeMeta = badgeMeta; exports.bannerMeta = bannerMeta; exports.bottomAppBarMeta = bottomAppBarMeta; exports.bottomSheetMeta = bottomSheetMeta; exports.buttonGroupMeta = buttonGroupMeta; exports.buttonMeta = buttonMeta; exports.cardMeta = cardMeta; exports.categoryLabels = categoryLabels; exports.checkboxMeta = checkboxMeta; exports.chipMeta = chipMeta; exports.circularProgressMeta = circularProgressMeta; exports.colorRoles = colorRoles; exports.colorVar = colorVar; exports.datePickerMeta = datePickerMeta; exports.defaultThemeId = defaultThemeId; exports.dialogMeta = dialogMeta; exports.dividerMeta = dividerMeta; exports.durations = durations; exports.easings = easings; exports.elevations = elevations; exports.extendedFabMeta = extendedFabMeta; exports.fabMenuMeta = fabMenuMeta; exports.fabMeta = fabMeta; exports.getComponent = getComponent; exports.getComponentsByCategory = getComponentsByCategory; exports.getTheme = getTheme; exports.iconButtonMeta = iconButtonMeta; exports.linearProgressMeta = linearProgressMeta; exports.listMeta = listMeta; exports.loadingIndicatorMeta = loadingIndicatorMeta; exports.m3Registry = m3Registry; exports.m3Themes = m3Themes; exports.menuMeta = menuMeta; exports.navigationBarMeta = navigationBarMeta; exports.navigationDrawerMeta = navigationDrawerMeta; exports.navigationRailMeta = navigationRailMeta; exports.radioMeta = radioMeta; exports.schemeToCssVars = schemeToCssVars; exports.searchBarMeta = searchBarMeta; exports.searchComponents = searchComponents; exports.searchViewMeta = searchViewMeta; exports.segmentedButtonMeta = segmentedButtonMeta; exports.shapeMorph = shapeMorph; exports.shapes = shapes; exports.sideSheetMeta = sideSheetMeta; exports.sliderMeta = sliderMeta; exports.snackbarMeta = snackbarMeta; exports.splitButtonMeta = splitButtonMeta; exports.springs = springs; exports.stateOpacities = stateOpacities; exports.switchMeta = switchMeta; exports.tabsMeta = tabsMeta; exports.textFieldMeta = textFieldMeta; exports.themeIds = themeIds; exports.timePickerMeta = timePickerMeta; exports.toolbarMeta = toolbarMeta; exports.tooltipMeta = tooltipMeta; exports.topAppBarMeta = topAppBarMeta; exports.typeScale = typeScale;
+
+
+exports.Autocomplete = Autocomplete; exports.Badge = Badge; exports.Banner = Banner; exports.BottomAppBar = BottomAppBar; exports.BottomSheet = BottomSheet; exports.Button = Button; exports.ButtonGroup = ButtonGroup; exports.Card = Card; exports.Carousel = Carousel; exports.Checkbox = Checkbox; exports.Chip = Chip; exports.CircularProgress = CircularProgress; exports.DatePicker = DatePicker; exports.Dialog = Dialog; exports.Divider = Divider; exports.ExtendedFab = ExtendedFab; exports.Fab = Fab; exports.FabMenu = FabMenu; exports.IconButton = IconButton; exports.LinearProgress = LinearProgress; exports.List = List; exports.ListItem = ListItem; exports.LoadingIndicator = LoadingIndicator; exports.MaterialSymbol = MaterialSymbol; exports.Menu = Menu; exports.NavigationBar = NavigationBar; exports.NavigationDrawer = NavigationDrawer; exports.NavigationRail = NavigationRail; exports.Radio = Radio; exports.RadioGroup = RadioGroup; exports.Ripple = Ripple; exports.SearchBar = SearchBar; exports.SearchView = SearchView; exports.SegmentedButton = SegmentedButton; exports.SideSheet = SideSheet; exports.Slider = Slider; exports.Snackbar = Snackbar; exports.SplitButton = SplitButton; exports.Switch = Switch; exports.Tabs = Tabs; exports.TextField = TextField; exports.TimePicker = TimePicker; exports.Toolbar = Toolbar; exports.Tooltip = Tooltip; exports.TopAppBar = TopAppBar; exports.autocompleteMeta = autocompleteMeta; exports.badgeMeta = badgeMeta; exports.bannerMeta = bannerMeta; exports.bottomAppBarMeta = bottomAppBarMeta; exports.bottomSheetMeta = bottomSheetMeta; exports.buttonGroupMeta = buttonGroupMeta; exports.buttonMeta = buttonMeta; exports.cardMeta = cardMeta; exports.carouselMeta = carouselMeta; exports.categoryLabels = categoryLabels; exports.checkboxMeta = checkboxMeta; exports.chipMeta = chipMeta; exports.circularProgressMeta = circularProgressMeta; exports.colorRoles = colorRoles; exports.colorVar = colorVar; exports.datePickerMeta = datePickerMeta; exports.defaultThemeId = defaultThemeId; exports.dialogMeta = dialogMeta; exports.dividerMeta = dividerMeta; exports.durations = durations; exports.easings = easings; exports.elevations = elevations; exports.extendedFabMeta = extendedFabMeta; exports.fabMenuMeta = fabMenuMeta; exports.fabMeta = fabMeta; exports.getComponent = getComponent; exports.getComponentsByCategory = getComponentsByCategory; exports.getTheme = getTheme; exports.iconButtonMeta = iconButtonMeta; exports.linearProgressMeta = linearProgressMeta; exports.listMeta = listMeta; exports.loadingIndicatorMeta = loadingIndicatorMeta; exports.m3Registry = m3Registry; exports.m3Themes = m3Themes; exports.menuMeta = menuMeta; exports.navigationBarMeta = navigationBarMeta; exports.navigationDrawerMeta = navigationDrawerMeta; exports.navigationRailMeta = navigationRailMeta; exports.radioMeta = radioMeta; exports.schemeToCssVars = schemeToCssVars; exports.searchBarMeta = searchBarMeta; exports.searchComponents = searchComponents; exports.searchViewMeta = searchViewMeta; exports.segmentedButtonMeta = segmentedButtonMeta; exports.shapeMorph = shapeMorph; exports.shapes = shapes; exports.sideSheetMeta = sideSheetMeta; exports.sliderMeta = sliderMeta; exports.snackbarMeta = snackbarMeta; exports.splitButtonMeta = splitButtonMeta; exports.springs = springs; exports.stateOpacities = stateOpacities; exports.switchMeta = switchMeta; exports.tabsMeta = tabsMeta; exports.textFieldMeta = textFieldMeta; exports.themeIds = themeIds; exports.timePickerMeta = timePickerMeta; exports.toolbarMeta = toolbarMeta; exports.tooltipMeta = tooltipMeta; exports.topAppBarMeta = topAppBarMeta; exports.typeScale = typeScale;
 //# sourceMappingURL=index.cjs.map
