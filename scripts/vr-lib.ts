@@ -277,6 +277,10 @@ export async function captureComponents(
 
   mkdirSync(outDir, { recursive: true });
 
+  // The default browser session survives between commands. Leave the SPA so
+  // the first component loads the current bundle instead of a stale hash route.
+  await ab("open", "about:blank");
+
   // Pin the browser to a deterministic viewport + light color scheme.
   await ab("set", "viewport", String(VIEWPORT.width), String(VIEWPORT.height));
   await ab("set", "media", "light");

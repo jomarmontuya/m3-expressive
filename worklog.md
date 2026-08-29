@@ -1893,3 +1893,20 @@ Task: Fix the clean-runner TypeScript failure found after the open-source cleanu
 - The package build was deterministic and changed no tracked package output.
 - The full visual-regression gate passed: 41 of 41 captured, 23 identical, 18 minor, and 0 changed, new, or missing. No baseline changed.
 - A new GitHub-hosted CI run is required after push to prove the fix on a clean runner.
+
+---
+Task ID: 2026-08-29-current-bundle-vr-baselines
+Agent: Codex
+Task: Repair the visual-regression baseline workflow after clean Linux CI exposed stale demo content.
+
+## Work Log
+- GitHub Actions run `33261026707` passed clean install, lint, TypeScript, package build, and browser setup. The visual gate then found seven baselines with older demo content: Side Sheet, Radio, Switch, Chip, Autocomplete, Tabs, and Navigation Drawer.
+- Downloaded the failed-run artifact and inspected the current screenshots. The rendered components were coherent and matched the already-audited code; the committed baselines still showed older copy or smaller demo sets.
+- Confirmed that the shared `agent-browser` session can survive between commands while the capture helper navigated only by hash. Added an `about:blank` reset before each capture run so the first component must load the current application bundle.
+- Rebuilt all 41 baselines with the required `--force` flag because the old run could not prove which pages had loaded the current bundle. Reviewed five contact sheets covering all rebuilt pages; no overlap, cut-off component, or broken spacing was visible at 1280x900.
+
+## Stage Summary
+- The fresh full-load visual check passed with 41 identical, 0 minor, 0 changed, 0 new, and 0 missing components. No component source changed.
+- The rebuilt macOS baselines were compared with all 41 Linux CI captures. Every non-animated difference was below the existing 1% limit; zero CI failures are predicted without relaxing the threshold.
+- Lint, root TypeScript, package TypeScript, and the package build passed. Lint retained only the known `src/app/layout.tsx` warning, and the package build changed no package output.
+- One more GitHub-hosted CI run is required after push to prove the refreshed baselines on a clean runner.
