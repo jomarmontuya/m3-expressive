@@ -11,6 +11,7 @@ Thanks for considering a contribution. This repo is a component library with a s
 
 ```bash
 bun install
+bun install --cwd mini-services/mcp-server --frozen-lockfile
 bun run dev   # showcase app on http://localhost:3000
 ```
 

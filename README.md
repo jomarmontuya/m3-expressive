@@ -63,6 +63,7 @@ The agent handbook is served at `/llms.txt` on the running site. Every component
 
 ```bash
 bun install
+bun install --cwd mini-services/mcp-server --frozen-lockfile
 bun run dev          # showcase on :3000
 ```
 

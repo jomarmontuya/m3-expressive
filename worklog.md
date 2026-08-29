@@ -1876,3 +1876,20 @@ Task: Audit and clean the full repository for open-source readiness, remove conf
 - The final 41-component visual-regression run passed with 23 identical, 18 minor, and 0 changed, new, or missing components. No baseline changed.
 - Fresh read-only reviewers first returned REVISE for missing full Apache text, empty extension pins, and generated whitespace. After correction, the final reviewer returned APPROVE with no material blocker.
 - GitHub-hosted CI, npm publication, and changing the private GitHub repository to public remain operational steps and were not performed. No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-clean-ci-dependency-install
+Agent: Codex
+Task: Fix the clean-runner TypeScript failure found after the open-source cleanup was pushed.
+
+## Work Log
+- Captured GitHub Actions run `33260712772`. Install and lint passed, but TypeScript could not resolve the MCP SDK and Zod from `mini-services/mcp-server/index.ts`.
+- Confirmed that the root TypeScript configuration includes the MCP server while the first CI install used only the root lockfile. Local MCP dependencies had hidden the clean-runner gap.
+- Added the frozen `mini-services/mcp-server/bun.lock` install to CI and the public setup instructions in `README.md` and `CONTRIBUTING.md`.
+- Updated checkout and failed-run artifact upload to the current v7 GitHub actions after the runner reported their old Node 20 versions as deprecated.
+
+## Stage Summary
+- Root and MCP frozen installs passed. Lint passed with only the known `src/app/layout.tsx` warning. Root TypeScript, package TypeScript, and the package build passed.
+- The package build was deterministic and changed no tracked package output.
+- The full visual-regression gate passed: 41 of 41 captured, 23 identical, 18 minor, and 0 changed, new, or missing. No baseline changed.
+- A new GitHub-hosted CI run is required after push to prove the fix on a clean runner.
