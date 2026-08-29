@@ -39,6 +39,7 @@ function routeTitle(route: Route): string {
 
 export default function M3ExpressiveDocs() {
   const [route, setRoute] = React.useState<Route>({ kind: "home" });
+  const [routeReady, setRouteReady] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const { isDark, toggle } = useM3Theme();
@@ -56,6 +57,7 @@ export default function M3ExpressiveDocs() {
       const prevHash = e?.oldURL?.split("#")[1];
       if (prevHash !== undefined) scrollPositions.current.set(`#${prevHash}`, window.scrollY);
       setRoute(parseHash(window.location.hash));
+      setRouteReady(true);
       if (programmaticNav.current) {
         programmaticNav.current = false;
         pendingScroll.current = { top: 0, smooth: true };
@@ -179,7 +181,7 @@ export default function M3ExpressiveDocs() {
       <div className="flex flex-1">
         {/* desktop sidebar */}
         <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-[300px] shrink-0 border-r border-m3-outline-variant/60 lg:block">
-          <Sidebar route={route} navigate={navigate} />
+          <Sidebar route={routeReady ? route : null} navigate={navigate} />
         </aside>
 
         {/* main */}
@@ -242,7 +244,7 @@ export default function M3ExpressiveDocs() {
       <SideSheet
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        side="left"
+        side="start"
         width={320}
         className="p-0"
       >

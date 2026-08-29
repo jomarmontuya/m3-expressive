@@ -1,47 +1,49 @@
 import type { M3Category, M3ComponentMeta, M3Registry, M3RegistryEntry } from "./types";
 import { categoryLabels } from "./types";
 
-import { buttonMeta } from "@/lib/m3/meta";
-import { iconButtonMeta } from "@/lib/m3/meta";
-import { fabMeta } from "@/lib/m3/meta";
-import { extendedFabMeta } from "@/lib/m3/meta";
-import { fabMenuMeta } from "@/lib/m3/meta";
-import { splitButtonMeta } from "@/lib/m3/meta";
-import { buttonGroupMeta } from "@/lib/m3/meta";
-import { segmentedButtonMeta } from "@/lib/m3/meta";
-import { badgeMeta } from "@/lib/m3/meta";
-import { linearProgressMeta } from "@/lib/m3/meta";
-import { circularProgressMeta } from "@/lib/m3/meta";
-import { loadingIndicatorMeta } from "@/lib/m3/meta";
-import { snackbarMeta } from "@/lib/m3/meta";
-import { tooltipMeta } from "@/lib/m3/meta";
-import { bannerMeta } from "@/lib/m3/meta";
-import { dialogMeta } from "@/lib/m3/meta";
-import { dividerMeta } from "@/lib/m3/meta";
-import { cardMeta } from "@/lib/m3/meta";
-import { listMeta } from "@/lib/m3/meta";
-import { bottomSheetMeta } from "@/lib/m3/meta";
-import { sideSheetMeta } from "@/lib/m3/meta";
-import { carouselMeta } from "@/lib/m3/meta";
-import { textFieldMeta } from "@/lib/m3/meta";
-import { searchBarMeta } from "@/lib/m3/meta";
-import { searchViewMeta } from "@/lib/m3/meta";
-import { autocompleteMeta } from "@/lib/m3/meta";
-import { checkboxMeta } from "@/lib/m3/meta";
-import { radioMeta } from "@/lib/m3/meta";
-import { switchMeta } from "@/lib/m3/meta";
-import { sliderMeta } from "@/lib/m3/meta";
-import { chipMeta } from "@/lib/m3/meta";
-import { tabsMeta } from "@/lib/m3/meta";
-import { navigationBarMeta } from "@/lib/m3/meta";
-import { navigationDrawerMeta } from "@/lib/m3/meta";
-import { navigationRailMeta } from "@/lib/m3/meta";
-import { topAppBarMeta } from "@/lib/m3/meta";
-import { bottomAppBarMeta } from "@/lib/m3/meta";
-import { toolbarMeta } from "@/lib/m3/meta";
-import { menuMeta } from "@/lib/m3/meta";
-import { datePickerMeta } from "@/lib/m3/meta";
-import { timePickerMeta } from "@/lib/m3/meta";
+import {
+  autocompleteMeta,
+  badgeMeta,
+  bannerMeta,
+  bottomAppBarMeta,
+  bottomSheetMeta,
+  buttonGroupMeta,
+  buttonMeta,
+  cardMeta,
+  carouselMeta,
+  checkboxMeta,
+  chipMeta,
+  circularProgressMeta,
+  datePickerMeta,
+  dialogMeta,
+  dividerMeta,
+  extendedFabMeta,
+  fabMenuMeta,
+  fabMeta,
+  iconButtonMeta,
+  linearProgressMeta,
+  listMeta,
+  loadingIndicatorMeta,
+  menuMeta,
+  navigationBarMeta,
+  navigationDrawerMeta,
+  navigationRailMeta,
+  radioMeta,
+  searchBarMeta,
+  searchViewMeta,
+  segmentedButtonMeta,
+  sideSheetMeta,
+  sliderMeta,
+  snackbarMeta,
+  splitButtonMeta,
+  switchMeta,
+  tabsMeta,
+  textFieldMeta,
+  timePickerMeta,
+  toolbarMeta,
+  tooltipMeta,
+  topAppBarMeta,
+} from "./meta";
 
 const COMPONENT_DIR = "src/components/m3";
 
@@ -104,7 +106,7 @@ export const m3Registry: M3Registry = {
   library: "m3-expressive-react",
   version: REGISTRY_VERSION,
   description:
-    "A complete Material 3 Expressive (M3E) React component library. Every component is built on official M3 design tokens (color roles, shape scale, Roboto Flex typography, physics-based spring motion, state layers) and ships with structured design-guideline metadata for agentic consumption.",
+    "A Material 3 and Material 3 Expressive React component library with 39 official component implementations plus two clearly labeled composites retained for compatibility: Banner (Material 2 / Flutter heritage) and Autocomplete (text-field + combobox). Every entry ships with structured design-guideline metadata for agentic consumption.",
   spec: "https://m3.material.io",
   totalCount: TABLE.length,
   categories: ["actions", "communication", "containment", "selection", "textinput", "navigation"],

@@ -15,11 +15,11 @@ import { MaterialSymbol } from "./MaterialSymbol";
  * working exactly as they did against the old fixed-positioned card.
  */
 const POSITION_CLASSES =
-  "fixed bottom-6 left-6 z-[70] flex";
+  "fixed bottom-4 left-4 z-[70] flex sm:bottom-6 sm:left-6";
 
 /** Card visuals — verbatim token classes from the pre-migration card. */
 const CARD_CLASSES =
-  "m3-elevation-3 md-body-medium flex min-h-12 min-w-[344px] max-w-[min(672px,calc(100vw-3rem))] items-center gap-3 rounded-[4px] bg-m3-inverse-surface px-4 py-3 text-m3-inverse-on-surface";
+  "m3-elevation-3 md-body-medium flex min-h-12 w-[calc(100vw-32px)] max-w-[600px] items-center gap-3 rounded-[4px] bg-m3-inverse-surface px-4 py-3 text-m3-inverse-on-surface sm:w-auto sm:min-w-[344px]";
 
 /**
  * Presence motion, owned by Base UI. Entrance/exit used to be framer-motion
@@ -55,6 +55,21 @@ const MOTION_CLASSES = [
   "[&[data-ending-style][data-swipe-direction]]:[transform:translate(calc(var(--toast-swipe-movement-x)*3),calc(var(--toast-swipe-movement-y)*3))]",
 ].join(" ");
 
+interface SnackbarToastData {
+  ownerId: string;
+}
+
+/**
+ * One manager for the whole module enforces Material's one-snackbar rule
+ * across separate <Snackbar> component instances. Each component filters the
+ * shared list to its own toast so only the owning viewport renders it.
+ */
+const snackbarManager = BaseToast.createToastManager<SnackbarToastData>();
+const SHARED_SNACKBAR_ID = "m3-snackbar";
+let activeSnackbar:
+  | { ownerId: string; replace: () => void }
+  | null = null;
+
 export interface SnackbarProps {
   /** Controls visibility (rendered through the Base UI toast manager). */
   open: boolean;
@@ -64,47 +79,51 @@ export interface SnackbarProps {
   /** Trailing text action, e.g. "Undo". */
   actionLabel?: string;
   onAction?: () => void;
+  /** Put the action below the message. Use for long actions or compact widths. */
+  actionOnNewLine?: boolean;
   /** Called by auto-dismiss, swipe, Escape and the trailing close icon. */
   onClose?: () => void;
-  /** Auto-dismiss in ms. 0 keeps the snackbar sticky. Default 4000. */
+  /** Auto-dismiss for messages without actions. Actionable snackbars stay until acted on or dismissed. Default 4000. */
   duration?: number;
   className?: string;
 }
 
 /**
  * M3 Snackbar — brief confirmation feedback at the bottom of the screen on an
- * inverse surface (4dp corners, elevation 3, 344–672px per the official web
- * spec), with a text action and close control. The optional leading icon is a
- * documented extension beyond the base M3 anatomy (text + action + close).
+ * inverse surface (4dp corners, elevation 3, responsive compact width and a
+ * current 600dp maximum), with a text action and close control. Actionable
+ * snackbars do not auto-dismiss, and long actions can move to a new line.
+ * The optional leading icon is a documented extension beyond the base M3
+ * anatomy (text + action + close).
  *
  * Migrated onto the Base UI Toast primitive (rc.0), which now owns the toast
  * lifecycle: auto-dismiss timers (paused on hover, keyboard focus and window
  * blur), Escape-to-close, F6 viewport focus, ARIA wiring (the viewport is the
  * polite live region; the card is a focusable `role="dialog"` — replacing the
- * old `role="status"` on the card itself) and swipe-to-dismiss in any
+   * old `role="status"` on the card itself), one shared visible instance
+   * across component mounts, and swipe-to-dismiss in any
  * direction (40px threshold, replacing the framer-motion drag handler with
  * its 80px/500px-per-second gesture rules). framer-motion was dropped here
  * because Base UI freezes the card's `transform` inline while swiping — a
  * motion-driven transform would fight it, and JS springs cannot participate
  * in Base UI's transition-end detection.
  */
-export function Snackbar({
-  open,
-  message,
-  icon,
-  actionLabel,
-  onAction,
-  onClose,
-  duration = 4000,
-  className,
-}: SnackbarProps) {
-  /**
-   * Per-instance manager (not module-level): every <Snackbar> mounts its own
-   * Toast.Provider, so two simultaneously rendered snackbars can never render
-   * each other's toasts. The controlled `open` prop is synced onto the
-   * manager in the effect below — the public API stays `open`/`onClose`-driven.
-   */
-  const [toastManager] = React.useState(() => BaseToast.createToastManager());
+export const Snackbar = React.forwardRef<HTMLDivElement, SnackbarProps>(
+  function Snackbar(
+    {
+      open,
+      message,
+      icon,
+      actionLabel,
+      onAction,
+      actionOnNewLine = false,
+      onClose,
+      duration = 4000,
+      className,
+    },
+    ref,
+  ) {
+  const ownerId = React.useId();
 
   /** Latest `onClose`, readable from the toast object without re-adding it. */
   const onCloseRef = React.useRef(onClose);
@@ -124,15 +143,41 @@ export function Snackbar({
 
   React.useEffect(() => {
     if (open) {
-      if (activeIdRef.current !== null) return;
+      const sticky =
+        Boolean(actionLabel) ||
+        !onCloseRef.current ||
+        !duration ||
+        duration <= 0;
+      if (activeIdRef.current !== null) {
+        snackbarManager.update(activeIdRef.current, {
+          data: { ownerId },
+          timeout: sticky ? 0 : duration,
+        });
+        return;
+      }
+      // Replacing the shared id updates the existing toast in place. Notify
+      // the prior controlled instance first so it also resets `open`.
+      if (activeSnackbar && activeSnackbar.ownerId !== ownerId) {
+        activeSnackbar.replace();
+      }
       // Sticky when there is nothing to dismiss to or duration <= 0 — mirrors
       // the pre-migration timer, whose no-op `onClose?.()` left the snackbar
       // on screen. Base UI treats timeout 0 as "never auto-dismiss".
-      const sticky = !onCloseRef.current || !duration || duration <= 0;
-      activeIdRef.current = toastManager.add({
+      activeIdRef.current = SHARED_SNACKBAR_ID;
+      activeSnackbar = {
+        ownerId,
+        replace() {
+          activeIdRef.current = null;
+          onCloseRef.current?.();
+        },
+      };
+      snackbarManager.add({
+        id: SHARED_SNACKBAR_ID,
+        data: { ownerId },
         timeout: sticky ? 0 : duration,
         onClose() {
           activeIdRef.current = null;
+          if (activeSnackbar?.ownerId === ownerId) activeSnackbar = null;
           if (suppressOnCloseRef.current) {
             suppressOnCloseRef.current = false;
             return;
@@ -145,29 +190,45 @@ export function Snackbar({
     if (activeIdRef.current !== null) {
       const id = activeIdRef.current;
       activeIdRef.current = null;
+      if (activeSnackbar?.ownerId === ownerId) activeSnackbar = null;
       suppressOnCloseRef.current = true;
-      toastManager.close(id);
+      snackbarManager.close(id);
     }
-  }, [open, duration, toastManager]);
+  }, [open, actionLabel, duration, ownerId]);
 
   return (
-    <BaseToast.Provider toastManager={toastManager} limit={1}>
+    <BaseToast.Provider toastManager={snackbarManager} limit={1}>
       <SnackbarToasts
+        ownerId={ownerId}
+        viewportRef={ref}
         message={message}
         icon={icon}
         actionLabel={actionLabel}
         onAction={onAction}
+        actionOnNewLine={actionOnNewLine}
         onClose={onClose}
         className={className}
       />
     </BaseToast.Provider>
-  );
-}
+    );
+  },
+);
+
+Snackbar.displayName = "Snackbar";
 
 type SnackbarToastsProps = Pick<
   SnackbarProps,
-  "message" | "icon" | "actionLabel" | "onAction" | "onClose" | "className"
->;
+  | "message"
+  | "icon"
+  | "actionLabel"
+  | "onAction"
+  | "actionOnNewLine"
+  | "onClose"
+  | "className"
+> & {
+  ownerId: string;
+  viewportRef?: React.ForwardedRef<HTMLDivElement>;
+};
 
 /**
  * Renders the Base UI Viewport + Root for the toast synced by <Snackbar>.
@@ -178,19 +239,28 @@ type SnackbarToastsProps = Pick<
  * overrides on `className` effective.
  */
 function SnackbarToasts({
+  ownerId,
+  viewportRef,
   message,
   icon,
   actionLabel,
   onAction,
+  actionOnNewLine,
   onClose,
   className,
 }: SnackbarToastsProps) {
-  const { toasts } = BaseToast.useToastManager();
-  if (toasts.length === 0) return null;
+  const { toasts } = BaseToast.useToastManager<SnackbarToastData>();
+  const ownedToasts = toasts.filter(
+    (toast) => toast.data?.ownerId === ownerId && !toast.limited,
+  );
+  if (ownedToasts.length === 0) return null;
 
   return (
-    <BaseToast.Viewport className={cn(POSITION_CLASSES, className)}>
-      {toasts.map((toast) => (
+    <BaseToast.Viewport
+      ref={viewportRef}
+      className={cn(POSITION_CLASSES, className)}
+    >
+      {ownedToasts.map((toast) => (
         <BaseToast.Root
           key={toast.id}
           toast={toast}
@@ -199,36 +269,68 @@ function SnackbarToasts({
           swipeDirection={["up", "down", "left", "right"]}
           /* Fixed, short-lived overlay: free both axes for the swipe gesture. */
           style={{ touchAction: "none" }}
-          className={cn(CARD_CLASSES, MOTION_CLASSES)}
-        >
-          {icon && <MaterialSymbol icon={icon} size={18} className="shrink-0" />}
-          <BaseToast.Description className="flex-1">
-            {message}
-          </BaseToast.Description>
-          {actionLabel && (
-            <BaseToast.Action
-              onClick={onAction}
-              className="m3-state md-label-large min-h-9 shrink-0 rounded-full px-3 uppercase text-m3-inverse-primary"
-            >
-              {actionLabel}
-            </BaseToast.Action>
+          className={cn(
+            CARD_CLASSES,
+            actionOnNewLine && "flex-col items-stretch gap-0",
+            MOTION_CLASSES,
           )}
-          {onClose && (
-            <BaseToast.Close
-              aria-label="Close"
-              /* Base UI hides the close control from AT while the viewport is
-                 "collapsed" (not hovered/focused) — its default design stacks
-                 toasts. This snackbar is always fully visible, so the control
-                 must stay announced to match the old markup. */
-              aria-hidden={false}
-              className="m3-state flex size-9 shrink-0 items-center justify-center rounded-full text-m3-inverse-on-surface"
-            >
-              <MaterialSymbol icon="close" size={18} />
-            </BaseToast.Close>
+        >
+          {actionOnNewLine ? (
+            <>
+              <div className="flex w-full items-center gap-3">
+                {icon && (
+                  <MaterialSymbol icon={icon} size={18} className="shrink-0" />
+                )}
+                <BaseToast.Description className="min-w-0 flex-1">
+                  {message}
+                </BaseToast.Description>
+              </div>
+              <div className="flex min-h-10 items-center justify-end gap-1 pt-1">
+                {actionLabel && (
+                  <BaseToast.Action
+                    onClick={onAction}
+                    className="m3-state md-label-large min-h-9 shrink-0 rounded-full px-3 uppercase text-m3-inverse-primary"
+                  >
+                    {actionLabel}
+                  </BaseToast.Action>
+                )}
+                {onClose && <SnackbarClose />}
+              </div>
+            </>
+          ) : (
+            <>
+              {icon && (
+                <MaterialSymbol icon={icon} size={18} className="shrink-0" />
+              )}
+              <BaseToast.Description className="min-w-0 flex-1">
+                {message}
+              </BaseToast.Description>
+              {actionLabel && (
+                <BaseToast.Action
+                  onClick={onAction}
+                  className="m3-state md-label-large min-h-9 shrink-0 rounded-full px-3 uppercase text-m3-inverse-primary"
+                >
+                  {actionLabel}
+                </BaseToast.Action>
+              )}
+              {onClose && <SnackbarClose />}
+            </>
           )}
         </BaseToast.Root>
       ))}
     </BaseToast.Viewport>
+  );
+}
+
+function SnackbarClose() {
+  return (
+    <BaseToast.Close
+      aria-label="Close"
+      aria-hidden={false}
+      className="m3-state flex size-9 shrink-0 items-center justify-center rounded-full text-m3-inverse-on-surface"
+    >
+      <MaterialSymbol icon="close" size={18} />
+    </BaseToast.Close>
   );
 }
 

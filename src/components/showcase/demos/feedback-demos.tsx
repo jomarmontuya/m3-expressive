@@ -11,40 +11,44 @@ import { Banner } from "@/components/m3/Banner";
 import { Dialog } from "@/components/m3/Dialog";
 import { Divider } from "@/components/m3/Divider";
 import { Button } from "@/components/m3/Button";
+import { IconButton } from "@/components/m3/IconButton";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 
 export function BadgeDemo() {
   const [count, setCount] = React.useState(3);
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
-      <button
-        type="button"
-        onClick={() => setCount((c) => c + 1)}
-        aria-label={`Inbox, ${count} unread`}
-        className="m3-state relative rounded-full p-2 text-m3-on-surface-variant"
-      >
-        <MaterialSymbol icon="inbox" size={24} />
-        <Badge value={count} />
-      </button>
-      <span className="relative text-m3-on-surface-variant">
-        <MaterialSymbol icon="notifications" size={24} />
-        <Badge showDot />
-      </span>
-      <span className="relative text-m3-on-surface-variant">
-        <MaterialSymbol icon="shopping_cart" size={24} />
-        <Badge value={250} color="primary" />
-      </span>
-      <span className="relative text-m3-on-surface-variant">
-        <MaterialSymbol icon="chat_bubble" size={24} />
-        <Badge value="new" color="tertiary" />
-      </span>
-      <span className="relative text-m3-on-surface-variant opacity-60">
-        <MaterialSymbol icon="mail" size={24} />
-        <Badge value={12} disabled />
-      </span>
+      <Badge value={count} ariaLabel={`${count} unread messages`}>
+        <IconButton
+          variant="standard"
+          size="sm"
+          icon="inbox"
+          onClick={() => setCount((c) => c + 1)}
+          aria-label="Inbox"
+        />
+      </Badge>
+      <Badge showDot ariaLabel="New notifications">
+        <span className="text-m3-on-surface-variant">
+          <MaterialSymbol icon="notifications" size={24} />
+        </span>
+      </Badge>
+      <Badge value={250} color="primary" ariaLabel="250 cart items">
+        <span className="text-m3-on-surface-variant">
+          <MaterialSymbol icon="shopping_cart" size={24} />
+        </span>
+      </Badge>
+      <Badge value="new" color="tertiary" ariaLabel="New chat message">
+        <span className="text-m3-on-surface-variant">
+          <MaterialSymbol icon="chat_bubble" size={24} />
+        </span>
+      </Badge>
       <span className="flex items-center gap-3">
-        <Badge value={99} max={99} />
-        <Badge value={142} max={99} />
+        <Badge value={99} max={99} ariaLabel="99 saved items">
+          <MaterialSymbol icon="bookmark" size={24} />
+        </Badge>
+        <Badge value={142} max={99} ariaLabel="More than 99 saved items">
+          <MaterialSymbol icon="bookmark" size={24} />
+        </Badge>
       </span>
     </div>
   );
@@ -56,8 +60,8 @@ export function LinearProgressDemo() {
       <LinearProgress value={40} label="Downloading" fullWidth />
       <LinearProgress value={70} color="secondary" label="Storage used" height={8} fullWidth />
       <LinearProgress color="tertiary" label="Loading…" fullWidth />
-      <LinearProgress value={60} wavey color="error" label="Syncing" fullWidth />
-      <LinearProgress wavey color="primary" fullWidth />
+      <LinearProgress value={60} wavy color="error" label="Syncing" fullWidth />
+      <LinearProgress wavy color="primary" fullWidth />
     </div>
   );
 }
@@ -68,6 +72,8 @@ export function CircularProgressDemo() {
       <CircularProgress value={25} />
       <CircularProgress value={50} color="secondary" />
       <CircularProgress value={75} color="tertiary" size={64} thickness={6} />
+      <CircularProgress value={60} wavy color="secondary" />
+      <CircularProgress wavy color="primary" />
       <CircularProgress color="error" />
       <CircularProgress size={32} thickness={3} />
     </div>
@@ -78,11 +84,14 @@ export function LoadingIndicatorDemo() {
   const [active, setActive] = React.useState(true);
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
-      <LoadingIndicator size={40} active={active} />
-      <LoadingIndicator size={48} active={active} />
-      <LoadingIndicator size={72} color="secondary" active={active} />
-      <LoadingIndicator size={56} color="tertiary" active={active} />
-      <LoadingIndicator size={48} color="error" active={active} />
+      <LoadingIndicator size={40} active={active} ariaLabel="Loading compact preview" />
+      <LoadingIndicator size={48} active={active} ariaLabel="Loading preview" />
+      <LoadingIndicator variant="contained" size={72} color="secondary" active={active} ariaLabel="Loading media" />
+      <LoadingIndicator variant="contained" size={56} color="tertiary" active={active} ariaLabel="Loading recommendations" />
+      <LoadingIndicator variant="contained" size={48} color="error" active={active} ariaLabel="Retrying request" />
+      <LoadingIndicator progress={0} ariaLabel="Upload at 0 percent" />
+      <LoadingIndicator progress={0.5} color="secondary" ariaLabel="Upload at 50 percent" />
+      <LoadingIndicator progress={1} color="tertiary" ariaLabel="Upload complete" />
       <Button
         variant="tonal"
         icon={active ? "pause" : "play_arrow"}
@@ -95,34 +104,53 @@ export function LoadingIndicatorDemo() {
 }
 
 export function SnackbarDemo() {
-  const [simpleOpen, setSimpleOpen] = React.useState(false);
-  const [actionOpen, setActionOpen] = React.useState(false);
+  const [activeSnackbar, setActiveSnackbar] = React.useState<
+    "simple" | "action" | null
+  >(null);
+  const [status, setStatus] = React.useState("");
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
-      <Button variant="tonal" onClick={() => setSimpleOpen(true)}>
+      <Button
+        variant="tonal"
+        onClick={() => {
+          setActiveSnackbar("simple");
+          setStatus("File sent.");
+        }}
+      >
         Simple snackbar
       </Button>
-      <Button variant="filled" icon="archive" onClick={() => setActionOpen(true)}>
+      <Button
+        variant="filled"
+        icon="archive"
+        onClick={() => {
+          setActiveSnackbar("action");
+          setStatus("Photo archived. Undo is available in the snackbar.");
+        }}
+      >
         Snackbar with action
       </Button>
       <p className="w-full md-body-medium text-m3-on-surface-variant">
         Snackbars are swipe-dismissable — flick or drag one in any direction to dismiss.
       </p>
+      <p
+        role="status"
+        aria-live="polite"
+        className="w-full md-body-medium text-m3-on-surface"
+      >
+        {status}
+      </p>
       <Snackbar
-        open={simpleOpen}
-        message="File sent"
-        onClose={() => setSimpleOpen(false)}
-      />
-      {/* Official M3: only one snackbar at a time — stack the demo pair so
-          both are legible when open simultaneously. */}
-      <Snackbar
-        open={actionOpen}
-        message="Photo archived"
-        icon="archive"
-        actionLabel="Undo"
-        onAction={() => setActionOpen(false)}
-        onClose={() => setActionOpen(false)}
-        className="bottom-24"
+        open={activeSnackbar !== null}
+        message={activeSnackbar === "action" ? "Photo archived" : "File sent"}
+        icon={activeSnackbar === "action" ? "archive" : undefined}
+        actionLabel={activeSnackbar === "action" ? "Undo" : undefined}
+        actionOnNewLine={activeSnackbar === "action"}
+        onAction={() => {
+          setActiveSnackbar(null);
+          setStatus("Archive undone.");
+        }}
+        onClose={() => setActiveSnackbar(null)}
+        className="sm:left-1/2 sm:-translate-x-1/2"
       />
     </div>
   );
@@ -141,10 +169,11 @@ export function TooltipDemo() {
       </Tooltip>
       <Tooltip
         rich
+        persistent
         title="Attach file"
         content="Attach documents, images, or videos up to 25 MB per file."
         actionLabel="Learn more"
-        placement="bottom"
+        showCaret
       >
         <Button variant="outlined" icon="attach_file">
           Attach
@@ -187,7 +216,7 @@ export function DialogDemo() {
         Open dialog
       </Button>
       <Button variant="outlined" onClick={() => setFullOpen(true)}>
-        Fullscreen dialog
+        Full-screen dialog
       </Button>
       <Dialog
         open={basicOpen}
@@ -211,7 +240,7 @@ export function DialogDemo() {
       <Dialog
         open={fullOpen}
         onClose={() => setFullOpen(false)}
-        fullscreen
+        fullScreen
         headline="Edit profile"
         actions={
           <>
@@ -236,8 +265,10 @@ export function DividerDemo() {
       <div className="w-full max-w-xs">
         <p className="md-body-medium text-m3-on-surface py-2">Full width</p>
         <Divider />
-        <p className="md-body-medium text-m3-on-surface py-2">Inset start</p>
+        <p className="md-body-medium text-m3-on-surface py-2">Generic start inset (16 / 0)</p>
         <Divider inset="start" />
+        <p className="md-body-medium text-m3-on-surface py-2">List preset (16 / 24)</p>
+        <Divider inset="list" semantic />
         <p className="md-body-medium text-m3-on-surface py-2">Inset middle</p>
         <Divider inset="middle" />
         <p className="md-body-medium text-m3-on-surface py-2">Thick outline</p>

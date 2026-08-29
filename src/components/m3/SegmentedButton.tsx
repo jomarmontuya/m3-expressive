@@ -16,6 +16,7 @@ export interface SegmentedButtonOption {
   value: string;
   label?: string;
   icon?: string;
+  ariaLabel?: string;
 }
 
 export interface SegmentedButtonProps
@@ -31,7 +32,7 @@ export interface SegmentedButtonProps
 
 /**
  * Official M3 segmented button height is 40dp ("sm", the default). "md" (56dp)
- * is an opt-in M3E expressive scale-up, not the spec height.
+ * is an opt-in library extension, not an M3 or M3E specification size.
  */
 const sizeStyles: Record<SegmentedButtonSize, { height: number; icon: number }> = {
   sm: { height: 40, icon: 18 },
@@ -99,15 +100,14 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
             <Toggle
               key={option.value}
               value={option.value}
+              aria-label={option.ariaLabel ?? (!option.label ? (option.icon ?? option.value).replaceAll("_", " ") : undefined)}
               className={cn(
                 "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 px-4",
-                /* 48dp touch target: invisible ::before hit-expander, vertical-only
-                   (horizontal expansion would dead-zone across adjacent segments). */
-                "before:absolute before:content-[''] before:left-0 before:right-0 before:-inset-y-2",
+                size === "sm" && "before:absolute before:content-[''] before:[inset-inline:0] before:-inset-y-1",
                 "md-label-large transition-colors duration-150",
-                i > 0 && (disabled ? "border-l border-m3-on-surface/12" : "border-l border-m3-outline"),
-                i === 0 && "rounded-l-full",
-                i === options.length - 1 && "rounded-r-full",
+                i > 0 && (disabled ? "border-s border-m3-on-surface/12" : "border-s border-m3-outline"),
+                i === 0 && "rounded-s-full",
+                i === options.length - 1 && "rounded-e-full",
                 disabled
                   ? isSelected
                     ? "bg-m3-on-surface/12 text-m3-on-surface/38"
@@ -139,7 +139,7 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
                   </motion.span>
                 )}
               </AnimatePresence>
-              {option.icon && <MaterialSymbol icon={option.icon} size={s.icon} />}
+              {!isSelected && option.icon && <MaterialSymbol icon={option.icon} size={s.icon} />}
               {option.label}
             </Toggle>
           );

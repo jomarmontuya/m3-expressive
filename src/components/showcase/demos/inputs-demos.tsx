@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/m3/Checkbox";
 import { Radio, RadioGroup } from "@/components/m3/Radio";
 import { Switch } from "@/components/m3/Switch";
 import { Slider } from "@/components/m3/Slider";
-import { Chip } from "@/components/m3/Chip";
+import { Chip, ChipGroup } from "@/components/m3/Chip";
 
 /* ------------------------------------------------------------------ */
 /* Text field                                                          */
@@ -48,9 +48,9 @@ export function TextFieldDemo() {
         fullWidth
       />
       <TextField label="Disabled field" value="Locked value" disabled fullWidth readOnly />
-      <div className="flex items-end gap-4">
-        <TextField size="sm" label="Small" fullWidth />
-        <TextField size="lg" label="Large" fullWidth />
+      <div className="flex min-w-0 flex-col items-stretch gap-4 sm:flex-row sm:items-end">
+        <TextField size="sm" label="Small" className="min-w-0" fullWidth />
+        <TextField size="lg" label="Large" className="min-w-0" fullWidth />
       </div>
     </div>
   );
@@ -63,17 +63,28 @@ export function TextFieldDemo() {
 export function SearchBarDemo() {
   const [query, setQuery] = React.useState("");
   const [preset, setPreset] = React.useState("M3");
+  const [lastAction, setLastAction] = React.useState("No search action used");
   return (
     <div className="flex max-w-xl flex-col gap-6 p-2">
       <SearchBar
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         fullWidth
-        trailingIcons={["mic", "close"]}
+        trailingIcons={[
+          { icon: "mic", label: "Voice search", onClick: () => setLastAction("Voice search") },
+          { icon: "close", label: "Clear search", onClick: () => setQuery("") },
+        ]}
         placeholder="Search components…"
       />
-      <SearchBar size="sm" value={preset} onChange={(e) => setPreset(e.target.value)} fullWidth trailingIcons={["filter_list"]} />
+      <SearchBar
+        size="sm"
+        value={preset}
+        onChange={(e) => setPreset(e.target.value)}
+        fullWidth
+        trailingIcons={[{ icon: "filter_list", label: "Filter results", onClick: () => setLastAction("Filters") }]}
+      />
       <SearchBar size="lg" value="" onChange={() => {}} leadingIcon="travel_explore" placeholder="Large, disabled" fullWidth disabled />
+      <span className="md-body-small text-m3-on-surface-variant">{lastAction}</span>
     </div>
   );
 }
@@ -120,6 +131,7 @@ export function SearchViewDemo() {
   const [recents, setRecents] = React.useState(["navigation rail", "bottom sheet", "chips", "elevation"]);
   const [fullQuery, setFullQuery] = React.useState("");
   const [dockedQuery, setDockedQuery] = React.useState("");
+  const [dockedOpen, setDockedOpen] = React.useState(false);
   const [lastAction, setLastAction] = React.useState("Nothing selected yet");
   return (
     <div className="flex max-w-xl flex-col gap-6 p-2">
@@ -147,14 +159,21 @@ export function SearchViewDemo() {
         <SearchResultRows query={fullQuery} />
       </SearchView>
 
-      {/* (b) Docked search view — always open, inline with its results */}
+      {/* (b) Docked search view — floating above a dismissible scrim */}
       <div className="flex flex-col gap-3">
         <p className="md-label-large text-m3-on-surface">Docked mode</p>
+        <button
+          type="button"
+          onClick={() => setDockedOpen(true)}
+          className="m3-state m3-focus h-12 rounded-full bg-m3-secondary-container px-5 md-label-large text-m3-on-secondary-container outline-none"
+        >
+          Open docked search
+        </button>
         <SearchView
-          open
+          open={dockedOpen}
           mode="docked"
           value={dockedQuery}
-          onOpenChange={() => {}}
+          onOpenChange={setDockedOpen}
           onValueChange={setDockedQuery}
           placeholder="Search tokens"
         >
@@ -176,7 +195,7 @@ export function AutocompleteDemo() {
   const [stack, setStack] = React.useState("React");
   return (
     <div className="flex max-w-md flex-col gap-6 p-2">
-      <Autocomplete options={FRAMEWORKS} value={framework} onChange={setFramework} label="Framework" placeholder="Type to filter…" fullWidth />
+      <Autocomplete options={FRAMEWORKS} value={framework} onChange={setFramework} label="Framework" name="framework" required placeholder="Type to filter…" fullWidth />
       <Autocomplete options={FRAMEWORKS} value={stack} onChange={setStack} label="Preselected" fullWidth />
     </div>
   );
@@ -202,11 +221,12 @@ export function CheckboxDemo() {
           }}
           label="Select all"
         />
-        <Checkbox checked={design} onChange={setDesign} label="Design" />
-        <Checkbox checked={engineering} onChange={setEngineering} label="Engineering" />
+        <Checkbox name="disciplines" value="design" checked={design} onChange={setDesign} label="Design" />
+        <Checkbox name="disciplines" value="engineering" checked={engineering} onChange={setEngineering} label="Engineering" />
       </div>
       <div className="flex flex-col gap-1">
         <Checkbox checked={subscribed} onChange={setSubscribed} label="Email updates" />
+        <Checkbox name="terms" defaultChecked label="Terms accepted" />
         <Checkbox checked error onChange={() => {}} label="Sync failed" />
         <Checkbox checked disabled label="Archived" />
       </div>
@@ -224,15 +244,18 @@ export function RadioDemo() {
   const [plan, setPlan] = React.useState<string>("standard");
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
-      <RadioGroup label="Plan" className="gap-1">
+      <RadioGroup label="Plan" name="plan" value={plan} onValueChange={setPlan} className="gap-1">
         {PLANS.map((p) => (
           <Radio
             key={p}
-            checked={plan === p}
-            onChange={() => setPlan(p)}
+            value={p}
             label={p.charAt(0).toUpperCase() + p.slice(1)}
           />
         ))}
+      </RadioGroup>
+      <RadioGroup label="Digest frequency" name="digest" defaultValue="daily" className="gap-1">
+        <Radio value="daily" label="Daily" />
+        <Radio value="weekly" label="Weekly" />
       </RadioGroup>
       <Radio checked={false} disabled label="Unavailable" />
     </div>
@@ -249,15 +272,19 @@ export function SwitchDemo() {
   return (
     <div className="flex flex-wrap items-center gap-6 p-2">
       <div className="flex items-center gap-3">
-        <Switch checked={wifi} onCheckedChange={setWifi} />
+        <Switch aria-label="Wi-Fi" name="wifi" checked={wifi} onCheckedChange={setWifi} />
         <span className="md-body-medium text-m3-on-surface-variant">Wi-Fi {wifi ? "on" : "off"}</span>
       </div>
       <div className="flex items-center gap-3">
-        <Switch checked={bluetooth} onCheckedChange={setBluetooth} />
+        <Switch aria-label="Bluetooth" name="bluetooth" checked={bluetooth} onCheckedChange={setBluetooth} showUnselectedIcon />
         <span className="md-body-medium text-m3-on-surface-variant">Bluetooth</span>
       </div>
-      <Switch checked disabled />
-      <Switch disabled />
+      <div className="flex items-center gap-3">
+        <Switch aria-label="Auto updates" name="auto_updates" defaultChecked showIcon />
+        <span className="md-body-medium text-m3-on-surface-variant">Auto updates</span>
+      </div>
+      <Switch aria-label="Enabled setting unavailable" checked disabled />
+      <Switch aria-label="Disabled setting unavailable" disabled />
     </div>
   );
 }
@@ -269,12 +296,36 @@ export function SwitchDemo() {
 export function SliderDemo() {
   const [volume, setVolume] = React.useState(40);
   const [steps, setSteps] = React.useState(3);
+  const [balance, setBalance] = React.useState(60);
+  const [range, setRange] = React.useState<[number, number]>([25, 75]);
   return (
-    <div className="flex max-w-md flex-wrap items-center gap-6 p-2">
-      <Slider value={volume} onChange={setVolume} showValueLabel fullWidth aria-label="Volume" />
+    <div className="flex max-w-xl flex-wrap items-center gap-6 p-2">
+      <Slider
+        value={volume}
+        onChange={setVolume}
+        name="volume"
+        size="md"
+        insetIcons={{ start: "volume_down", end: "volume_up" }}
+        showValueLabel
+        fullWidth
+        aria-label="Volume"
+      />
       <div className="w-full">
         <div className="mb-2 md-body-medium text-m3-on-surface-variant">Steps: {steps}</div>
-        <Slider value={steps} onChange={setSteps} min={0} max={10} discrete showValueLabel fullWidth aria-label="Steps" />
+        <Slider value={steps} onChange={setSteps} min={0} max={10} stops showValueLabel fullWidth aria-label="Steps" />
+      </div>
+      <Slider variant="centered" value={balance} onChange={setBalance} showValueLabel fullWidth aria-label="Balance" />
+      <Slider
+        variant="range"
+        value={range}
+        onChange={setRange}
+        rangeNames={["priceMin", "priceMax"]}
+        stops
+        fullWidth
+        aria-label="Price range"
+      />
+      <div className="h-64">
+        <Slider orientation="vertical" size="lg" value={volume} onChange={setVolume} showValueLabel aria-label="Vertical level" />
       </div>
       <Slider value={70} onChange={() => {}} disabled fullWidth aria-label="Disabled slider" />
     </div>
@@ -305,7 +356,7 @@ export function ChipDemo() {
           Open docs
         </Chip>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <ChipGroup label="Photo filters">
         {FILTER_TAGS.map((tag) => (
           <Chip
             key={tag}
@@ -316,20 +367,24 @@ export function ChipDemo() {
             {tag}
           </Chip>
         ))}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
+      </ChipGroup>
+      <ChipGroup label="Editable tags">
         {tags.map((tag) => (
           <Chip
             key={tag}
             variant="input"
-            leadingIcon="tag"
+            avatar={
+              <span className="grid place-items-center bg-m3-primary-container md-label-small text-m3-on-primary-container">
+                {tag[0]?.toUpperCase()}
+              </span>
+            }
             onRemove={() => setTags((prev) => prev.filter((t) => t !== tag))}
           >
             {tag}
           </Chip>
         ))}
         {tags.length === 0 && <span className="md-body-medium text-m3-on-surface-variant">All tags removed</span>}
-      </div>
+      </ChipGroup>
       <div className="flex flex-wrap items-center gap-2">
         <Chip variant="suggestion" size="md">
           Suggestion

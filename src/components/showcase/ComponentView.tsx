@@ -277,13 +277,6 @@ export function ComponentView({
               <p className="mt-2 md-body-medium text-m3-on-surface-variant">{p.description}</p>
             </div>
           ))}
-          <div className="rounded-2xl border border-m3-outline-variant bg-m3-surface-container-lowest p-4">
-            <code className="font-mono text-[13px] font-medium text-m3-primary">…rest</code>
-            <p className="mt-1.5 font-mono text-[12px] text-m3-on-surface">native props</p>
-            <p className="mt-2 md-body-medium text-m3-on-surface-variant">
-              All native element props + <code>className</code> are forwarded.
-            </p>
-          </div>
         </div>
         <div className="hidden overflow-x-auto rounded-2xl border border-m3-outline-variant sm:block">
           <table className="w-full min-w-[640px] text-left">
@@ -303,14 +296,6 @@ export function ComponentView({
                   <td className="w-[38%] max-w-[52ch] px-4 py-3 align-top md-body-medium text-m3-on-surface-variant">{p.description}</td>
                 </tr>
               ))}
-              <tr className="bg-m3-surface-container-lowest">
-                <td className="px-4 py-3 font-mono text-[13px] text-m3-primary">…rest</td>
-                <td className="px-4 py-3 font-mono text-[12px] text-m3-on-surface">native props</td>
-                <td className="px-4 py-3 text-m3-on-surface-variant">—</td>
-                <td className="px-4 py-3 md-body-medium text-m3-on-surface-variant">
-                  All native element props + <code>className</code> are forwarded.
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>

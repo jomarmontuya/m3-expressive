@@ -1,13 +1,13 @@
 # m3-expressive-react
 
-**Material 3 Expressive for React — 40 spec-audited components, official M3 design tokens, physics-based spring motion, and agentic-compatible metadata.**
+**Material 3 Expressive for React — 41 spec-audited components, official M3 design tokens, token-driven motion, and agentic-compatible metadata.**
 
 Built against the official [Material 3](https://m3.material.io) and [M3 Expressive](https://m3.material.io/blog/material-3-expressive) specifications: correct color roles, shape scale, state layers, elevation, and the signature bouncy M3E springs — with structured per-component metadata (`M3ComponentMeta`) so AI coding agents can use the library without guessing.
 
 ## Features
 
-- **40 components, spec-audited** — actions (Button, FAB, SplitButton…), communication (Badge, Snackbar, Tooltip…), containment (Card, Dialog, BottomSheet, SideSheet…), selection (Checkbox, Switch, Slider, Chips…), text input (TextField, SearchBar, SearchView, Autocomplete…), and navigation (Tabs, NavigationBar/Rail/Drawer, TopAppBar/BottomAppBar, Menu, DatePicker, TimePicker…).
-- **M3 Expressive motion** — every animation is a tokenized physics spring (`springs.expressive` is the signature bouncy one), plus shape-morph transitions.
+- **41 components, spec-audited** — actions (Button, FAB, SplitButton…), communication (Badge, Snackbar, Tooltip…), containment (Card, Dialog, BottomSheet, SideSheet…), selection (Checkbox, Switch, Slider, Chips…), text input (TextField, SearchBar, SearchView, Autocomplete…), and navigation (Tabs, NavigationBar/Rail/Drawer, TopAppBar/BottomAppBar, Menu, DatePicker, TimePicker…).
+- **M3 Expressive motion** — springs drive interactive spatial changes, token durations and easings drive fades and keyframes, and linear timing drives continuous progress waves and rotations. Components with JavaScript-specific reduced-motion fallbacks read the user preference directly; looping indicators stop or render a static state, while CSS animations also have a `prefers-reduced-motion` guard.
 - **Full token system** — all 34 M3 color roles as `--md-*` CSS variables, Roboto Flex typography, M3 shape scale, elevation dp levels, official hover/focus/pressed state-layer opacities.
 - **Dark / light + 4 curated themes** — baseline violet, Ocean Blue, Emerald Fresh, Warm Coral; switch via `data-theme` attribute + `.dark` class, no flash-of-wrong-theme.
 - **Theme Builder engine** — generate a complete light+dark scheme from any seed color with Google's official `@material/material-color-utilities` (7 variants, contrast control) — in-app or server-side.
@@ -152,7 +152,7 @@ All four curated schemes (baseline violet, ocean, emerald, coral) are also avail
 
 This library is designed to be used by AI coding agents:
 
-- **`M3ComponentMeta`** — every component exports a metadata object (40 in `m3-expressive-react/meta`) with id, category, variants, documented props, anatomy, states, do/don't guidelines, and a realistic example. Types live in `m3-expressive-react/types`.
+- **`M3ComponentMeta`** — every component exports a metadata object (41 in `m3-expressive-react/meta`) with id, category, variants, documented props, anatomy, states, do/don't guidelines, and a realistic example. Types live in `m3-expressive-react/types`.
 - **Registry** — `m3-expressive-react/registry` exposes `m3Registry`, `getComponent(id)`, `searchComponents(q)` and `getComponentsByCategory(cat)` (isomorphic, no React needed).
 - **MCP server** — a 14-tool Model Context Protocol server (list/get/search components, guidelines, examples, themes, tokens, motion + accessibility guidance, `generate_theme`) ships in the repo: [`mini-services/mcp-server`](https://github.com/…/m3-expressive-react/tree/main/mini-services/mcp-server).
 - **`/llms.txt` + `/api/agent`** — the companion docs app exposes an llms.txt handbook, a machine-readable registry (`/api/registry`), and an agent manifest (`/api/agent`).
@@ -166,7 +166,7 @@ This library is designed to be used by AI coding agents:
 | `m3-expressive-react/compiled.css` | Compiled stylesheet for consumers **without Tailwind**: tokens + helpers + the exact utilities the components use (no preflight) |
 | `m3-expressive-react/tokens` | Motion springs, easings, durations, shape, state, type, color tokens |
 | `m3-expressive-react/types` | `M3ComponentMeta`, category, registry contract types |
-| `m3-expressive-react/meta` | All 40 `M3ComponentMeta` objects |
+| `m3-expressive-react/meta` | All 41 `M3ComponentMeta` objects |
 | `m3-expressive-react/themes` | Curated theme data + CSS variable helpers |
 | `m3-expressive-react/theme-builder` | Seed → full light/dark scheme engine (`@material/material-color-utilities`) |
 | `m3-expressive-react/registry` | Component registry + search helpers |

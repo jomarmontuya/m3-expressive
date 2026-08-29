@@ -1,0 +1,199 @@
+{
+  "viewport": {
+    "name": "desktop",
+    "width": 1440,
+    "height": 1000
+  },
+  "rows": [
+    {
+      "id": "search-bar",
+      "name": "SearchBar",
+      "screenshot": "desktop/search-bar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4378
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "search-view",
+      "name": "SearchView",
+      "screenshot": "desktop/search-view.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3482
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "autocomplete",
+      "name": "Autocomplete",
+      "screenshot": "desktop/autocomplete.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3240
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "tabs",
+      "name": "Tabs",
+      "screenshot": "desktop/tabs.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3542
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "navigation-bar",
+      "name": "Navigation bar",
+      "screenshot": "desktop/navigation-bar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4046
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "navigation-drawer",
+      "name": "Navigation drawer",
+      "screenshot": "desktop/navigation-drawer.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3818
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "navigation-rail",
+      "name": "Navigation rail",
+      "screenshot": "desktop/navigation-rail.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4317
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "top-app-bar",
+      "name": "Top app bar",
+      "screenshot": "desktop/top-app-bar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4471
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "bottom-app-bar",
+      "name": "Bottom app bar",
+      "screenshot": "desktop/bottom-app-bar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3591
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "toolbar",
+      "name": "Toolbar",
+      "screenshot": "desktop/toolbar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4378
+      },
+      "console": "",
+      "pageErrors": ""
+    }
+  ]
+}

@@ -15,17 +15,18 @@ import { springs } from "@/lib/m3/tokens";
 import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
-/* MCP client — stateless Streamable-HTTP over the app gateway         */
+/* MCP client — stateless Streamable-HTTP                              */
 /* ------------------------------------------------------------------ */
 
-/**
- * Relative path only: the sandbox gateway routes /mcp to the MCP mini-service
- * via the XTransformPort query param. Never write absolute URLs or ports in
- * client fetches (project rule).
- */
-const MCP_URL = "/mcp?XTransformPort=3210";
+const MCP_GATEWAY_URL = "/mcp?XTransformPort=3210";
+const MCP_LOCAL_URL = "http://localhost:3210/mcp";
 const REQUEST_TIMEOUT_MS = 12_000;
 const UNREACHABLE_MSG = "MCP server unreachable on :3210 — is mini-services/mcp-server running?";
+
+function getMcpUrl(): string {
+  const isLocalApp = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+  return isLocalApp ? MCP_LOCAL_URL : MCP_GATEWAY_URL;
+}
 
 interface McpFrame {
   jsonrpc: "2.0";
@@ -61,7 +62,7 @@ let rpcId = 0;
 
 /** One JSON-RPC POST. Plain JSON per the stateless server; tolerates an SSE body and swallows 202 acks. */
 async function postRpc(frame: unknown, signal: AbortSignal): Promise<McpFrame | null> {
-  const res = await fetch(MCP_URL, {
+  const res = await fetch(getMcpUrl(), {
     method: "POST",
     headers: {
       "content-type": "application/json",

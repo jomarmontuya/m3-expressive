@@ -80,7 +80,7 @@ export function PropsPlayground({ spec }: { spec: PlaygroundSpec }) {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]">
         {/* stage — neutral dot grid over surface-container-lowest */}
         <div
-          className="flex min-h-[260px] items-center justify-center p-6 sm:p-10"
+          className="flex min-h-[260px] items-center justify-center p-4 sm:p-10"
           style={{
             backgroundImage: "radial-gradient(var(--md-outline-variant) 1px, transparent 1px)",
             backgroundSize: "16px 16px",
@@ -93,7 +93,7 @@ export function PropsPlayground({ spec }: { spec: PlaygroundSpec }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={fastSpatial}
-              className="flex items-center justify-center"
+              className="flex w-full min-w-0 items-center justify-center"
             >
               {spec.render(values, set)}
             </motion.div>
@@ -137,13 +137,14 @@ function Control({
   values: PlaygroundValues;
   set: (key: string, value: PlaygroundValue) => void;
 }) {
+  if (c.hiddenWhen?.(values)) return null;
   const disabled = c.disabledWhen?.(values) ?? false;
 
   if (c.kind === "segmented") {
     return (
       <div>
         <ControlHeading label={c.label} icon={c.icon ?? "category"} />
-        <div className="max-w-full pb-1">
+        <div className="m3-scroll max-w-full overflow-x-auto pb-1">
           <SegmentedButton
             type="single"
             size="sm"
@@ -154,10 +155,7 @@ function Control({
             options={c.options}
             disabled={disabled}
             aria-label={c.label}
-            /* fixed 3-up grid rows: every option always visible and at a
-               deterministic position — flex-wrap put wrap points on font-metric
-               boundaries and made the VR captures non-deterministic */
-            className="grid w-full grid-cols-3 [&>button]:min-w-0 [&>button]:truncate"
+            className="whitespace-nowrap [&>button]:px-3"
           />
         </div>
       </div>
@@ -186,10 +184,9 @@ function Control({
         <TextField
           size="sm"
           fullWidth
-          label={c.label}
+          aria-label={c.label}
           value={typeof values[c.key] === "string" ? (values[c.key] as string) : ""}
           onChange={(e) => set(c.key, e.target.value)}
-          leadingIcon={c.icon}
           disabled={disabled}
         />
       </div>

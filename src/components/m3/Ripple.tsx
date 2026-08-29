@@ -27,9 +27,14 @@ let rippleCounter = 0;
  * (icon, label, padding). The parent should be `relative overflow-hidden`
  * with a defined `color`.
  */
-export function Ripple({ className, disabled }: RippleProps) {
+export const Ripple = React.forwardRef<HTMLSpanElement, RippleProps>(function Ripple(
+  { className, disabled },
+  ref,
+) {
   const hostRef = React.useRef<HTMLSpanElement>(null);
   const [items, setItems] = React.useState<RippleItem[]>([]);
+
+  React.useImperativeHandle(ref, () => hostRef.current!, []);
 
   React.useEffect(() => {
     const host = hostRef.current?.parentElement;
@@ -45,7 +50,7 @@ export function Ripple({ className, disabled }: RippleProps) {
     };
     host.addEventListener("pointerdown", onDown, true);
     return () => host.removeEventListener("pointerdown", onDown, true);
-  }, []);
+  }, [disabled]);
 
   return (
     <span
@@ -63,7 +68,9 @@ export function Ripple({ className, disabled }: RippleProps) {
       ))}
     </span>
   );
-}
+});
+
+Ripple.displayName = "Ripple";
 
 function RippleBubble({ x, y, size, onDone }: RippleItem & { onDone: () => void }) {
   React.useEffect(() => {

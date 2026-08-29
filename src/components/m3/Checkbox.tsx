@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
+import type { CheckboxRootProps } from "@base-ui/react/checkbox";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -11,7 +12,8 @@ import { Ripple } from "./Ripple";
 /** Token springs retyped as framer-motion Transitions (`type` widens to string). */
 const springs = springsTokens as { [K in keyof typeof springsTokens]: Transition };
 
-export interface CheckboxProps {
+export interface CheckboxProps
+  extends Omit<CheckboxRootProps, "checked" | "onCheckedChange" | "className" | "render" | "children"> {
   checked?: boolean;
   indeterminate?: boolean;
   onChange?: (checked: boolean) => void;
@@ -19,6 +21,13 @@ export interface CheckboxProps {
   disabled?: boolean;
   error?: boolean;
   className?: string;
+  /** Form value submitted when checked. Native default is "on". */
+  value?: string;
+  /** Optional value submitted when unchecked. */
+  uncheckedValue?: string;
+  readOnly?: boolean;
+  required?: boolean;
+  inputRef?: React.Ref<HTMLInputElement>;
 }
 
 /**
@@ -36,47 +45,74 @@ export interface CheckboxProps {
  * animates SVG paths).
  */
 export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
-  { checked = false, indeterminate = false, onChange, label, disabled = false, error = false, className },
+  {
+    checked,
+    indeterminate = false,
+    onChange,
+    label,
+    disabled = false,
+    error = false,
+    className,
+    ...props
+  },
   ref
 ) {
-  const isFilled = checked || indeterminate;
+  const reduceMotion = useReducedMotion() ?? false;
+  const { defaultChecked, ...rootProps } = props;
+  const [internalChecked, setInternalChecked] = React.useState(defaultChecked ?? false);
+  const actualChecked = checked ?? internalChecked;
+  const isFilled = actualChecked || indeterminate;
 
   return (
     <BaseCheckbox.Root
       ref={ref}
       checked={checked}
+      defaultChecked={defaultChecked}
       indeterminate={indeterminate}
       disabled={disabled}
       nativeButton
-      onCheckedChange={(nextChecked) => onChange?.(nextChecked)}
+      onCheckedChange={(nextChecked) => {
+        if (checked === undefined) setInternalChecked(nextChecked);
+        onChange?.(nextChecked);
+      }}
+      {...rootProps}
       className={cn(
-        "m3-state m3-focus relative inline-flex items-center overflow-hidden rounded-full outline-none",
-        error ? "text-m3-error" : isFilled ? "text-m3-primary" : "text-m3-on-surface-variant",
-        disabled && "pointer-events-none opacity-38",
+        "group relative inline-flex min-h-12 items-center outline-none",
+        disabled
+          ? "pointer-events-none text-m3-on-surface/38"
+          : error
+            ? "text-m3-error"
+            : isFilled
+              ? "text-m3-primary"
+              : "text-m3-on-surface-variant",
         className
       )}
       render={
         <motion.button
-          whileTap={disabled ? undefined : { scale: 0.95 }}
-          transition={springs.fastVisual}
+          whileTap={disabled || reduceMotion ? undefined : { scale: 0.95 }}
+          transition={reduceMotion ? { duration: 0 } : springs.fastVisual}
         />
       }
     >
-      <Ripple disabled={disabled} />
-      <span className="grid h-12 w-12 shrink-0 place-items-center">
+      <span className="m3-state relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full group-focus-visible:outline-[3px_solid_var(--md-primary)] group-focus-visible:outline-offset-2">
+        <Ripple disabled={disabled} />
         <motion.span
           className={cn(
             "relative grid h-[18px] w-[18px] place-items-center rounded-[2px] border-2 transition-colors duration-150",
             isFilled
-              ? error
+              ? disabled
+                ? "border-m3-on-surface/38 bg-m3-on-surface/38"
+                : error
                 ? "border-m3-error bg-m3-error"
                 : "border-m3-primary bg-m3-primary"
-              : error
+              : disabled
+                ? "border-m3-on-surface/38 bg-transparent"
+                : error
                 ? "border-m3-error bg-transparent"
                 : "border-m3-on-surface-variant bg-transparent"
           )}
-          whileTap={disabled ? undefined : { scale: 0.85 }}
-          transition={springs.expressive}
+          whileTap={disabled || reduceMotion ? undefined : { scale: 0.85 }}
+          transition={reduceMotion ? { duration: 0 } : springs.expressive}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3">
             <motion.path
@@ -85,23 +121,30 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(funct
               strokeWidth={3.5}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={error ? "stroke-m3-on-error" : "stroke-m3-on-primary"}
+              className={disabled ? "stroke-m3-surface" : error ? "stroke-m3-on-error" : "stroke-m3-on-primary"}
               initial={false}
-              animate={{ pathLength: checked && !indeterminate ? 1 : 0, opacity: checked && !indeterminate ? 1 : 0 }}
-              transition={springs.expressive}
+              animate={{ pathLength: actualChecked && !indeterminate ? 1 : 0, opacity: actualChecked && !indeterminate ? 1 : 0 }}
+              transition={reduceMotion ? { duration: 0 } : springs.expressive}
             />
           </svg>
           {indeterminate && (
             <motion.span
-              className={cn("absolute h-[2px] w-[10px] rounded-full", error ? "bg-m3-on-error" : "bg-m3-on-primary")}
+              className={cn(
+                "absolute h-[2px] w-[10px] rounded-full",
+                disabled ? "bg-m3-surface" : error ? "bg-m3-on-error" : "bg-m3-on-primary"
+              )}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={springs.expressive}
+              transition={reduceMotion ? { duration: 0 } : springs.expressive}
             />
           )}
         </motion.span>
       </span>
-      {label && <span className="pr-3 text-m3-on-surface md-body-large">{label}</span>}
+      {label && (
+        <span className={cn("pr-3 md-body-large", disabled ? "text-m3-on-surface/38" : "text-m3-on-surface")}>
+          {label}
+        </span>
+      )}
     </BaseCheckbox.Root>
   );
 });

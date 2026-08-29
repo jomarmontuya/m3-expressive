@@ -1,6 +1,8 @@
 import * as React from 'react';
-import * as react_jsx_runtime from 'react/jsx-runtime';
 import { motion, Transition } from 'framer-motion';
+import { CheckboxRootProps } from '@base-ui/react/checkbox';
+import { RadioRootProps } from '@base-ui/react/radio';
+import { SwitchRootProps } from '@base-ui/react/switch';
 
 /**
  * MATERIAL 3 EXPRESSIVE — LIBRARY CONTRACT TYPES
@@ -125,17 +127,17 @@ declare const buttonMeta: M3ComponentMeta;
 declare const linearProgressMeta: M3ComponentMeta;
 
 type ButtonVariant = "filled" | "tonal" | "outlined" | "text" | "elevated";
-type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
-type ButtonShape = "full" | "large" | "medium" | "small";
+type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "extra-small" | "small" | "medium" | "large" | "extra-large";
+type ButtonShape = "round" | "square" | "full" | "large" | "medium" | "small";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
  * (motion-specific) signatures — those DOM versions would conflict once they
  * reach the motion element through Base UI's `render` composition.
  */
-interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd" | "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop"> {
-    variant?: ButtonVariant;
+type ButtonNativeProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd" | "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop">;
+interface ButtonCommonProps {
     size?: ButtonSize;
-    /** Corner shape. M3E default "full" morphs toward 20dp on press. */
+    /** Official round/square shape. Legacy fixed-radius names remain supported. */
     shape?: ButtonShape;
     /** Leading Material Symbol name */
     icon?: string;
@@ -148,6 +150,20 @@ interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>
     /** Rendered content — use for text labels */
     children?: React.ReactNode;
 }
+type ButtonToggleProps = {
+    variant?: Exclude<ButtonVariant, "text">;
+    /** Enables the current M3 toggle-button selected contract. Text buttons cannot toggle. */
+    toggleable: true;
+    /** Controlled selected state. Omit for internal state. */
+    selected?: boolean;
+    onSelectedChange?: (selected: boolean) => void;
+} | {
+    variant?: ButtonVariant;
+    toggleable?: false;
+    selected?: never;
+    onSelectedChange?: never;
+};
+type ButtonProps = ButtonNativeProps & ButtonCommonProps & ButtonToggleProps;
 /**
  * M3 Expressive Button.
  *
@@ -156,14 +172,15 @@ interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>
  * pointer events while disabled); the `render` prop composes it with a
  * framer-motion element so WE keep the visuals — press scale, the M3E shape
  * morph, springs and the M3 state layer. Press morphs the corner shape
- * (full → 20dp) with the bouncy expressive spring — the hallmark M3E
- * interaction. Plays for keyboard presses too (Space/Enter), via the shared
- * shapeMorph token pair.
+ * to the size-specific pressed corner with the expressive spring. Keyboard
+ * presses through Space and Enter use the same state.
  */
 declare const Button: React.ForwardRefExoticComponent<ButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
 type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
-type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
+type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "extra-small" | "small" | "medium" | "large" | "extra-large";
+type IconButtonWidth = "narrow" | "standard" | "default" | "wide";
+type IconButtonShape = "round" | "square";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
  * (motion-specific) signatures — those DOM versions would conflict once they
@@ -172,6 +189,10 @@ type IconButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
 interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd"> {
     variant?: IconButtonVariant;
     size?: IconButtonSize;
+    /** Official narrow, standard, or wide container width. */
+    width?: IconButtonWidth;
+    /** Round toggles to square when selected; square toggles to round. */
+    shape?: IconButtonShape;
     /** Material Symbols ligature name, e.g. "favorite" */
     icon: string;
     /** Enables on/off toggle behavior with a spring pop on selection */
@@ -193,8 +214,8 @@ interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElem
  */
 declare const IconButton: React.ForwardRefExoticComponent<IconButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
-type FabColor = "primary" | "secondary" | "tertiary" | "surface";
-type FabSize = "small" | "medium" | "large" | "extra-large";
+type FabColor = "primary" | "secondary" | "tertiary" | "primary-container" | "secondary-container" | "tertiary-container" | "surface";
+type FabSize = "small" | "standard" | "medium" | "large" | "extra-large";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
  * (motion-specific) signatures — those DOM versions would conflict once they
@@ -221,6 +242,7 @@ interface FabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "
  */
 declare const Fab: React.ForwardRefExoticComponent<FabProps & React.RefAttributes<HTMLButtonElement>>;
 
+type ExtendedFabSize = "small" | "medium" | "large";
 /**
  * Button attributes minus the handlers framer-motion re-defines with its own
  * (motion-specific) signatures — those DOM versions would conflict once they
@@ -228,8 +250,9 @@ declare const Fab: React.ForwardRefExoticComponent<FabProps & React.RefAttribute
  */
 interface ExtendedFabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd"> {
     color?: FabColor;
+    size?: ExtendedFabSize;
     /** Material Symbols ligature name, e.g. "edit" */
-    icon: string;
+    icon?: string;
     /** Text label rendered next to the icon */
     label: string;
     /** Lowered elevation (level 1 instead of 3) */
@@ -243,9 +266,9 @@ interface ExtendedFabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEle
  * the `type="button"` default and disabled/focus handling (it guards click +
  * pointer events while disabled); the `render` prop composes it with a
  * framer-motion element so WE keep the visuals — the expressive hover/tap
- * springs and the M3 state layer. Official anatomy: 56dp height, 16dp
- * corners, 24dp icon, 8dp icon-label gap, 20dp horizontal padding,
- * label-large text. Elevation 3 → 4 on hover/pressed (lowered: 1 → 2);
+ * springs and the M3 state layer. The current M3E set is small 56dp,
+ * medium 80dp, and large 96dp, with matching shape, type, and spacing tokens.
+ * Elevation 3 → 4 on hover (lowered: 1 → 2);
  * disabled uses the on-surface 12%/38% tokens with no elevation.
  */
 declare const ExtendedFab: React.ForwardRefExoticComponent<ExtendedFabProps & React.RefAttributes<HTMLButtonElement>>;
@@ -255,6 +278,8 @@ interface FabMenuAction {
     icon: string;
     /** Optional label shown as a tooltip-style chip next to the action FAB */
     label?: string;
+    /** Accessible name when no visible label is supplied. */
+    ariaLabel?: string;
     onClick?: () => void;
 }
 interface FabMenuProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -265,6 +290,10 @@ interface FabMenuProps extends React.HTMLAttributes<HTMLDivElement> {
     /** Controlled open state; omit to let the menu manage its own state */
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    /** Closed-state Material Symbol. */
+    icon?: string;
+    /** Open-state Material Symbol. */
+    closeIcon?: string;
     /**
      * Dock the menu to the bottom edge. Closed: the FAB sits flush bottom-center.
      * Open: the FAB's bottom corners morph square (shapes.large → shapes.none)
@@ -285,9 +314,9 @@ interface FabMenuProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 type FabMenuDockTarget = "screen" | "bottom-app-bar";
 /**
- * M3 Expressive FabMenu — a small FAB that expands into a staggered row or
- * column of related action FABs. The main 'edit' icon rotates 45° into a
- * close affordance while the actions spring in one after another
+ * M3 Expressive FabMenu — a 56dp FAB that expands into a staggered row or
+ * column of 56dp extended action buttons. The main icon changes to a close
+ * affordance while the actions spring in one after another
  * (50ms stagger = durations.short1 token).
  *
  * Built on Base UI's headless Menu: Root owns the open state, outside
@@ -301,15 +330,20 @@ type FabMenuDockTarget = "screen" | "bottom-app-bar";
  */
 declare const FabMenu: React.ForwardRefExoticComponent<FabMenuProps & React.RefAttributes<HTMLDivElement>>;
 
-type SplitButtonVariant = "filled" | "tonal" | "outlined";
-type SplitButtonSize = "sm" | "md" | "lg";
+type SplitButtonVariant = "filled" | "tonal" | "outlined" | "elevated";
+type SplitButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "extra-small" | "small" | "medium" | "large" | "extra-large";
 interface SplitButtonItem {
     label: string;
     icon?: string;
     onClick?: () => void;
 }
 interface SplitButtonProps {
-    label: string;
+    /** Visible leading label. Omit for the official icon-only leading segment. */
+    label?: string;
+    /** Optional leading Material Symbol. */
+    icon?: string;
+    /** Required accessible name when the leading segment is icon-only. */
+    ariaLabel?: string;
     onClick?: () => void;
     items: SplitButtonItem[];
     variant?: SplitButtonVariant;
@@ -318,8 +352,8 @@ interface SplitButtonProps {
     className?: string;
 }
 /**
- * M3 Expressive Split button — two joined pill segments: the left one fires
- * the default action, the right one opens a dropdown of related actions.
+ * M3 Expressive Split button — two joined pill segments: the start one fires
+ * the default action, the end one opens a dropdown of related actions.
  * The menu is a standard M3 menu surface: 4dp corners, elevation 2,
  * 48dp menu items.
  *
@@ -332,31 +366,39 @@ interface SplitButtonProps {
  */
 declare const SplitButton: React.ForwardRefExoticComponent<SplitButtonProps & React.RefAttributes<HTMLDivElement>>;
 
-type ButtonGroupVariant = "outlined" | "filled" | "tonal";
-type ButtonGroupSelection = "none" | "single" | "multiple";
-type ButtonGroupSize = "sm" | "md" | "lg";
+type ButtonGroupVariant = "outlined" | "filled" | "tonal" | "elevated";
+type ButtonGroupSelection = "none" | "single" | "multiple" | "single-required" | "multiple-required";
+type ButtonGroupLayout = "standard" | "connected";
+type ButtonGroupSize = "xs" | "sm" | "md" | "lg" | "xl" | "extra-small" | "small" | "medium" | "large" | "extra-large";
 interface ButtonGroupItem {
     id: string;
     label?: string;
     icon?: string;
+    ariaLabel?: string;
     onClick?: () => void;
 }
 interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
     buttons: ButtonGroupItem[];
     variant?: ButtonGroupVariant;
+    /** Standard uses official size gaps; connected uses 2dp gaps and asymmetric shapes. */
+    layout?: ButtonGroupLayout;
+    shape?: "round" | "square";
     selection?: ButtonGroupSelection;
     /** Controlled selected ids; omit to let the group manage its own state */
     value?: string[];
     onValueChange?: (value: string[]) => void;
-    /** M3E: hovered/selected button flex-grows with a layout spring */
+    /** Legacy alias: false disables the standard 15% pressed-width redistribution. */
     variableWidths?: boolean;
+    /** Width share added to the pressed item. Official default is 0.15. */
+    expandedRatio?: number;
     size?: ButtonGroupSize;
     disabled?: boolean;
 }
 /**
- * M3 Expressive connected button group — a row of pill buttons with a 4px
- * gutter and shared emphasis. Supports single/multiple selection and the
- * signature M3E variable-width treatment where the hovered segment grows.
+ * M3 Expressive button group — standard groups use official size-aware gaps
+ * (18/12/8/8/8dp) and the
+ * official pressed-width redistribution; connected groups use a 2dp gap and
+ * asymmetric inner corners. Both support optional or required selection.
  * The 40dp small size exposes an expanded 48dp touch target via an
  * invisible ::before hit-area extension.
  *
@@ -375,6 +417,7 @@ interface SegmentedButtonOption {
     value: string;
     label?: string;
     icon?: string;
+    ariaLabel?: string;
 }
 interface SegmentedButtonProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "defaultChecked"> {
     options: SegmentedButtonOption[];
@@ -406,9 +449,10 @@ interface BadgeProps {
     /** Anchor element the badge pins to (icon, avatar, button…). */
     children?: React.ReactNode;
     color?: BadgeColor;
-    /** Largest count shown before collapsing to "{max}+". Default 99. */
+    /** Largest count shown before collapsing to "{max}+". Capped at 999 so the label stays within four characters. */
     max?: number;
-    disabled?: boolean;
+    /** Concise description appended to the destination for assistive technology. */
+    ariaLabel?: string;
     className?: string;
 }
 /**
@@ -417,13 +461,15 @@ interface BadgeProps {
  * package's exports — and our anchored/count/dot API is richer anyway.)
  *
  * M3 Badge — a small status marker for another element.
- * With `children` it pins to the anchor's top-right corner using the official
- * offsets (content badge overhangs 4px right / 2px top; the 6px dot sits flush
- * in the corner). Standalone it renders a 16px pill or a 6px dot; a single
- * digit renders as a 16×16 badge. Changing `value` remounts the badge,
+ * With `children` it pins to the anchor's logical top-end corner using the
+ * official offsets (content badge overhangs 4px inline-end / 2px top; the dot sits flush
+ * in the corner). Standalone it renders a 16px full-round badge or a
+ * 6px full-round dot, matching the AndroidX Material3 token shapes; a single
+ * digit renders as a 16×16 badge. Large labels are limited to the official
+ * four characters, including a trailing "+". Changing `value` remounts the badge,
  * popping in with the bouncy M3E spring.
  */
-declare function Badge({ value, showDot, children, color, max, disabled, className, }: BadgeProps): string | number | bigint | boolean | react_jsx_runtime.JSX.Element | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null;
+declare const Badge: React.ForwardRefExoticComponent<BadgeProps & React.RefAttributes<HTMLSpanElement>>;
 
 type LinearProgressColor = "primary" | "secondary" | "tertiary" | "error";
 interface LinearProgressProps {
@@ -431,8 +477,10 @@ interface LinearProgressProps {
     value?: number;
     /** M3 Expressive wavy indicator line instead of a flat bar. */
     wavey?: boolean;
+    /** M3 Expressive wavy indicator line. Preferred spelling; overrides `wavey`. */
+    wavy?: boolean;
     color?: LinearProgressColor;
-    /** Track height in px (flat bar only — the wavy line is fixed at 20px). Default 4. */
+    /** Track height in px (flat bar only — the wavy line is fixed at 10px). Default 4. */
     height?: number;
     /** Stretch to the container width. */
     fullWidth?: boolean;
@@ -441,7 +489,9 @@ interface LinearProgressProps {
     className?: string;
 }
 /**
- * M3 Linear progress indicator — flat (baseline) or Expressive wavy.
+ * M3 Linear progress indicator — flat (baseline) or Expressive wavy. The
+ * wavy track is 10dp high with a 40dp determinate wavelength and a tighter
+ * 20dp indeterminate wavelength.
  * Semantics come from Base UI's Progress parts: `Root` renders the
  * `role="progressbar"` element (aria-valuenow/min/max + a valuetext, and
  * `data-indeterminate`/`data-progressing`/`data-complete` state attributes),
@@ -450,56 +500,69 @@ interface LinearProgressProps {
  * determinate, and nothing while indeterminate). All M3 visuals stay ours via
  * className; no buffer/range styling exists in the M3 spec or the current API.
  */
-declare function LinearProgress({ value, wavey, color, height, fullWidth, label, className, }: LinearProgressProps): react_jsx_runtime.JSX.Element;
+declare const LinearProgress: React.ForwardRefExoticComponent<LinearProgressProps & React.RefAttributes<HTMLDivElement>>;
 
 type CircularProgressColor = "primary" | "secondary" | "tertiary" | "error";
 interface CircularProgressProps {
     /** 0–100. Omit for the indeterminate sweeping arc. */
     value?: number;
-    /** Outer diameter in px. Default 48. */
+    /** Outer diameter in px. Default 40 for flat and 48 for wavy. */
     size?: number;
     /** Indicator stroke width in px. Default 4. */
     thickness?: number;
+    /** M3 Expressive circular waveform. Uses the official 48dp default size. */
+    wavy?: boolean;
+    /** @deprecated Use `wavy`. Kept for compatibility with LinearProgress. */
+    wavey?: boolean;
     color?: CircularProgressColor;
     /** Accessible name announced by screen readers. Default "Loading". */
     ariaLabel?: string;
     className?: string;
 }
 /**
- * M3 Circular progress indicator.
- * Determinate: a round-capped arc grows with a spring, stopping a 4px gap
- * before the fixed 4px stop indicator dot at 12 o'clock (official M3E track
- * gap + stop dot). Indeterminate: the M3 arc grows to ~270° and contracts
- * while the ring rotates.
+ * M3 Circular progress indicator. The flat indicator defaults to 40dp; the
+ * Expressive wavy indicator defaults to 48dp so the waveform stays legible.
+ * Determinate: a round-capped arc grows with a spring and leaves a real 4dp
+ * transparent gap before and after the remaining track. Circular indicators
+ * do not use the linear indicator's stop dot. Indeterminate: the M3 arc grows
+ * to ~270° and contracts while the ring rotates, without a visible track.
  *
  * No radial primitive — custom SVG retained; Progress.Root donates the
  * `role="progressbar"` semantics (aria-valuenow/min/max + valuetext, and the
  * `data-indeterminate`/`data-progressing`/`data-complete` states) from a
  * wrapper element while the ring itself stays a plain `aria-hidden` SVG.
  */
-declare function CircularProgress({ value, size, thickness, color, ariaLabel, className, }: CircularProgressProps): react_jsx_runtime.JSX.Element;
+declare const CircularProgress: React.ForwardRefExoticComponent<CircularProgressProps & React.RefAttributes<HTMLDivElement>>;
 
 type LoadingIndicatorColor = "primary" | "secondary" | "tertiary" | "error";
+type LoadingIndicatorVariant = "uncontained" | "contained";
 interface LoadingIndicatorProps {
     /** Container size in px (square). Default 48 (official ContainerHeight). */
     size?: number;
-    /** false pauses the morphing + spinning animations and rests at a circle at 38% opacity. Default true. */
+    /** 0–1 progress. When set, the indicator morphs from Circle to SoftBurst. */
+    progress?: number;
+    /** false pauses the morph and rests at a circle at 38% opacity. Default true. */
     active?: boolean;
+    /** Official uncontained indicator or the 48dp tonal container variant. */
+    variant?: LoadingIndicatorVariant;
     color?: LoadingIndicatorColor;
+    /** Purpose announced while active. Default "Loading". */
+    ariaLabel?: string;
     className?: string;
 }
 /**
  * No Base UI primitive for the expressive loading indicator in v1.0.0-rc.0 — custom implementation retained.
  *
- * M3 EXPRESSIVE Loading indicator (2025) — the signature shape-morphing loader.
- * The container rotates continuously one full turn (official 4666ms global
- * rotation) while its corner shape morphs in 650ms steps, with two dashed
- * arcs spinning on top. Colors follow the official tokens: container =
- * `*-container` role, arcs = matching `on-*-container` role.
- * Set `active={false}` to rest at a static circle at 38% opacity (also used
- * automatically for users with reduced-motion enabled).
+ * M3 Expressive loading indicator. The official default is uncontained;
+ * `variant="contained"` places the same 38dp indicator in a 48dp tonal
+ * container. Set `progress` to use the official determinate Circle-to-SoftBurst
+ * morph. Without progress, each morph starts at the official 650ms interval
+ * while the indicator makes the official 4666ms global rotation. Reduced motion
+ * renders a static, full-opacity result while keeping progress semantics. Inactive
+ * indeterminate indicators leave the accessibility tree so they stop announcing
+ * progress.
  */
-declare function LoadingIndicator({ size, active, color, className, }: LoadingIndicatorProps): react_jsx_runtime.JSX.Element;
+declare const LoadingIndicator: React.ForwardRefExoticComponent<LoadingIndicatorProps & React.RefAttributes<HTMLDivElement>>;
 
 interface SnackbarProps {
     /** Controls visibility (rendered through the Base UI toast manager). */
@@ -510,30 +573,35 @@ interface SnackbarProps {
     /** Trailing text action, e.g. "Undo". */
     actionLabel?: string;
     onAction?: () => void;
+    /** Put the action below the message. Use for long actions or compact widths. */
+    actionOnNewLine?: boolean;
     /** Called by auto-dismiss, swipe, Escape and the trailing close icon. */
     onClose?: () => void;
-    /** Auto-dismiss in ms. 0 keeps the snackbar sticky. Default 4000. */
+    /** Auto-dismiss for messages without actions. Actionable snackbars stay until acted on or dismissed. Default 4000. */
     duration?: number;
     className?: string;
 }
 /**
  * M3 Snackbar — brief confirmation feedback at the bottom of the screen on an
- * inverse surface (4dp corners, elevation 3, 344–672px per the official web
- * spec), with a text action and close control. The optional leading icon is a
- * documented extension beyond the base M3 anatomy (text + action + close).
+ * inverse surface (4dp corners, elevation 3, responsive compact width and a
+ * current 600dp maximum), with a text action and close control. Actionable
+ * snackbars do not auto-dismiss, and long actions can move to a new line.
+ * The optional leading icon is a documented extension beyond the base M3
+ * anatomy (text + action + close).
  *
  * Migrated onto the Base UI Toast primitive (rc.0), which now owns the toast
  * lifecycle: auto-dismiss timers (paused on hover, keyboard focus and window
  * blur), Escape-to-close, F6 viewport focus, ARIA wiring (the viewport is the
  * polite live region; the card is a focusable `role="dialog"` — replacing the
- * old `role="status"` on the card itself) and swipe-to-dismiss in any
+   * old `role="status"` on the card itself), one shared visible instance
+   * across component mounts, and swipe-to-dismiss in any
  * direction (40px threshold, replacing the framer-motion drag handler with
  * its 80px/500px-per-second gesture rules). framer-motion was dropped here
  * because Base UI freezes the card's `transform` inline while swiping — a
  * motion-driven transform would fight it, and JS springs cannot participate
  * in Base UI's transition-end detection.
  */
-declare function Snackbar({ open, message, icon, actionLabel, onAction, onClose, duration, className, }: SnackbarProps): react_jsx_runtime.JSX.Element;
+declare const Snackbar: React.ForwardRefExoticComponent<SnackbarProps & React.RefAttributes<HTMLDivElement>>;
 
 interface TooltipProps {
     /** Plain text or rich body content. */
@@ -545,17 +613,34 @@ interface TooltipProps {
     /** Rich only — optional action below the content. */
     actionLabel?: string;
     onAction?: () => void;
-    placement?: "top" | "bottom";
+    /** Rich only. Up to two short actions. */
+    actions?: TooltipAction[];
+    /** Carets are optional in current Material guidance. Default false. */
+    showCaret?: boolean;
+    /** Rich only. Open on click and stay open until another interaction. */
+    persistent?: boolean;
+    /** Persistent rich only. Open when the component first mounts. */
+    defaultOpen?: boolean;
+    placement?: TooltipPlacement;
+    align?: TooltipAlign;
     /** Trigger element. */
     children: React.ReactNode;
     className?: string;
 }
+type TooltipPlacement = "top" | "bottom" | "left" | "right" | "start" | "end";
+type TooltipAlign = "start" | "center" | "end";
+interface TooltipAction {
+    label: string;
+    onClick?: () => void;
+}
 /**
  * M3 Tooltip — a text label that appears on hover or keyboard focus.
  * Plain tooltips are 4dp-cornered inverse-surface labels (4/8px padding,
- * 200px max, 8dp caret); rich tooltips add a title and optional action on
- * a surface-container card (12dp corners, level-2 elevation, outline
- * border). Shows after a 500ms delay and hides after 600ms; the trigger
+ * 200px max, with an opt-in caret); rich tooltips add a title and up to two
+ * actions on a surface-container card (12dp corners and level-2 elevation).
+ * Shows after a 500ms delay. Transient tooltips hide 1.5 seconds
+ * after leaving the target region. Rich tooltips default to bottom-end and
+ * can opt into click-triggered persistent behavior; the trigger
  * receives aria-describedby from Base UI while the tooltip is visible.
  *
  * Built on Base UI's headless Tooltip: Provider owns the shared
@@ -563,11 +648,10 @@ interface TooltipProps {
  * listeners and aria wiring, Positioner the anchored placement with
  * collision avoidance, and Popup stays hoverable so rich-tooltip actions
  * remain clickable across the 4px anchor gap. Portals + `role="tooltip"`
- * + aria-describedby are handled for us; only the M3 surface visuals and
- * the fastVisual entrance spring are ours. (Touch long-press toggling from
- * the hand-rolled version is replaced by Base UI's touch/focus behavior.)
+ * + aria-describedby are handled for us. A 500ms touch long-press opens the
+ * same popup because Base UI deliberately limits its hover listener to mouse.
  */
-declare function Tooltip({ content, rich, title, actionLabel, onAction, placement, children, className, }: TooltipProps): react_jsx_runtime.JSX.Element;
+declare const Tooltip: React.ForwardRefExoticComponent<TooltipProps & React.RefAttributes<HTMLElement>>;
 
 interface BannerAction {
     label: string;
@@ -586,27 +670,33 @@ interface BannerProps {
     className?: string;
 }
 /**
- * M3 Banner — a prominent, screen-wide message at the top of a screen section
- * with optional icon and text action buttons. Per the official spec the
+ * Material 2 / Flutter Banner extension — banners are not in the current M3
+ * component catalog. This compatibility component keeps the Flutter Material
+ * banner anatomy: a prominent, screen-wide message at the top of a screen
+ * section with optional icon and text action buttons. The
  * container has square corners (shape none) and full width, and the action row
  * sits below the content above a divider, end-aligned (official reference
  * implementation), on surface-container-low.
  */
-declare function Banner({ icon, text, actions, open, onClose, fullWidth, className, }: BannerProps): react_jsx_runtime.JSX.Element;
+declare const Banner: React.ForwardRefExoticComponent<BannerProps & React.RefAttributes<HTMLDivElement>>;
 
 interface DialogProps {
     open: boolean;
     /** Scrim click + Escape + close handling; ignored when dismissible is false. */
-    onClose?: () => void;
+    onClose: () => void;
     /** Leading Material Symbol centered above the headline. */
     icon?: string;
     headline?: string;
+    /** Accessible name used when no visible headline is present. */
+    ariaLabel?: string;
     /** Dialog body content. */
     children?: React.ReactNode;
-    /** Row of action buttons, right-aligned with the official 8dp gap. */
+    /** Trailing action buttons. Full-screen dialogs place them in a 56dp bottom bar. */
     actions?: React.ReactNode;
-    /** Edge-to-edge full screen variant. */
+    /** @deprecated Use `fullScreen`. */
     fullscreen?: boolean;
+    /** Edge-to-edge full-screen variant with the official header app bar. */
+    fullScreen?: boolean;
     /** Allow Escape and scrim-tap dismissal. Default true. */
     dismissible?: boolean;
     className?: string;
@@ -615,7 +705,11 @@ interface DialogProps {
  * M3 Dialog — a modal window that blocks the page underneath with a 32%
  * scrim. Basic dialogs center on screen on surface-container-high with
  * 28dp corners, elevation 3 and the official 280–560dp width range;
- * fullscreen dialogs cover the viewport edge-to-edge.
+ * full-screen dialogs cover the viewport edge-to-edge and move the close
+ * affordance and headline into the official 56dp header app bar. Full-screen
+ * actions stay pinned in a separate 56dp bottom bar.
+ * Titles and actions stay pinned while long body content scrolls inside the
+ * bounded panel.
  *
  * Built on Base UI's headless Dialog: Root owns the focus trap, page
  * scroll lock, focus restore to the trigger, Escape/outside-press
@@ -627,36 +721,37 @@ interface DialogProps {
  * element-form `render` prop; Base UI defers unmounting until the exit
  * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
-declare function Dialog({ open, onClose, icon, headline, children, actions, fullscreen, dismissible, className, }: DialogProps): react_jsx_runtime.JSX.Element;
+declare const Dialog: React.ForwardRefExoticComponent<DialogProps & React.RefAttributes<HTMLDivElement>>;
 
-type DividerInset = "none" | "start" | "middle" | "end";
+type DividerInset = "none" | "start" | "middle" | "end" | "list";
 type DividerColor = "outline" | "outline-variant";
 type DividerOrientation = "horizontal" | "vertical";
 interface DividerProps {
     /**
-     * Inset. Horizontal "start" uses the official M3 list divider insets:
-     * 16dp left / 24dp right (M3 lists specs). "middle" = 16dp equal indents
-     * (M3 divider guideline: inset dividers are equally indented by default);
-     * "end" is a library extension. Default "none" (full-bleed).
+     * Inset. "start" is the generic 16dp start / 0dp end inset. "list" is
+     * the M3 list preset with 16dp start / 24dp end. "middle" uses 16dp on
+     * both inline edges; "end" is a library extension.
      */
     inset?: DividerInset;
     /** Stroke thickness in px. Default 1 (official 1dp). */
     thickness?: number;
     color?: DividerColor;
     orientation?: DividerOrientation;
+    /** Expose role="separator" semantics. Decorative by default. */
+    semantic?: boolean;
     className?: string;
 }
 /**
  * M3 Divider — a 1dp line that groups content in lists and layouts.
  * Supports start/middle/end insets and a vertical orientation.
  *
- * Built on the Base UI Separator primitive: it owns the `role="separator"`
- * element, `aria-orientation` and orientation defaults; the M3 visuals
- * (inset, thickness, color role) are applied on top via className/style.
+ * Built on the Base UI Separator primitive. Dividers are decorative by
+ * default (`role="none"`); `semantic` opts into separator semantics and
+ * orientation announcement. M3 visuals are applied via className/style.
  * A future labeled-divider variant would render this separator plus a
  * text span; no label prop exists in the public API yet.
  */
-declare function Divider({ inset, thickness, color, orientation, className, }: DividerProps): react_jsx_runtime.JSX.Element;
+declare const Divider: React.ForwardRefExoticComponent<DividerProps & React.RefAttributes<HTMLDivElement>>;
 
 type CardVariant = "elevated" | "filled" | "outlined";
 /** M3 cards rest at medium (12dp); M3 Expressive adds extra-large (28dp) for hero cards. */
@@ -669,21 +764,30 @@ interface CardProps extends Omit<React.ComponentPropsWithoutRef<typeof motion.di
     shape?: CardShape;
     /** Enables press shape morph, state layer, ripple and keyboard activation. Defaults to true when onClick is provided. */
     interactive?: boolean;
+    /** Disables the card action and applies its variant-specific disabled container, outline and 38% content tokens. */
+    disabled?: boolean;
 }
 /**
  * M3 Expressive Card — a 12dp-corner containment surface (M3 shape.medium;
  * pass shape="extraLarge" for 28dp M3E hero cards).
  * Interactive cards morph to the pressed shape (medium → small) and scale
- * to 97% with the signature expressive spring, lift to elevation 2 on
- * hover and emit a ripple (state layer 8% hover / 10% pressed).
+ * to 97% with the signature expressive spring. Elevated cards lift to
+ * elevation 2 on hover, filled cards lift to elevation 1, and every active
+ * card emits a state layer (8% hover / 10% pressed) plus ripple.
  */
 declare const Card: React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>;
 
+type ListVariant = "standard" | "segmented";
+type ListSelectionMode = "none" | "single" | "multiple";
 interface ListProps extends React.HTMLAttributes<HTMLUListElement> {
+    /** Current M3 Expressive list treatment. Default "standard". */
+    variant?: ListVariant;
+    /** Adds listbox/option semantics and roving arrow-key focus. */
+    selectionMode?: ListSelectionMode;
     /**
      * Full-width dividers between rows (divide-y). The official list divider
-     * inset is 16dp start / 24dp end (M3 lists spec) — for inset dividers use
-     * <Divider inset="start" /> in flow layouts instead.
+     * inset is 16dp start / 24dp end (M3 lists spec). Use
+     * <Divider inset="list" /> when an inset divider is part of the list flow.
      */
     dividers?: boolean;
     children?: React.ReactNode;
@@ -706,11 +810,11 @@ interface ListItemProps {
      * lines={3} top-aligns content and wraps supporting text to two lines.
      */
     lines?: 1 | 2 | 3;
-    /** Leading slot — a 24px MaterialSymbol or an avatar */
+    /** Leading slot — a 20px MaterialSymbol or an avatar */
     leading?: React.ReactNode;
     /** Trailing text, e.g. metadata ("128") */
     trailing?: React.ReactNode;
-    /** Trailing Material Symbol name (shortcut for trailing icon) */
+    /** Trailing 20px Material Symbol name (shortcut for trailing icon) */
     trailingIcon?: string;
     /** Highlights the row with the secondary container color */
     selected?: boolean;
@@ -728,6 +832,7 @@ interface ListItemProps {
 declare const ListItem: React.ForwardRefExoticComponent<ListItemProps & React.RefAttributes<HTMLLIElement>>;
 
 type BottomSheetVariant = "modal" | "standard";
+type BottomSheetState = "partial" | "expanded";
 interface BottomSheetProps {
     open: boolean;
     onClose: () => void;
@@ -736,19 +841,28 @@ interface BottomSheetProps {
     title?: string;
     children?: React.ReactNode;
     footer?: React.ReactNode;
-    /** Max height of the sheet (default "calc(100dvh - 72px)" — official 72dp top margin) */
+    /** Controlled height state. */
+    sheetState?: BottomSheetState;
+    /** Initial uncontrolled height state. Default "partial". */
+    defaultState?: BottomSheetState;
+    onStateChange?: (state: BottomSheetState) => void;
+    /** Height used by the partial state. Default "50dvh". */
+    partialHeight?: string;
+    /** Max height override. Defaults to a 72dp compact top margin and 56dp above 640px. */
     maxHeight?: string;
     className?: string;
 }
 /**
  * M3 Bottom Sheet — a surface anchored to the bottom edge with a 32×4dp
  * drag handle (22dp from the top). Container is surface-container-low with
- * 28dp top corners at elevation 1, spanning full width up to 640dp.
+   * 28dp top corners at elevation 1, spanning full width up to 640dp. Expanded
+   * sheets keep a 72dp top margin on compact windows and 56dp above 640px.
  * Modal sheets fade the official 32% black scrim, spring up with the
  * default spatial spring, support drag-to-dismiss (pull > 120px or fast
  * downward fling), close on Escape, lock body scroll, trap Tab focus and
- * restore focus to the trigger on close. Standard sheets render inline
- * without a scrim.
+ * restore focus to the trigger on close. The drag handle is a real button:
+ * click, Enter or Space cycles between partial and expanded heights. Standard
+ * sheets render inline without a scrim.
  *
  * The modal variant is built on Base UI's headless Dialog: Root owns the
  * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
@@ -760,14 +874,14 @@ interface BottomSheetProps {
  */
 declare const BottomSheet: React.ForwardRefExoticComponent<BottomSheetProps & React.RefAttributes<HTMLDivElement>>;
 
-type SideSheetSide = "left" | "right";
+type SideSheetSide = "start" | "end" | "left" | "right";
 type SideSheetVariant = "modal" | "standard";
 interface SideSheetProps {
     open: boolean;
     onClose: () => void;
-    /** Edge the sheet is anchored to (default "right") */
+    /** Logical inline edge. "left" and "right" remain aliases for start/end. */
     side?: SideSheetSide;
-    /** "modal" overlays a 32% scrim; "standard" renders inline on surface (open ignored) */
+    /** "modal" overlays a 32% scrim; "standard" renders inline on surface. */
     variant?: SideSheetVariant;
     title?: string;
     children?: React.ReactNode;
@@ -777,14 +891,15 @@ interface SideSheetProps {
     className?: string;
 }
 /**
- * M3 Side Sheet — a secondary surface anchored to the left or right edge
+ * M3 Side Sheet — a secondary surface anchored to a logical inline edge
  * with the official 16dp radius on the inner (docked) edge only — the
  * corners touching the screen edge stay square. Modal sheets slide in over
  * a 32% scrim at elevation 1 with the default spatial spring, close on
  * Escape, lock body scroll, trap Tab focus and restore focus to the
- * trigger on close; standard sheets render inline as a persistent
- * surface-toned panel with no scrim. Content padding is 24dp with 12dp
- * between top elements.
+ * trigger on close; standard sheets render inline as a surface-toned panel
+ * with no scrim and unmount when `open` is false. Content padding is 24dp
+ * with 12dp between top elements. The optional footer is a start-aligned
+ * 72dp-minimum action area with 16dp top and 24dp bottom padding.
  *
  * The modal variant is built on Base UI's headless Dialog: Root owns the
  * focus trap, scroll lock, Escape dismissal, focus restore and aria-modal;
@@ -795,13 +910,13 @@ interface SideSheetProps {
  */
 declare const SideSheet: React.ForwardRefExoticComponent<SideSheetProps & React.RefAttributes<HTMLDivElement>>;
 
-type CarouselLayout = "multi-browse" | "hero" | "inline";
-type CarouselAlignment = "start" | "end";
+type CarouselLayout = "multi-browse" | "uncontained" | "hero" | "full-screen" | "inline";
+type CarouselAlignment = "start" | "center" | "end";
 type CarouselTone = "primary" | "secondary" | "tertiary" | "surface";
 type CarouselShape = "round" | "square";
-/** Navigation-arrow affordance: "auto" reveals on hover/focus while overflowing,
- * "always" keeps visible arrows (keyboard-reachable), "never" hides them. */
+/** Optional compatibility affordance. Current Material carousels default to no arrows. */
 type CarouselArrows = "auto" | "always" | "never";
+type CarouselUncontainedMode = "standard" | "multi-aspect";
 /**
  * One snap item. Items render tonal containers with a large MaterialSymbol
  * and an md-label-large label (the library has no image assets); give an item
@@ -818,14 +933,18 @@ interface CarouselItem {
     href?: string;
     /** Renders the item as a button; receives the item on activation */
     onClick?: (item: CarouselItem) => void;
+    /** Item width ratio used by the uncontained multi-aspect configuration. */
+    aspectRatio?: number;
 }
 interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
     items: CarouselItem[];
     /**
      * Official layout strategies (m3.material.io/components/carousel):
-     * multi-browse — flexible equal widths, `itemCount` visible + a 24px peek;
-     * hero — one large (66%) leading item, the rest smaller (34%);
-     * inline — one full-width item per view, adjacent items peek 0.
+     * multi-browse — flexible items that resize at the viewport edges;
+     * uncontained — fixed-size items that scroll without changing aspect ratio;
+     * hero — one focal item with one or two smaller items;
+     * full-screen — one edge-to-edge item per view.
+     * `inline` remains as a deprecated alias for `full-screen`.
      */
     layout?: CarouselLayout;
     /** Scroll-snap alignment of items. */
@@ -834,30 +953,39 @@ interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
     itemCount?: number;
     /** Item corners: 28dp (extraLarge, M3E) or square. */
     shape?: CarouselShape;
-    /** Optional navigation arrows (M3 scrolling-row affordance): "auto" reveals
+    /** Optional compatibility arrows: "auto" reveals
      * circular 48dp buttons on hover/focus while content overflows in that
-     * direction; "always" keeps them visible and keyboard-reachable; "never"
-     * (and the default "auto") never blocks the swipe/scroll gesture. */
+     * direction; "always" keeps them visible and keyboard-reachable. Current
+     * Material guidance discourages arrows, so the default is "never". */
     arrows?: CarouselArrows;
+    /** Equal-size or mixed-ratio uncontained configuration. */
+    uncontainedMode?: CarouselUncontainedMode;
+    /** Shared ratio for standard uncontained items. Default 16:9. */
+    itemAspectRatio?: number;
+    /** Required accessibility path on scrolling pages, except full-screen. */
+    showAllHref?: string;
+    /** Button alternative to showAllHref for opening the complete vertical list. */
+    onShowAll?: () => void;
+    showAllLabel?: string;
     /** Accessible name of the carousel region. */
     ariaLabel?: string;
     className?: string;
 }
 /**
  * M3 Expressive Carousel — a horizontally scrollable, scroll-snapped
- * collection of items with the three official layout strategies
- * (multi-browse / hero / inline), 8dp gaps and shaped items.
+ * collection of items with the four current layout strategies
+ * (multi-browse / uncontained / hero / full-screen), 8dp gaps and shaped items.
  *
  * Provenance: https://m3.material.io/components/carousel/overview
  *
- * M3E signature — dynamic widths: in the multi-browse layout the
- * hovered/focused slide springs to ~1.12× its slot while the neighbors give
- * up the difference (total visible width stays constant), using the
- * `springs.defaultSpatial` physics spring. Items snap with CSS scroll-snap
- * (mandatory), the native scrollbar is hidden, and Arrow keys rove focus
- * between slides (Tab reaches every actionable slide). Optional circular
- * navigation arrows (48dp, elevation 1) scroll one item per press and appear
- * only while content overflows in their direction.
+ * Dynamic widths follow scroll position: multi-browse items move through
+ * large, medium and small keyline sizes; hero keeps one large item with one
+ * or two 40–56dp small items. Reduced-motion users get stable equal widths.
+ * Full-screen is a vertical portrait feed with edge snap. Every layout adds
+ * a scroll parallax effect, removed under reduced motion. Items use CSS
+ * scroll-snap, the native scrollbar is hidden, and Arrow keys rove focus
+ * between slides. ArrowUp/ArrowDown leave the carousel. Optional circular
+ * compatibility arrows can be opted in, but are absent by default.
  *
  * ```tsx
  * <Carousel
@@ -875,7 +1003,7 @@ declare const Carousel: React.ForwardRefExoticComponent<CarouselProps & React.Re
 
 type TextFieldVariant = "filled" | "outlined";
 type TextFieldSize = "xs" | "sm" | "md" | "lg";
-interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "prefix"> {
     variant?: TextFieldVariant;
     size?: TextFieldSize;
     label?: string;
@@ -885,6 +1013,14 @@ interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
     leadingIcon?: string;
     /** Trailing Material Symbol name (overridden by the error icon) */
     trailingIcon?: string;
+    /** Content shown immediately before the editable text. */
+    prefix?: React.ReactNode;
+    /** Content shown immediately after the editable text. */
+    suffix?: React.ReactNode;
+    /** Render a vertically growing textarea instead of a single-line input. */
+    multiline?: boolean;
+    /** Initial visible lines when `multiline` is true. */
+    rows?: number;
     fullWidth?: boolean;
 }
 /**
@@ -905,6 +1041,11 @@ interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
 declare const TextField: React.ForwardRefExoticComponent<TextFieldProps & React.RefAttributes<HTMLInputElement>>;
 
 type SearchBarSize = "sm" | "md" | "lg";
+interface SearchBarTrailingAction {
+    icon: string;
+    label: string;
+    onClick: React.MouseEventHandler<HTMLButtonElement>;
+}
 interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -912,23 +1053,28 @@ interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
     size?: SearchBarSize;
     /** Leading Material Symbol name (defaults to "search") */
     leadingIcon?: string;
-    /** Trailing inline icon buttons, as Material Symbol names */
-    trailingIcons?: string[];
+    /**
+     * Trailing Material Symbols. Strings stay decorative for compatibility;
+     * pass an action object (or `onTrailingIconClick`) to render a button.
+     */
+    trailingIcons?: Array<string | SearchBarTrailingAction>;
+    /** Legacy aggregate action handler for string entries in `trailingIcons`. */
+    onTrailingIconClick?: (icon: string, index: number) => void;
     /** Called when the user presses Enter */
     onSubmit?: () => void;
     fullWidth?: boolean;
     disabled?: boolean;
 }
 /**
- * M3 Search bar — a rounded-full pill that elevates and lightens its
- * surface when focused. Enter triggers `onSubmit`.
+ * M3 Search bar — a rounded-full surface-container-high pill at the
+ * official level-0 tonal and shadow elevation. Enter triggers `onSubmit`.
  *
  * The underlying element is Base UI's `Input` (v1.0.0-rc.0), which renders a
  * native `<input>` (via Field.Control) and stays composable with `Field`
  * wrappers. It is used standalone here because the M3 search bar carries no
  * visible label — `aria-label` falls back to the placeholder, exactly as
- * before. The elevated pill shell, focus elevation and trailing icon
- * buttons remain custom M3 visuals.
+ * before. Trailing strings are decorative; actionable entries require an
+ * explicit callback so the component never creates inert icon buttons.
  */
 declare const SearchBar: React.ForwardRefExoticComponent<SearchBarProps & React.RefAttributes<HTMLInputElement>>;
 
@@ -938,7 +1084,7 @@ interface SearchViewProps {
     open: boolean;
     /** Called when the view requests to open or close (Escape, leading icon). */
     onOpenChange: (open: boolean) => void;
-    /** `full-screen` covers the viewport as a modal dialog; `docked` renders inline above its results. */
+    /** `full-screen` covers the viewport; `docked` opens a floating result surface over a scrim. */
     mode?: SearchViewMode;
     /** Hint text, also used as the accessible dialog label. Default "Search". */
     placeholder?: string;
@@ -959,12 +1105,12 @@ interface SearchViewProps {
     /** Extra trailing controls rendered after the clear button. */
     trailingActions?: React.ReactNode;
     /**
-     * Results content below the divider. Rendered whenever recent-search
+     * Results content below the search header. Rendered whenever recent-search
      * suggestions are not shown (i.e. the query is non-empty, or no
      * `recentSearches` were provided).
      */
     children?: React.ReactNode;
-    /** Focus the query input when the full-screen view opens. Default true (full-screen only). */
+    /** Focus the query input when either view opens. Default true. */
     autoFocus?: boolean;
     className?: string;
 }
@@ -973,9 +1119,10 @@ interface SearchViewProps {
  * full-width search surface for larger, richer search that expands over the
  * UI (m3.material.io/components/search-view).
  *
- * The 56dp input row sits on surface-container-high with a 1dp
- * outline-variant divider below it (the official full-bleed treatment;
- * elevation stays 0 because the view replaces the surface). While the query
+ * The docked view uses the official 360–720dp width, 240dp minimum height,
+ * two-thirds viewport height cap, 28dp corners, elevation 3, and a scrim. The
+ * current full-screen contained style keeps a 56dp focused search bar without
+ * a baseline divider inside a surface-container-low viewport. While the query
  * is empty, recent-search suggestion rows are shown — leading history icon,
  * label-large text, optional per-row close — and are keyboard navigable
  * (ArrowUp/ArrowDown walk an active index, Enter selects, via
@@ -1011,11 +1158,16 @@ interface AutocompleteProps {
     placeholder?: string;
     fullWidth?: boolean;
     disabled?: boolean;
+    id?: string;
+    name?: string;
+    form?: string;
+    required?: boolean;
+    "aria-label"?: string;
     className?: string;
 }
 /**
- * M3 Autocomplete — an outlined text field that suggests options from a
- * filterable dropdown menu.
+ * Library extension, not a standalone M3 component. It composes the
+ * official outlined TextField geometry with an official Menu-style popup.
  *
  * Built on Base UI's headless Autocomplete: Root owns the combobox state,
  * live list filtering (`mode="list"` — the input query filters `options`
@@ -1031,7 +1183,7 @@ interface AutocompleteProps {
  */
 declare const Autocomplete: React.ForwardRefExoticComponent<AutocompleteProps & React.RefAttributes<HTMLInputElement>>;
 
-interface CheckboxProps {
+interface CheckboxProps extends Omit<CheckboxRootProps, "checked" | "onCheckedChange" | "className" | "render" | "children"> {
     checked?: boolean;
     indeterminate?: boolean;
     onChange?: (checked: boolean) => void;
@@ -1039,6 +1191,13 @@ interface CheckboxProps {
     disabled?: boolean;
     error?: boolean;
     className?: string;
+    /** Form value submitted when checked. Native default is "on". */
+    value?: string;
+    /** Optional value submitted when unchecked. */
+    uncheckedValue?: string;
+    readOnly?: boolean;
+    required?: boolean;
+    inputRef?: React.Ref<HTMLInputElement>;
 }
 /**
  * M3 Checkbox — a 48px touch target with an 18px rounded box.
@@ -1054,16 +1213,21 @@ interface CheckboxProps {
  * stay custom (framer-motion pathLength springs — no Base UI primitive
  * animates SVG paths).
  */
-declare const Checkbox: React.ForwardRefExoticComponent<CheckboxProps & React.RefAttributes<HTMLButtonElement>>;
+declare const Checkbox: React.ForwardRefExoticComponent<Omit<CheckboxProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
 
-interface RadioProps {
+interface RadioProps extends Omit<RadioRootProps<string>, "value" | "className" | "render" | "children"> {
     checked?: boolean;
     onChange?: () => void;
+    /** Stable value used by RadioGroup and native form submission. */
+    value?: string;
     label?: string;
     disabled?: boolean;
     /** Applies the error color to the ring and inner dot. */
     error?: boolean;
     className?: string;
+    readOnly?: boolean;
+    required?: boolean;
+    inputRef?: React.Ref<HTMLInputElement>;
 }
 /**
  * M3 Radio button — a 48px touch target with a 20px ring (2dp stroke) and
@@ -1071,12 +1235,19 @@ interface RadioProps {
  * when selected. Wrap a set of Radios in `RadioGroup` for roving arrow-key
  * navigation (now handled by Base UI's RadioGroup).
  */
-declare const Radio: React.ForwardRefExoticComponent<RadioProps & React.RefAttributes<HTMLButtonElement>>;
-interface RadioGroupProps {
+declare const Radio: React.ForwardRefExoticComponent<Omit<RadioProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
+interface RadioGroupProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
     /** Accessible name for the group (rendered as aria-label on role="radiogroup"). */
     label?: string;
-    className?: string;
-    children?: React.ReactNode;
+    name?: string;
+    form?: string;
+    value?: string;
+    defaultValue?: string;
+    onValueChange?: (value: string) => void;
+    disabled?: boolean;
+    readOnly?: boolean;
+    required?: boolean;
+    inputRef?: React.Ref<HTMLInputElement>;
 }
 /**
  * M3 Radio group — a `role="radiogroup"` wrapper. Keyboard behavior
@@ -1085,52 +1256,81 @@ interface RadioGroupProps {
  * The selected value is mirrored from the child Radios' `checked` props and
  * every change is routed back through the selected Radio's `onChange`.
  */
-declare function RadioGroup({ label, className, children }: RadioGroupProps): react_jsx_runtime.JSX.Element;
+declare const RadioGroup: React.ForwardRefExoticComponent<RadioGroupProps & React.RefAttributes<HTMLDivElement>>;
 
-interface SwitchProps {
+interface SwitchProps extends Omit<SwitchRootProps, "checked" | "onCheckedChange" | "className" | "render" | "children"> {
     checked?: boolean;
     onCheckedChange?: (checked: boolean) => void;
     disabled?: boolean;
+    /** Show the optional checked-state icon. Official default is false. */
+    showIcon?: boolean;
+    /** Show the official optional close icon in the unchecked thumb. */
+    showUnselectedIcon?: boolean;
     className?: string;
+    value?: string;
+    uncheckedValue?: string;
+    readOnly?: boolean;
+    required?: boolean;
+    inputRef?: React.Ref<HTMLInputElement>;
 }
 /**
  * M3 Switch — 52×32 track with a thumb that grows 16 → 24px and slides
  * on the default spatial spring. Pressing squashes the thumb to 28px.
- * The checked thumb shows an on-primary "check" glyph.
+ * Checked and unchecked thumbs support the official optional glyphs. A
+ * separate 40dp circular state layer follows the thumb over the 52×32 track.
  *
  * Built on Base UI's headless Switch Root + Thumb: the Root owns the
  * `role="switch"`, `aria-checked`, hidden form input and keyboard
  * activation (adapted to our public `checked`/`onCheckedChange` API); the
  * M3 thumb + track visuals and spring motion are unchanged.
  */
-declare const Switch: React.ForwardRefExoticComponent<SwitchProps & React.RefAttributes<HTMLButtonElement>>;
+declare const Switch: React.ForwardRefExoticComponent<Omit<SwitchProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
 
-interface SliderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
-    value: number;
-    onChange: (value: number) => void;
+type SliderOrientation = "horizontal" | "vertical";
+type SliderSize = "xs" | "sm" | "md" | "lg" | "xl";
+interface SliderCommonProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onChange"> {
     min?: number;
     max?: number;
     step?: number;
-    /** Shows tick dots at each step on the inactive track */
+    /** Current M3 "stops" configuration. */
+    stops?: boolean;
+    /** Legacy alias for `stops`. */
     discrete?: boolean;
-    /** Shows the value bubble while hovering or dragging */
     showValueLabel?: boolean;
+    /** Optional Material Symbols inset into the start and end of the track. */
+    insetIcons?: {
+        start: string;
+        end: string;
+    };
+    orientation?: SliderOrientation;
+    /** Official M3E size scale. xs is the official default. */
+    size?: SliderSize;
     disabled?: boolean;
+    /** Native form name. Range sliders submit both values under this name. */
+    name?: string;
+    /** Distinct native form names for the start and end values of a range slider. */
+    rangeNames?: readonly [string, string];
+    /** Id of the owning form when the slider renders outside it. */
+    form?: string;
     fullWidth?: boolean;
     className?: string;
 }
+interface SliderSingleProps extends SliderCommonProps {
+    value: number;
+    onChange: (value: number) => void;
+    variant?: "standard" | "centered";
+}
+interface SliderRangeProps extends SliderCommonProps {
+    value: readonly [number, number];
+    onChange: (value: [number, number]) => void;
+    variant: "range";
+}
+type SliderProps = SliderSingleProps | SliderRangeProps;
 /**
- * M3 Expressive slider — a thick 16px track with the signature tall thin
- * handle (4×44dp) that widens to 6dp while engaged, and 4dp on-surface stop
- * indicator dots (one at the track end; one per step when `discrete`).
- * The interactive row is 48dp tall to satisfy the touch-target guideline.
- *
- * Built on Base UI's headless Slider: Root owns value state, Control owns
- * pointer capture, drag tracking and the full keyboard contract (arrows
- * ±step, PageUp/PageDown ±10 steps, Home/End), Track/Indicator size the
- * fill, and Thumb is our handle rendered as a motion.span for the
- * expressive width spring. Our `value`/`onChange` API stays the public
- * contract; Base UI's array-or-number value is normalized inside.
+ * Current M3 Expressive slider. The official default is a horizontal,
+ * extra-small standard slider. `variant="centered"`, `variant="range"`,
+ * vertical orientation and the sm/md/lg/xl sizes select the other official
+ * configurations. Base UI owns pointer, keyboard and range-thumb behavior.
  */
 declare const Slider: React.ForwardRefExoticComponent<SliderProps & React.RefAttributes<HTMLDivElement>>;
 
@@ -1140,9 +1340,15 @@ interface ChipProps {
     variant?: ChipVariant;
     selected?: boolean;
     onSelect?: (selected: boolean) => void;
+    /** Primary action for assist, input, and suggestion chips. */
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
     /** Input chips: renders a trailing cancel affordance */
     onRemove?: () => void;
+    /** Accessible name for an input chip's remove action. */
+    removeLabel?: string;
     leadingIcon?: string;
+    /** Input chips: 24dp circular avatar. Takes precedence over leadingIcon. */
+    avatar?: React.ReactNode;
     trailingIcon?: string;
     elevated?: boolean;
     size?: ChipSize;
@@ -1155,14 +1361,21 @@ interface ChipProps {
  * animated leading check), input (with a cancel affordance) and
  * suggestion. Press squashes to 96% on the fast visual spring.
  *
- * Built on Base UI headless parts: selectable variants (filter / assist /
- * suggestion — every variant whose public API carries `selected` +
- * `onSelect`) render a Base UI `Toggle`, which owns `aria-pressed` and the
- * pressed state; input chips are pure actions and render a Base UI
- * `Button`. Both render through a `motion.button` so the M3 press squash
- * and visuals are unchanged.
+ * Built on Base UI headless parts: only filter chips render a Toggle and own
+ * selected state. Assist and suggestion chips are actions. Input chips keep
+ * separate primary and remove actions without nested interactive elements.
  */
 declare const Chip: React.ForwardRefExoticComponent<ChipProps & React.RefAttributes<HTMLButtonElement>>;
+interface ChipGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Accessible name for the chip collection. */
+    label?: string;
+}
+/**
+ * Keyboard wrapper for a related chip collection. Arrow keys move through
+ * chips. Home and End move to the first or last chip. Delete and Backspace
+ * activate the focused input chip's remove action.
+ */
+declare const ChipGroup: React.ForwardRefExoticComponent<ChipGroupProps & React.RefAttributes<HTMLDivElement>>;
 
 interface NavItem$3 {
     value: string;
@@ -1174,8 +1387,8 @@ interface TabsProps {
     items: NavItem$3[];
     value: string;
     onChange: (v: string) => void;
-    /** primary = 64dp icon+label columns with a sliding 3dp underline sized to the label text; secondary = 48dp expressive tonal pill row */
-    variant?: "primary" | "secondary";
+    /** primary uses a label-width indicator; secondary uses the official full-tab-width underline; tonal preserves the old pill extension. */
+    variant?: "primary" | "secondary" | "tonal";
     /** Stretch to the container width and distribute tabs equally */
     fullWidth?: boolean;
     className?: string;
@@ -1191,18 +1404,15 @@ interface TabsProps {
  * keyboard/ARIA contract this component implemented by hand before.
  *
  * The selection indicator intentionally stays a framer-motion shared-layout
- * overlay (NOT `Tabs.Indicator`): the M3 primary underline must match the
- * *measured label text width* (ResizeObserver + document.fonts.ready), while
- * Base UI's indicator sizes to the whole tab and animates via CSS
- * transitions — the motion overlay keeps the official 3dp underline and the
- * secondary tonal pill pixel-identical and spring-animated (layoutId).
+ * overlay (NOT `Tabs.Indicator`): the primary underline matches the measured
+ * label width, while the secondary underline matches the full tab width.
  *
- * Primary tabs are the official 64dp icon+label columns; secondary tabs are
- * the 48dp Expressive tonal pill row. Horizontally scrollable when tabs
- * overflow — per spec, leading/trailing scroll arrows appear while content
- * overflows in that direction (kept custom; Base UI Tabs has no scroller).
+ * Primary tabs are 64dp icon+label columns. Secondary tabs use the official
+ * 48dp surface row. The old 48dp tonal pill row remains as `variant="tonal"`.
+ * Leading and trailing scroll arrows remain custom because Base UI Tabs has
+ * no scroller primitive.
  */
-declare function Tabs({ items, value, onChange, variant, fullWidth, className, }: TabsProps): react_jsx_runtime.JSX.Element;
+declare const Tabs: React.ForwardRefExoticComponent<TabsProps & React.RefAttributes<HTMLDivElement>>;
 
 interface NavItem$2 {
     value: string;
@@ -1216,18 +1426,24 @@ interface NavigationBarProps {
     onChange: (v: string) => void;
     /** Render as a block-level full-width bar (default). */
     fullWidth?: boolean;
+    /** short is the current 64dp M3E bar; tall keeps the 80dp baseline M3 bar. */
+    variant?: "short" | "tall";
+    /** Short bars can put the icon above or before the label. */
+    iconPosition?: "top" | "start";
+    /** Centered is recommended for medium-width screens; equal fits compact screens. */
+    arrangement?: "equal" | "centered";
     className?: string;
 }
 /**
- * M3 Navigation Bar — primary app navigation for small screens.
- * Fixed 80dp bar; the active destination gets a tonal pill that springs
- * between icons via a shared layout transition (layoutId).
+ * M3 Navigation Bar — primary app navigation for compact and medium screens.
+ * The current M3E short bar is 64dp and supports top or start icon positions;
+ * the 80dp baseline bar remains available as the tall variant.
  * Accepts 3–5 destinations. The active destination button carries
  * `aria-current="page"`; Base UI has no primitive for this pattern, so the
  * roving/tab behavior stays intentionally simple (every destination is
  * tabbable) which suits a 3–5 item bar.
  */
-declare function NavigationBar({ items, value, onChange, fullWidth, className, }: NavigationBarProps): react_jsx_runtime.JSX.Element;
+declare const NavigationBar: React.ForwardRefExoticComponent<NavigationBarProps & React.RefAttributes<HTMLElement>>;
 
 interface NavItem$1 {
     value: string;
@@ -1239,7 +1455,7 @@ interface NavigationDrawerProps {
     items: NavItem$1[];
     value: string;
     onChange: (v: string) => void;
-    /** modal slides over a scrim; standard is a static inline panel — both 360dp wide per the M3 spec */
+    /** Modal slides over a scrim; standard is static inline. Both adapt from 240–360dp. */
     variant?: "modal" | "standard";
     /** Controls the modal drawer (standard is always visible). Uncontrolled defaults to closed. */
     open?: boolean;
@@ -1254,7 +1470,7 @@ interface NavigationDrawerProps {
 }
 /**
  * M3 Navigation Drawer — side navigation for destinations.
- * Official container: 360dp wide, surface-container-low, 16dp trailing
+ * Official container: 240–360dp wide, surface-container-low, 16dp trailing
  * corners; 56dp full-width pill items (active = secondary-container).
  *
  * The modal variant is presented with the Base UI Dialog primitive:
@@ -1270,7 +1486,7 @@ interface NavigationDrawerProps {
  * spring completes (`onAnimationComplete`) — the documented Base UI escape
  * hatch for externally-animated popups.
  */
-declare function NavigationDrawer({ items, value, onChange, variant, open, onClose, header, footer, fullHeight, className, }: NavigationDrawerProps): react_jsx_runtime.JSX.Element;
+declare const NavigationDrawer: React.ForwardRefExoticComponent<NavigationDrawerProps & React.RefAttributes<HTMLElement>>;
 
 interface NavItem {
     value: string;
@@ -1288,43 +1504,86 @@ interface NavigationRailProps {
     menuIcon?: string;
     /** Called when the leading menu icon is pressed (showing the icon also toggles the expanded rail) */
     onMenuClick?: () => void;
+    /** wide is the current M3E rail; narrow keeps the compact 80dp baseline rail. */
+    variant?: "wide" | "narrow";
+    /** Expands a wide rail from 96dp to a horizontal 220–360dp layout. */
+    expanded?: boolean;
+    /** Expanded wide-rail width, clamped to the official 220–360dp range. */
+    expandedWidth?: number;
+    /** Standard expansion affects layout; modal expansion overlays content and traps focus. */
+    expandedMode?: "standard" | "modal";
     /** Draw a hinge/fold divider along the leading edge (foldable devices) */
     foldingLine?: boolean;
     className?: string;
 }
 /**
- * M3 Navigation Rail — side navigation for medium/extended screens
- * (tablets, foldables). 80dp vertical bar with an optional header slot
- * (commonly a FAB); the active destination pill springs between items
- * via a shared layout transition (layoutId). The active destination
- * button carries `aria-current="page"`.
+ * M3 Navigation Rail — side navigation for medium and expanded screens.
+ * The current M3E wide rail morphs between a 96dp collapsed rail and a
+ * 220–360dp expanded rail. The 80dp narrow baseline remains available.
  */
-declare function NavigationRail({ items, value, onChange, header, menuIcon, onMenuClick, foldingLine, className, }: NavigationRailProps): react_jsx_runtime.JSX.Element;
+declare const NavigationRail: React.ForwardRefExoticComponent<NavigationRailProps & React.RefAttributes<HTMLElement>>;
 
-type TopAppBarVariant = "small" | "center" | "medium" | "large";
+type TopAppBarVariant = "small" | "center" | "medium" | "large" | "medium-flexible" | "large-flexible";
+type TopAppBarScrollBehavior = "none" | "pinned" | "enter-always" | "exit-until-collapsed";
 interface TopAppBarAction {
     icon: string;
     label?: string;
     onClick?: () => void;
+    /** Filled trailing actions use the secondary-container tonal treatment. */
+    variant?: "standard" | "filled";
+}
+interface TopAppBarSearch {
+    open?: boolean;
+    defaultOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    mode?: SearchViewMode;
+    value?: string;
+    defaultValue?: string;
+    placeholder?: string;
+    ariaLabel?: string;
+    onChange?: (value: string) => void;
+    onSubmit?: (value: string) => void;
+    recentSearches?: string[];
+    onRecentSelect?: (value: string) => void;
+    onRecentRemove?: (value: string) => void;
+    children?: React.ReactNode;
 }
 interface TopAppBarProps {
-    title: string;
+    title: React.ReactNode;
+    /** Flexible app bars can show a subtitle in expanded and collapsed states. */
+    subtitle?: string;
     variant?: TopAppBarVariant;
     actions?: TopAppBarAction[];
+    /** Search action and its SearchView configuration. */
+    search?: TopAppBarSearch;
+    /** Optional product image slot before the title. */
+    image?: React.ReactNode;
+    /** Optional logo slot before the title. Takes precedence over image. */
+    logo?: React.ReactNode;
     onBack?: () => void;
-    /** Scroll container to observe; defaults to the window. */
+    /** Official scroll behavior. The default `none` keeps the app bar static. */
+    scrollBehavior?: TopAppBarScrollBehavior;
+    /** Scroll container to observe when scrollBehavior is not `none`; defaults to the window. */
     scrollTargetRef?: React.RefObject<HTMLElement | null>;
+    /** Override the official expanded height; values below 64 are clamped. */
+    expandedHeight?: number;
+    /** Flexible title and subtitle alignment. */
+    titleAlignment?: "start" | "center";
     fullWidth?: boolean;
     className?: string;
 }
-declare function TopAppBar({ title, variant, actions, onBack, scrollTargetRef, fullWidth, className, }: TopAppBarProps): react_jsx_runtime.JSX.Element;
+declare const TopAppBar: React.ForwardRefExoticComponent<TopAppBarProps & React.RefAttributes<HTMLElement>>;
 
 interface BottomAppBarAction {
     icon: string;
     label?: string;
     onClick?: () => void;
 }
+interface BottomAppBarTrailingAction extends BottomAppBarAction {
+    label: string;
+}
 type BottomAppBarNavigationIcon = BottomAppBarAction;
+type BottomAppBarScrollBehavior = "none" | "exit-always";
 interface BottomAppBarFab {
     icon: string;
     onClick?: () => void;
@@ -1333,14 +1592,26 @@ interface BottomAppBarProps {
     /** Leading navigation icon (official anatomy item; typically the hamburger/menu affordance) */
     navigationIcon?: BottomAppBarNavigationIcon;
     actions?: BottomAppBarAction[];
-    /** Trailing Material Symbol icon names */
-    trailingIcons?: string[];
-    /** Center-docked FAB that notches the bar */
+    /** Trailing labeled action objects. */
+    trailingActions?: BottomAppBarTrailingAction[];
+    /** FAB that docks at the bar edge; center placement overlaps without a cutout. */
     fab?: BottomAppBarFab;
+    /** flexible is the current 64dp docked-toolbar form; standard is the 80dp baseline bar. */
+    variant?: "flexible" | "standard";
+    /** Flexible content distribution. Standard always uses start arrangement. */
+    arrangement?: "start" | "between" | "around" | "evenly" | "fixed";
+    /** Flexible expanded height. Any positive finite number is accepted. */
+    expandedHeight?: number;
+    /** Official bottom app bar scroll policy. The default keeps the bar visible. */
+    scrollBehavior?: BottomAppBarScrollBehavior;
+    /** Scroll container to observe for an opt-in scroll behavior; defaults to the window. */
+    scrollTargetRef?: React.RefObject<HTMLElement | null>;
+    /** Official FAB placement is end. Center is kept as a compatibility extension. */
+    fabPosition?: "end" | "center";
     fullWidth?: boolean;
     className?: string;
 }
-declare function BottomAppBar({ navigationIcon, actions, trailingIcons, fab, fullWidth, className, }: BottomAppBarProps): react_jsx_runtime.JSX.Element;
+declare const BottomAppBar: React.ForwardRefExoticComponent<BottomAppBarProps & React.RefAttributes<HTMLDivElement>>;
 
 interface ToolbarIconItem {
     icon: string;
@@ -1349,18 +1620,24 @@ interface ToolbarIconItem {
     active?: boolean;
 }
 type ToolbarVariant = "floating" | "dockable";
-type ToolbarColor = "surface" | "primary" | "secondary" | "tertiary";
+type ToolbarColor = "standard" | "vibrant" | "surface" | "primary" | "secondary" | "tertiary";
 interface ToolbarProps {
-    icons: ToolbarIconItem[];
+    icons?: ToolbarIconItem[];
+    /** Arbitrary toolbar controls, including Buttons and text fields. */
+    children?: React.ReactNode;
+    /** Optional FAB placed at the trailing edge of a horizontal toolbar. */
+    fab?: React.ReactNode;
     variant?: ToolbarVariant;
-    /** Container color role (maps to the matching container + on-container colors) */
+    /** Official standard or vibrant colors. Legacy color-role aliases remain supported. */
     color?: ToolbarColor;
     /** Floating placement inside a positioned ancestor */
-    position?: "top" | "bottom";
+    position?: "top" | "bottom" | "left" | "right";
+    /** Floating toolbars support horizontal and vertical layouts. */
+    orientation?: "horizontal" | "vertical";
     /** Pill width for the floating variant (px) */
     width?: number;
     fullWidth?: boolean;
-    /** Dockable variant: square corners + elevation 1 when docked, pill otherwise */
+    /** Dockable variant: square corners and full width when docked, pill otherwise. */
     docked?: boolean;
     className?: string;
 }
@@ -1377,16 +1654,32 @@ interface ToolbarProps {
  * prop so the bar keeps its framer-motion animation while still being the
  * toolbar root (Base UI merges role/aria/handlers onto the motion element).
  */
-declare function Toolbar({ icons, variant, color, position, width, fullWidth, docked, className, }: ToolbarProps): react_jsx_runtime.JSX.Element;
+declare const Toolbar: React.ForwardRefExoticComponent<ToolbarProps & React.RefAttributes<HTMLDivElement>>;
 
 type MenuItemType = "item" | "divider" | "label";
 interface MenuItemData {
     type?: MenuItemType;
     label?: string;
     icon?: string;
+    /** Optional trailing Material Symbol. */
+    trailingIcon?: string;
+    /** Optional numeric or short-text badge in the trailing slot. */
+    badge?: string | number;
     shortcut?: string;
     disabled?: boolean;
     destructive?: boolean;
+    /** Controlled selected or checked state for M3E selectable menu items. */
+    selected?: boolean;
+    /** Optional icon shown instead of icon while selected. */
+    selectedIcon?: string;
+    /** Optional second line used by expressive menu items. */
+    supportingText?: string;
+    /** Selectable semantics. */
+    role?: "menuitem" | "menuitemcheckbox" | "menuitemradio";
+    /** Keep the popup open after activation, useful for checkable items. */
+    closeOnClick?: boolean;
+    /** Nested choices shown in a motion-enabled cascading submenu. */
+    submenu?: MenuItemData[];
     onClick?: () => void;
 }
 type MenuPlacement = "bottom-start" | "bottom-end";
@@ -1398,6 +1691,10 @@ interface MenuProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     placement?: MenuPlacement;
+    /** segmented is the current M3E menu; standard keeps the baseline M3 list. */
+    variant?: "segmented" | "standard";
+    /** Vibrant menus use the tertiary color family and should be used sparingly. */
+    color?: "standard" | "vibrant";
     className?: string;
 }
 /**
@@ -1416,37 +1713,49 @@ interface MenuProps {
  * focus, typeahead and Enter/Space activation, closing the menu on select.
  * Only the M3 surface visuals and the fastVisual spring are ours.
  */
-declare function Menu({ trigger, items, open, onOpenChange, placement, className, }: MenuProps): react_jsx_runtime.JSX.Element;
+declare const Menu: React.ForwardRefExoticComponent<MenuProps & React.RefAttributes<HTMLButtonElement>>;
 
 /** Official date-range shape (androidx DateRangePicker / MaterialDatePicker) */
 interface DateRange {
     start?: Date;
     end?: Date;
 }
+type DatePickerDisplayMode = "calendar" | "input";
 interface DatePickerProps {
+    /** Locale used for date order, labels, and the first day of the week. */
+    locale?: string;
     /** Currently selected date */
     value?: Date;
+    /** Initial selected date for uncontrolled use. */
+    defaultValue?: Date;
     onChange?: (d: Date) => void;
     /** Earliest selectable date (days before are disabled) */
     minDate?: Date;
     /** Latest selectable date (days after are disabled) */
     maxDate?: Date;
     /**
-     * 'inline' (default): the embedded rounded-[28px] calendar panel.
-     * 'modal': the official M3 modal date picker — 328×512dp portrait /
-     * 568×368dp landscape dialog on surface-container-high (elevation 3,
+     * 'docked' (default): an outlined text field with an anchored calendar popup.
+     * 'inline': the embedded rounded-[28px] calendar panel.
+     * 'modal': the official M3 360×568dp dialog on surface-container-high (elevation 3,
      * 28dp corners) over a 32% scrim, with a selected-date header
      * ("Selected date" label-large + display-size headline). Controlled via
-     * open/onOpenChange like Dialog; selection applies live and no action
-     * buttons are shown.
+     * open/onOpenChange like Dialog; selection is staged until confirmation.
      */
-    presentation?: "inline" | "modal";
+    presentation?: "docked" | "inline" | "modal";
     /** Modal only — controls visibility (fully controlled, Dialog/SearchView style). */
     open?: boolean;
     /** Modal only — called with the next open state on scrim click, Escape, or day pick. */
     onOpenChange?: (open: boolean) => void;
-    /** Modal only — close automatically when a day is picked. Default true. */
+    /** Modal only — legacy live-apply behavior. Official default is false. */
     closeOnSelect?: boolean;
+    /** Modal confirmation button label. */
+    confirmLabel?: string;
+    /** Modal dismissal button label. */
+    dismissLabel?: string;
+    /** Called after the staged modal selection is confirmed. */
+    onConfirm?: (selection: Date | DateRange) => void;
+    /** Called when the modal dismissal action or scrim is used. */
+    onDismiss?: () => void;
     /** Inline only: stretch to the container width */
     fullWidth?: boolean;
     /** 'single' (default) picks one date via value/onChange; 'range' picks a
@@ -1457,6 +1766,10 @@ interface DatePickerProps {
     range?: DateRange;
     /** Range mode — fires on every tap with the next range (partial included). */
     onRangeChange?: (r: DateRange) => void;
+    /** Official default is calendar. Input enables localized numeric date entry. */
+    initialDisplayMode?: DatePickerDisplayMode;
+    /** Show the calendar/input toggle for single-date selection. Default true. */
+    showModeToggle?: boolean;
     className?: string;
 }
 /**
@@ -1464,25 +1777,23 @@ interface DatePickerProps {
  *
  * Inline presentation — a rounded-[28px] surface-container-high panel
  * with a month grid, a tappable "month year" header that flips into a
- * 4-column year grid (1988 → current year + 10), today outlined in
+ * 3-column year grid (1900–2100), today outlined in
  * primary, and a spring-animated selection pill shared via layoutId
  * (scoped per instance). The grid exposes ARIA grid roles with roving
  * tabindex and arrow-key day navigation (←/→/↑/↓), Home/End for week
  * start/end. Nav chevrons are 48dp targets.
  *
  * Modal presentation (presentation="modal") — the official M3 date
- * picker dialog: 328×512dp portrait (header stacked on top of the
- * calendar, divider between) / 568×368dp landscape (header as a 168dp
- * vertically-centered left column) at viewport ≥ 600px, 32% scrim,
- * spring scale 0.9→1 + fade entry (mirrored exit), live-applied
- * selection with no action buttons, Escape/scrim dismissal, focus trap
+ * picker dialog: 360×568dp, 32% scrim, spring scale 0.9→1 + fade entry
+ * (mirrored exit), staged selection with dismiss/confirm actions,
+ * Escape/scrim dismissal, focus trap
  * with initial focus on the selected/today day and restore to the
  * opener, body scroll lock, and the same ARIA-grid calendar internals.
  *
  * selectionMode="range" — official M3 date-range selection in BOTH
  * presentations: the first tap sets the start, a tap ≥ start completes the
  * range, a tap < start (or any tap once complete) restarts; in-between
- * days carry a continuous primary-container band (start cell = right half
+ * days carry a continuous secondary-container band (start cell = right half
  * with rounded-left edge under the circle, end cell = left half with
  * rounded-right edge, mid cells square, square cuts at week-row edges, a
  * 4dp vertical inset keeps adjacent week stripes separate) while start/end
@@ -1505,34 +1816,34 @@ interface TimePickerValue {
 interface TimePickerProps {
     /** Selected time (24h fields: hour 0–23, minute 0–59) */
     value?: TimePickerValue;
+    /** Initial time when the picker is uncontrolled. Ignored when `value` is provided. */
+    defaultValue?: TimePickerValue;
     onChange?: (t: TimePickerValue) => void;
     /**
+     * `dial` is the existing vertical analog picker. `horizontal` uses the
+     * official landscape analog layout. `input` provides numeric text fields,
+     * and `scroll` provides the official three-row scroll fields.
+     */
+    displayMode?: "dial" | "horizontal" | "input" | "scroll";
+    /** Inline compatibility layout or the official modal dialog. */
+    presentation?: "inline" | "modal";
+    /** Modal visibility. */
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    confirmLabel?: string;
+    dismissLabel?: string;
+    onConfirm?: (value: TimePickerValue) => void;
+    onDismiss?: () => void;
+    /**
      * 24-hour format: the readout shows 0–23 and the dial switches to the
-     * official double-ring clock face — outer ring 00–11, inner ring 12–23.
+     * official double-ring clock face — hours 00–11 outside, 12–23 inside.
+     * When omitted, the browser's system hour cycle is used.
      */
     use24h?: boolean;
     /** Stretch to the container width */
     fullWidth?: boolean;
     className?: string;
 }
-/**
- * M3 clock-face Time Picker — official dial geometry (androidx material3
- * TimePickerTokens): 256dp clock face on surface-container-highest, 48dp
- * primary selection handle with 8dp center dot and 2dp track. The picker
- * container is surface-container-high at elevation level 3. The digital
- * readout uses the official 96×80dp time-selector segments (8dp corners,
- * display-large labels; active segment on primary-container, inactive on
- * surface-container-highest) and the vertical 52×80dp period selector has
- * a 1dp outline with the active option on tertiary-container. Hour numbers
- * sit on a 12-number ring (AM/PM preserved), minute marks map to n×5 with
- * 48px hit areas; arrows on the dial increment/decrement hour/minute and
- * picking an hour auto-advances to minute editing after 600ms. In 24-hour
- * mode the dial becomes the official double-ring face: outer ring 00–11
- * (00 at top, 06 at bottom), inner ring 12–23 (12 at top, 18 at bottom) at
- * the official 101dp/69dp radii, with the selection handle traveling between
- * rings (hours 12–23 on the inner ring) and a small dot marking the same
- * clock position on the opposite ring.
- */
 declare const TimePicker: React.ForwardRefExoticComponent<TimePickerProps & React.RefAttributes<HTMLDivElement>>;
 
 interface MaterialSymbolProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -1573,7 +1884,7 @@ interface RippleProps {
  * (icon, label, padding). The parent should be `relative overflow-hidden`
  * with a defined `color`.
  */
-declare function Ripple({ className, disabled }: RippleProps): react_jsx_runtime.JSX.Element;
+declare const Ripple: React.ForwardRefExoticComponent<RippleProps & React.RefAttributes<HTMLSpanElement>>;
 
 declare const springs: {
     /** Spring fast spatial — large element translation */
@@ -1960,4 +2271,4 @@ declare const themeIds: string[];
 /** Flatten a scheme into the --md-* CSS custom property map. */
 declare function schemeToCssVars(scheme: M3ColorScheme): Record<string, string>;
 
-export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Carousel, type CarouselAlignment, type CarouselItem, type CarouselLayout, type CarouselProps, type CarouselShape, type CarouselTone, Checkbox, type CheckboxProps, Chip, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, type DateRange, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };
+export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Carousel, type CarouselAlignment, type CarouselItem, type CarouselLayout, type CarouselProps, type CarouselShape, type CarouselTone, Checkbox, type CheckboxProps, Chip, ChipGroup, type ChipGroupProps, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, type DateRange, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };

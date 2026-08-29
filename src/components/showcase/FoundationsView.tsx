@@ -223,9 +223,9 @@ function TypographyTab() {
     { name: "Body Large 16", cls: "md-body-large", note: "Long-form body copy" },
     { name: "Body Medium 14", cls: "md-body-medium", note: "Dense body copy" },
     { name: "Body Small 12", cls: "md-body-small", note: "Supporting text" },
-    { name: "Label Large 14/600", cls: "md-label-large", note: "Buttons, chips" },
-    { name: "Label Medium 12/600", cls: "md-label-medium", note: "Nav bar labels" },
-    { name: "Label Small 11/600", cls: "md-label-small", note: "Badges, tags" },
+    { name: "Label Large 14/500", cls: "md-label-large", note: "Buttons, chips" },
+    { name: "Label Medium 12/500", cls: "md-label-medium", note: "Nav bar labels" },
+    { name: "Label Small 11/500", cls: "md-label-small", note: "Badges, tags" },
   ];
   return (
     <div>

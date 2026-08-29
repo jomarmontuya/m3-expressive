@@ -47,7 +47,7 @@ export { Checkbox, checkboxMeta, type CheckboxProps } from "./Checkbox";
 export { Radio, RadioGroup, radioMeta, type RadioProps, type RadioGroupProps } from "./Radio";
 export { Switch, switchMeta, type SwitchProps } from "./Switch";
 export { Slider, sliderMeta, type SliderProps } from "./Slider";
-export { Chip, chipMeta, type ChipProps } from "./Chip";
+export { Chip, ChipGroup, chipMeta, type ChipProps, type ChipGroupProps } from "./Chip";
 export { Tabs, tabsMeta, type TabsProps } from "./Tabs";
 export { NavigationBar, navigationBarMeta, type NavigationBarProps } from "./NavigationBar";
 export { NavigationDrawer, navigationDrawerMeta, type NavigationDrawerProps } from "./NavigationDrawer";

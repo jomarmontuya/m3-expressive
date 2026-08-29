@@ -43,7 +43,7 @@ import {
   toolbarMeta,
   tooltipMeta,
   topAppBarMeta
-} from "./chunk-6N442FSG.js";
+} from "./chunk-GMKC2BAW.js";
 
 // ../../src/lib/m3/registry.ts
 var COMPONENT_DIR = "src/components/m3";
@@ -94,7 +94,7 @@ var REGISTRY_VERSION = "1.0.0";
 var m3Registry = {
   library: "m3-expressive-react",
   version: REGISTRY_VERSION,
-  description: "A complete Material 3 Expressive (M3E) React component library. Every component is built on official M3 design tokens (color roles, shape scale, Roboto Flex typography, physics-based spring motion, state layers) and ships with structured design-guideline metadata for agentic consumption.",
+  description: "A Material 3 and Material 3 Expressive React component library with 39 official component implementations plus two clearly labeled composites retained for compatibility: Banner (Material 2 / Flutter heritage) and Autocomplete (text-field + combobox). Every entry ships with structured design-guideline metadata for agentic consumption.",
   spec: "https://m3.material.io",
   totalCount: TABLE.length,
   categories: ["actions", "communication", "containment", "selection", "textinput", "navigation"],

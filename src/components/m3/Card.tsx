@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { springs, shapes, shapeMorph } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
@@ -28,6 +28,16 @@ const shapeStyles: Record<CardShape, string> = {
    which Tailwind variants cannot target). */
 const hoverElevation2 =
   "hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_2px_6px_2px_rgb(0_0_0/0.15)]";
+const hoverElevation1 =
+  "hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_1px_3px_1px_rgb(0_0_0/0.15)]";
+
+/** Variant-specific Material disabled container and outline tokens. */
+const disabledStyles: Record<CardVariant, string> = {
+  elevated: "bg-m3-surface m3-elevation-1",
+  filled:
+    "bg-[color-mix(in_srgb,var(--md-surface-variant)_38%,var(--md-surface-container-highest))] shadow-none",
+  outlined: "bg-m3-surface border-m3-outline/12 shadow-none",
+};
 
 export interface CardProps
   extends Omit<React.ComponentPropsWithoutRef<typeof motion.div>, "children"> {
@@ -38,6 +48,8 @@ export interface CardProps
   shape?: CardShape;
   /** Enables press shape morph, state layer, ripple and keyboard activation. Defaults to true when onClick is provided. */
   interactive?: boolean;
+  /** Disables the card action and applies its variant-specific disabled container, outline and 38% content tokens. */
+  disabled?: boolean;
 }
 
 // Presentational container — no Base UI primitive needed (DOM + API unchanged).
@@ -46,14 +58,30 @@ export interface CardProps
  * M3 Expressive Card — a 12dp-corner containment surface (M3 shape.medium;
  * pass shape="extraLarge" for 28dp M3E hero cards).
  * Interactive cards morph to the pressed shape (medium → small) and scale
- * to 97% with the signature expressive spring, lift to elevation 2 on
- * hover and emit a ripple (state layer 8% hover / 10% pressed).
+ * to 97% with the signature expressive spring. Elevated cards lift to
+ * elevation 2 on hover, filled cards lift to elevation 1, and every active
+ * card emits a state layer (8% hover / 10% pressed) plus ripple.
  */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
-  { variant = "elevated", shape = "medium", interactive, onClick, className, children, ...props },
+  {
+    variant = "elevated",
+    shape = "medium",
+    interactive,
+    disabled = false,
+    onClick,
+    className,
+    children,
+    ...props
+  },
   ref
 ) {
-  const isInteractive = interactive ?? Boolean(onClick);
+  const reduceMotion = useReducedMotion() ?? false;
+  const hasAction = Boolean(onClick) && (interactive ?? true);
+  const isInteractive = hasAction && !disabled;
+  const restRadius =
+    shape === "extraLarge" ? shapes.extraLarge : shapeMorph.card.rest;
+  const pressedRadius =
+    shape === "extraLarge" ? shapes.large : shapeMorph.card.pressed;
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -69,19 +97,18 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   return (
     <motion.div
       ref={ref}
-      role={isInteractive ? "button" : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
+      role={hasAction ? "button" : undefined}
+      aria-disabled={hasAction && disabled ? true : undefined}
+      tabIndex={hasAction ? (disabled ? -1 : 0) : undefined}
       onClick={isInteractive ? onClick : undefined}
       onKeyDown={isInteractive ? handleKeyDown : undefined}
-      whileTap={isInteractive ? { scale: 0.97, borderRadius: shapeMorph.card.pressed } : undefined}
-      style={{
-        borderRadius: isInteractive
-          ? shapeMorph.card.rest
-          : shape === "extraLarge"
-            ? shapes.extraLarge
-            : shapes.medium,
-      }}
-      transition={springs.expressive}
+      whileTap={
+        isInteractive && !reduceMotion
+          ? { scale: 0.97, borderRadius: pressedRadius }
+          : undefined
+      }
+      style={{ borderRadius: restRadius }}
+      transition={reduceMotion ? { duration: 0 } : springs.expressive}
       className={cn(
         "relative overflow-hidden",
         shapeStyles[shape],
@@ -89,6 +116,11 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
         isInteractive &&
           "m3-state m3-focus cursor-pointer outline-none transition-shadow duration-200",
         isInteractive && variant === "elevated" && hoverElevation2,
+        isInteractive && variant === "filled" && hoverElevation1,
+        disabled && [
+          "pointer-events-none text-m3-on-surface/38 [&>*]:opacity-38",
+          disabledStyles[variant],
+        ],
         className
       )}
       {...props}

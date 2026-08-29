@@ -50,17 +50,11 @@ export function CardDemo() {
         <p className="md-body-medium text-m3-on-surface-variant">
           Outlined card with a press shape morph, state layer and ripple.
         </p>
-        <span className="mt-3 inline-block">
-          <Button
-            size="sm"
-            variant={joined ? "filled" : "tonal"}
-            onClick={(e) => {
-              e.stopPropagation();
-              setJoined((j) => !j);
-            }}
-          >
-            {joined ? "Joined" : "Join"}
-          </Button>
+        <span
+          className="mt-3 inline-block rounded-full bg-m3-secondary-container px-4 py-2 md-label-large text-m3-on-secondary-container"
+          aria-hidden="true"
+        >
+          {joined ? "Joined" : "Select card"}
         </span>
       </Card>
 
@@ -69,6 +63,13 @@ export function CardDemo() {
         <span className="md-title-medium text-m3-on-surface">M3E hero</span>
         <p className="md-body-medium text-m3-on-surface-variant">
           Expressive hero card using the 28dp extra-large shape.
+        </p>
+      </Card>
+
+      <Card variant="filled" disabled onClick={() => {}} className="w-64 p-6">
+        <span className="md-title-medium text-m3-on-surface">Disabled</span>
+        <p className="md-body-medium text-m3-on-surface-variant">
+          Disabled action cards keep role=button and aria-disabled, but cannot activate.
         </p>
       </Card>
     </div>
@@ -119,6 +120,12 @@ export function ListDemo() {
           onClick={() => {}}
         />
       </List>
+
+      <List variant="segmented" selectionMode="single" aria-label="Mailboxes" className="w-[360px] bg-m3-surface-container-low py-1">
+        <ListItem leading={<MaterialSymbol icon="inbox" />} headline="Inbox" selected onClick={() => {}} />
+        <ListItem leading={<MaterialSymbol icon="send" />} headline="Sent" onClick={() => {}} />
+        <ListItem leading={<MaterialSymbol icon="draft" />} headline="Drafts" onClick={() => {}} />
+      </List>
     </div>
   );
 }
@@ -147,6 +154,7 @@ export function BottomSheetDemo() {
         open={open}
         onClose={() => setOpen(false)}
         title="Choose a playlist"
+        defaultState="partial"
         footer={
           <Button variant="filled" fullWidth onClick={() => setOpen(false)}>
             Done
@@ -185,15 +193,28 @@ export function BottomSheetDemo() {
 
 export function SideSheetDemo() {
   const [open, setOpen] = React.useState(false);
+  const [standardOpen, setStandardOpen] = React.useState(true);
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
       <Button variant="tonal" icon="open_in_new" onClick={() => setOpen(true)}>
         Open modal side sheet
       </Button>
 
-      {/* Standard (persistent, inline, surface-toned) */}
-      <SideSheet variant="standard" open={false} onClose={() => {}} side="right" title="Details">
-        <List>
+      {!standardOpen && (
+        <Button variant="outlined" icon="visibility" onClick={() => setStandardOpen(true)}>
+          Show standard side sheet
+        </Button>
+      )}
+
+      {/* Standard (in-layout, inline, surface-toned) */}
+      <SideSheet
+        variant="standard"
+        open={standardOpen}
+        onClose={() => setStandardOpen(false)}
+        side="end"
+        title="Details"
+      >
+        <List className="!px-0">
           <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" onClick={() => {}} />
           <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" selected onClick={() => {}} />
           <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" onClick={() => {}} />
@@ -204,7 +225,7 @@ export function SideSheetDemo() {
       <SideSheet
         open={open}
         onClose={() => setOpen(false)}
-        side="right"
+        side="end"
         title="Filters"
         footer={
           <Button variant="filled" fullWidth onClick={() => setOpen(false)}>
@@ -212,7 +233,7 @@ export function SideSheetDemo() {
           </Button>
         }
       >
-        <List>
+        <List className="!px-0">
           <ListItem
             leading={<MaterialSymbol icon="check_circle" />}
             headline="Recently added"
@@ -266,8 +287,9 @@ export function DatePickerDemo() {
         : "Select range";
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
-      {/* Inline presentation (default) */}
+      {/* Official docked text field + popup (default), plus inline compatibility. */}
       <DatePicker value={date} onChange={setDate} />
+      <DatePicker presentation="inline" initialDisplayMode="input" value={date} onChange={setDate} />
       <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-secondary-container p-4 text-m3-on-secondary-container">
         <span className="md-label-medium">Selected date</span>
         <span className="md-title-medium tabular-nums">
@@ -275,11 +297,10 @@ export function DatePickerDemo() {
         </span>
       </div>
 
-      {/* Official modal presentation: outlined text-field-style trigger.
-          Landscape layout (568×368) renders automatically at viewport ≥ 600px. */}
+      {/* Official modal presentation: staged selection with confirm and dismiss actions. */}
       <div className="flex w-full flex-col gap-3">
         <span className="md-label-large text-m3-on-surface">
-          Modal presentation — 328×512dp portrait, 568×368dp landscape at viewport ≥ 600px
+          Modal presentation — 360×568dp with confirm and dismiss actions
         </span>
         <div className="flex flex-wrap items-center gap-4">
           <button
@@ -295,7 +316,7 @@ export function DatePickerDemo() {
             <MaterialSymbol icon="calendar_today" size={24} className="shrink-0 text-m3-on-surface-variant" />
           </button>
           <span className="md-body-small text-m3-on-surface-variant">
-            Selection applies live · Escape / scrim dismiss
+            Selection is staged · OK confirms · Cancel, Escape, or scrim dismisses
           </span>
         </div>
       </div>
@@ -316,6 +337,7 @@ export function DatePickerDemo() {
         <div className="flex flex-wrap items-start gap-6">
           <div data-testid="date-range-inline">
             <DatePicker
+              presentation="inline"
               selectionMode="range"
               range={range}
               onRangeChange={setRange}
@@ -349,7 +371,7 @@ export function DatePickerDemo() {
             <MaterialSymbol icon="date_range" size={24} className="shrink-0 text-m3-on-surface-variant" />
           </button>
           <span className="md-body-small text-m3-on-surface-variant">
-            Modal closes only when the range is complete · Escape / scrim dismiss
+            Range input and calendar modes · OK confirms · Cancel, Escape, or scrim dismisses
           </span>
         </div>
       </div>
@@ -373,15 +395,28 @@ export function DatePickerDemo() {
 export function TimePickerDemo() {
   const [time, setTime] = React.useState({ hour: 10, minute: 30 });
   const [time24, setTime24] = React.useState({ hour: 18, minute: 30 });
+  const [modalOpen, setModalOpen] = React.useState(false);
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
       <div className="flex flex-col items-center gap-2">
-        <TimePicker value={time} onChange={setTime} />
+        <TimePicker use24h={false} value={time} onChange={setTime} />
         <span className="md-label-medium text-m3-on-surface-variant">12-hour · AM/PM selector</span>
       </div>
       <div className="flex flex-col items-center gap-2" data-testid="timepicker-24h">
         <TimePicker use24h value={time24} onChange={setTime24} />
         <span className="md-label-medium text-m3-on-surface-variant">24-hour double-ring dial</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <TimePicker displayMode="horizontal" value={time} onChange={setTime} />
+        <span className="md-label-medium text-m3-on-surface-variant">Horizontal analog layout</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <TimePicker displayMode="input" value={time} onChange={setTime} />
+        <span className="md-label-medium text-m3-on-surface-variant">Validated keyboard input</span>
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <TimePicker displayMode="scroll" use24h value={time24} onChange={setTime24} />
+        <span className="md-label-medium text-m3-on-surface-variant">Three-row scroll selection</span>
       </div>
       <div className="flex flex-col justify-center gap-1 self-center rounded-[20px] bg-m3-tertiary-container p-4 text-m3-on-tertiary-container">
         <span className="md-label-medium">Selected time</span>
@@ -389,6 +424,25 @@ export function TimePickerDemo() {
           {String(time.hour).padStart(2, "0")}:{String(time.minute).padStart(2, "0")}
         </span>
       </div>
+      <div className="flex w-full items-center gap-4">
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="m3-state m3-focus h-12 rounded-full bg-m3-primary px-5 md-label-large text-m3-on-primary outline-none"
+        >
+          Open modal time picker
+        </button>
+        <span className="md-body-small text-m3-on-surface-variant">
+          Dial, input, and scroll modes · OK confirms
+        </span>
+      </div>
+      <TimePicker
+        presentation="modal"
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        value={time}
+        onChange={setTime}
+      />
     </div>
   );
 }
@@ -419,39 +473,89 @@ export function CarouselDemo() {
     []
   );
   return (
-    <div className="m3-scroll w-full overflow-x-auto pb-1"><div className="flex w-full min-w-[720px] flex-col gap-3 p-2" data-testid="carousel-demo">
-      {/* multi-browse — flexible widths + the M3E hover-grow */}
+    <div className="flex w-full flex-col gap-3 p-2" data-testid="carousel-demo">
+      {/* multi-browse — large/medium/small widths follow scroll keylines */}
       <section className="flex flex-col gap-2">
         <span className="md-label-large text-m3-on-surface">
-          Multi-browse — hover or focus an item: it springs to ~1.12× while neighbors shrink
+          Multi-browse — large, medium, and small item sizes follow the scroll position
         </span>
-        <Carousel items={items} layout="multi-browse" itemCount={4} ariaLabel="Weekend getaways" />
-        <span className="md-label-medium text-m3-on-surface-variant" data-testid="carousel-picked">
-          {picked ? `Opened: ${picked}` : "Tap an item · 4 visible + a 24px peek · Arrow keys rove focus"}
+        <Carousel
+          items={items}
+          layout="multi-browse"
+          itemCount={4}
+          arrows="always"
+          ariaLabel="Weekend getaways"
+          onShowAll={() => setPicked("all getaways")}
+        />
+        <span
+          className="md-label-medium text-m3-on-surface-variant"
+          data-testid="carousel-picked"
+          aria-live="polite"
+        >
+          {picked
+            ? `Opened: ${picked}`
+            : "Choose an item, use the arrow buttons, swipe, scroll, or press Left/Right"}
         </span>
       </section>
 
       {/* hero — one large leading item, smaller rest */}
       <section className="mt-2 flex flex-col gap-2">
         <span className="md-label-large text-m3-on-surface">
-          Hero — featured item takes ~66% width; the rest are smaller (3:2 proportions)
-        </span>
-        <Carousel items={items.slice(0, 5)} layout="hero" ariaLabel="Featured getaways" />
-      </section>
-
-      {/* inline — one full-width item per view, with visible navigation arrows */}
-      <section className="mt-2 flex flex-col gap-2">
-        <span className="md-label-large text-m3-on-surface">
-          Inline — one full-width item per view, with navigation arrows (arrows=&quot;always&quot;)
+          Hero — one featured item with 40–56dp supporting items
         </span>
         <Carousel
           items={items.slice(0, 5)}
-          layout="inline"
+          layout="hero"
           arrows="always"
+          ariaLabel="Featured getaways"
+          onShowAll={() => setPicked("all featured items")}
+        />
+      </section>
+
+      {/* standard uncontained — every item has one fixed ratio */}
+      <section className="mt-2 flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Uncontained standard — every item uses the same 16:9 ratio
+        </span>
+        <Carousel
+          items={items.slice(0, 5)}
+          layout="uncontained"
+          arrows="always"
+          ariaLabel="Standard uncontained getaways"
+          onShowAll={() => setPicked("all standard items")}
+        />
+      </section>
+
+      {/* multi-aspect uncontained — item ratios vary from portrait to landscape */}
+      <section className="mt-2 flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Uncontained multi-aspect — item widths vary from 9:16 to 16:9
+        </span>
+        <Carousel
+          items={items.slice(0, 5).map((item, index) => ({
+            ...item,
+            aspectRatio: [9 / 16, 3 / 4, 1, 4 / 3, 16 / 9][index],
+          }))}
+          layout="uncontained"
+          uncontainedMode="multi-aspect"
+          arrows="always"
+          ariaLabel="Multi-aspect uncontained getaways"
+          onShowAll={() => setPicked("all multi-aspect items")}
+        />
+      </section>
+
+      {/* full-screen — vertical portrait feed with edge snap and parallax */}
+      <section className="mt-2 flex flex-col gap-2">
+        <span className="md-label-large text-m3-on-surface">
+          Full-screen — vertical portrait feed with edge snap and parallax
+        </span>
+        <Carousel
+          items={items.slice(0, 5)}
+          layout="full-screen"
           ariaLabel="Full-bleed getaways"
         />
       </section>
-    </div></div>
+    </div>
   );
 }
 

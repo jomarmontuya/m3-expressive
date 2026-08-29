@@ -25,6 +25,8 @@ function Caption({ children }: { children: React.ReactNode }) {
 /* ------------------------------------------------------------------ */
 export function ButtonDemo() {
   const [uploading, setUploading] = React.useState(false);
+  const [selected, setSelected] = React.useState(false);
+  const [squareSelected, setSquareSelected] = React.useState(false);
 
   const simulateUpload = () => {
     setUploading(true);
@@ -66,6 +68,27 @@ export function ButtonDemo() {
         <Button variant="text" icon="open_in_new">Docs</Button>
         <Button disabled>Disabled</Button>
       </div>
+      <Caption>Toggle shape inversion: round ↔ square (text buttons cannot toggle)</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button
+          toggleable
+          selected={selected}
+          onSelectedChange={setSelected}
+          icon={selected ? "check" : "add"}
+        >
+          {selected ? "Round selected" : "Round resting"}
+        </Button>
+        <Button
+          toggleable
+          shape="square"
+          variant="tonal"
+          selected={squareSelected}
+          onSelectedChange={setSquareSelected}
+          icon={squareSelected ? "check" : "crop_square"}
+        >
+          {squareSelected ? "Square selected" : "Square resting"}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -79,21 +102,28 @@ export function IconButtonDemo() {
 
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
-      <Caption>Variants</Caption>
+      <Caption>Filled is the official default; standard stays explicit</Caption>
       <div className="flex flex-wrap items-center gap-2">
-        <IconButton icon="settings" aria-label="Settings" />
-        <IconButton variant="filled" icon="add" aria-label="Add" />
+        <IconButton icon="add" aria-label="Filled default" />
+        <IconButton variant="standard" icon="settings" aria-label="Standard" />
         <IconButton variant="tonal" icon="favorite" aria-label="Favorite" />
         <IconButton variant="outlined" icon="delete" aria-label="Delete" />
         <IconButton icon="share" disabled aria-label="Share (disabled)" />
       </div>
-      <Caption>Sizes 28–64</Caption>
+      <Caption>Official sizes 32–136dp</Caption>
       <div className="flex flex-wrap items-center gap-2">
         <IconButton size="xs" icon="more_vert" aria-label="More" />
         <IconButton size="sm" icon="more_vert" aria-label="More" />
         <IconButton size="md" icon="more_vert" aria-label="More" />
         <IconButton size="lg" icon="more_vert" aria-label="More" />
         <IconButton size="xl" icon="more_vert" aria-label="More" />
+      </div>
+      <Caption>Widths and press-shape morph</Caption>
+      <div className="flex flex-wrap items-center gap-2">
+        <IconButton width="narrow" icon="format_align_left" aria-label="Narrow" />
+        <IconButton width="standard" icon="format_align_center" aria-label="Standard" />
+        <IconButton width="wide" icon="format_align_right" aria-label="Wide" />
+        <IconButton shape="square" icon="crop_square" aria-label="Square" />
       </div>
       <Caption>Toggleable</Caption>
       <div className="flex flex-wrap items-center gap-2">
@@ -124,18 +154,32 @@ export function IconButtonDemo() {
 export function FabDemo() {
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
-      <Caption>Colors</Caption>
+      <Caption>Default primary-container and current color roles</Caption>
       <div className="flex flex-wrap items-center gap-4">
         <Fab icon="add" aria-label="Create" onClick={() => {}} />
+        <Fab color="primary" icon="star" aria-label="Primary solid" onClick={() => {}} />
         <Fab color="secondary" icon="edit" aria-label="Edit" onClick={() => {}} />
         <Fab color="tertiary" icon="favorite" aria-label="Like" onClick={() => {}} />
-        <Fab color="surface" icon="search" aria-label="Search" onClick={() => {}} />
       </div>
-      <Caption>Sizes 40–132</Caption>
+      <Caption>Container roles</Caption>
       <div className="flex flex-wrap items-center gap-4">
-        <Fab size="small" icon="add" aria-label="Add small" />
-        <Fab icon="add" aria-label="Add medium" />
+        <Fab color="primary-container" icon="palette" aria-label="Primary container" />
+        <Fab color="secondary-container" icon="palette" aria-label="Secondary container" />
+        <Fab color="tertiary-container" icon="palette" aria-label="Tertiary container" />
+      </div>
+      <Caption>Legacy compatibility role: surface</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <Fab color="surface" icon="search" aria-label="Surface" />
+      </div>
+      <Caption>Official sizes 56, 80, and 96dp</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <Fab size="standard" icon="add" aria-label="Add standard" />
+        <Fab size="medium" icon="add" aria-label="Add medium" />
         <Fab size="large" icon="add" aria-label="Add large" />
+      </div>
+      <Caption>Legacy compatibility sizes</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <Fab size="small" icon="add" aria-label="Add legacy small" />
         <Fab size="extra-large" icon="add" aria-label="Add extra large" />
       </div>
       <Caption>Lowered &amp; disabled</Caption>
@@ -153,12 +197,22 @@ export function FabDemo() {
 export function ExtendedFabDemo() {
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
-      <Caption>Colors</Caption>
+      <Caption>Default primary-container and current color roles</Caption>
       <div className="flex flex-wrap items-center gap-4">
-        <ExtendedFab icon="add" label="Create" />
-        <ExtendedFab color="secondary" icon="send" label="Send" />
-        <ExtendedFab color="tertiary" icon="directions" label="Navigate" />
-        <ExtendedFab color="surface" icon="filter" label="Filter" />
+        <ExtendedFab size="small" icon="add" label="Create" />
+        <ExtendedFab color="primary" icon="star" label="Primary" />
+        <ExtendedFab size="medium" color="secondary" icon="send" label="Send" />
+        <ExtendedFab size="large" color="tertiary" icon="directions" label="Navigate" />
+      </div>
+      <Caption>Container roles</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <ExtendedFab color="primary-container" icon="palette" label="Container" />
+        <ExtendedFab color="secondary-container" icon="palette" label="Secondary container" />
+        <ExtendedFab color="tertiary-container" icon="palette" label="Tertiary container" />
+      </div>
+      <Caption>Legacy compatibility role: surface</Caption>
+      <div className="flex flex-wrap items-center gap-4">
+        <ExtendedFab color="surface" icon="filter" label="Surface" />
       </div>
       <Caption>Lowered &amp; disabled</Caption>
       <div className="flex flex-wrap items-center gap-4">
@@ -178,7 +232,7 @@ export function FabMenuDemo() {
   return (
     <div className="flex flex-wrap items-start gap-10 p-2">
       <div className="flex flex-col items-center gap-3">
-        <Caption>Vertical</Caption>
+        <Caption>Vertical · container close button, solid revealed actions</Caption>
         <div className="h-40">
           <FabMenu
             actions={[
@@ -190,7 +244,7 @@ export function FabMenuDemo() {
         </div>
       </div>
       <div className="flex flex-col items-center gap-3">
-        <Caption>Horizontal</Caption>
+        <Caption>Compatibility extension: horizontal</Caption>
         <FabMenu
           direction="horizontal"
           color="secondary"
@@ -205,7 +259,7 @@ export function FabMenuDemo() {
         <ControlledFabMenu />
       </div>
       <div className="flex flex-col items-center gap-3">
-        <Caption>Docked · bottom corners square when open</Caption>
+        <Caption>Compatibility extension: docked</Caption>
         <DockedFabMenuStage onAction={setLastAction} />
       </div>
       {lastAction && (
@@ -268,7 +322,7 @@ function DockedFabMenuStage({ onAction }: { onAction: (label: string) => void })
         </div>
         <BottomAppBar
           navigationIcon={{ icon: "menu", label: "Menu" }}
-          trailingIcons={["more_vert"]}
+          trailingActions={[{ icon: "more_vert", label: "More options" }]}
         />
       </div>
     </div>
@@ -300,9 +354,10 @@ export function SplitButtonDemo() {
 
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
-      <Caption>Variants &amp; sizes</Caption>
+      <Caption>Variants, icon-only leading segment, and official size scale</Caption>
       <div className="flex flex-wrap items-center gap-4">
         <SplitButton
+          icon="ios_share"
           label="Export"
           onClick={() => setFormat("PDF (default)")}
           items={[
@@ -310,6 +365,11 @@ export function SplitButtonDemo() {
             { label: "Export as DOCX", icon: "description", onClick: () => setFormat("DOCX") },
             { label: "Export as CSV", icon: "table_view", onClick: () => setFormat("CSV") },
           ]}
+        />
+        <SplitButton
+          icon="edit"
+          ariaLabel="Edit"
+          items={[{ label: "Edit details", icon: "edit_note" }]}
         />
         <SplitButton
           variant="tonal"
@@ -322,7 +382,7 @@ export function SplitButtonDemo() {
         />
         <SplitButton
           variant="outlined"
-          size="lg"
+          size="md"
           label="Options"
           items={[
             { label: "Rename", icon: "edit", onClick: () => setFormat("rename") },
@@ -330,6 +390,9 @@ export function SplitButtonDemo() {
             { label: "Move", icon: "drive_file_move", onClick: () => setFormat("move") },
           ]}
         />
+        <SplitButton size="xs" label="XS" items={[{ label: "Extra small" }]} />
+        <SplitButton size="lg" label="Large" items={[{ label: "Large action" }]} />
+        <SplitButton size="xl" label="Extra large" items={[{ label: "Extra-large action" }]} />
         <SplitButton label="Disabled" disabled items={[{ label: "Nothing to see" }]} />
       </div>
       <Caption>Last chosen: {format}</Caption>
@@ -347,10 +410,26 @@ export function ButtonGroupDemo() {
 
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
-      <Caption>Single selection</Caption>
+      <Caption>Official size gaps: 18 / 12 / 8 / 8 / 8dp; 15% press redistribution</Caption>
+      <div className="flex w-full items-start gap-6 overflow-x-auto pb-2">
+        {(["xs", "sm", "md", "lg", "xl"] as const).map((size) => (
+          <div key={size} className="flex shrink-0 flex-col gap-2">
+            <span className="md-label-small uppercase text-m3-on-surface-variant">{size}</span>
+            <ButtonGroup
+              size={size}
+              variableWidths={false}
+              aria-label={`${size} gap example`}
+              buttons={[
+                { id: `${size}-left`, icon: "chevron_left", ariaLabel: `${size} previous` },
+                { id: `${size}-right`, icon: "chevron_right", ariaLabel: `${size} next` },
+              ]}
+            />
+          </div>
+        ))}
+      </div>
       <div className="flex flex-wrap items-center gap-4">
         <ButtonGroup
-          selection="single"
+          selection="single-required"
           size="sm"
           value={range}
           onValueChange={setRange}
@@ -367,6 +446,19 @@ export function ButtonGroupDemo() {
             { id: "prev", icon: "chevron_left", label: "Back" },
             { id: "today", label: "Today" },
             { id: "next", icon: "chevron_right", label: "Forward" },
+          ]}
+        />
+      </div>
+      <Caption>Square and elevated styles invert to round when selected</Caption>
+      <div className="w-full max-w-xl">
+        <ButtonGroup
+          shape="square"
+          variant="elevated"
+          selection="single"
+          buttons={[
+            { id: "cut", icon: "content_cut", label: "Cut" },
+            { id: "copy", icon: "content_copy", label: "Copy" },
+            { id: "paste", icon: "content_paste", label: "Paste" },
           ]}
         />
       </div>
@@ -401,10 +493,11 @@ export function ButtonGroupDemo() {
           ]}
         />
       </div>
-      <Caption>Variable widths (M3E hover growth)</Caption>
+      <Caption>Connected: 2dp gap with size-aware corners and selected shape inversion</Caption>
       <div className="w-full max-w-xl">
         <ButtonGroup
           variableWidths
+          layout="connected"
           selection="single"
           value={view}
           onValueChange={setView}
@@ -428,6 +521,7 @@ export function SegmentedButtonDemo() {
 
   return (
     <div className="flex flex-wrap items-center gap-4 p-2">
+      <Caption>Not recommended for new work. Prefer ButtonGroup.</Caption>
       <Caption>Single selection (check springs in)</Caption>
       <SegmentedButton
         options={[
@@ -449,6 +543,14 @@ export function SegmentedButtonDemo() {
         ]}
         value={filters}
         onValueChange={setFilters}
+      />
+      <Caption>56dp medium size is a library extension</Caption>
+      <SegmentedButton
+        size="md"
+        options={[
+          { value: "compact", label: "Compact", icon: "density_small" },
+          { value: "comfortable", label: "Comfortable", icon: "density_medium" },
+        ]}
       />
       <Caption>Icon only · disabled</Caption>
       <SegmentedButton

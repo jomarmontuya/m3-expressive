@@ -1,0 +1,886 @@
+{
+  "generatedAt": "2026-08-29T01:17:05.139Z",
+  "source": "Live local showcase at http://localhost:3000 after route render settled",
+  "registryRouteCount": 41,
+  "screenshotCount": 82,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1000
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "visualReview": {
+    "desktopContactSheets": [
+      "contact-sheets/desktop-01.png",
+      "contact-sheets/desktop-02.png",
+      "contact-sheets/desktop-03.png",
+      "contact-sheets/desktop-04.png",
+      "contact-sheets/desktop-05.png",
+      "contact-sheets/desktop-06.png",
+      "contact-sheets/desktop-07.png",
+      "contact-sheets/desktop-08.png",
+      "contact-sheets/desktop-09.png",
+      "contact-sheets/desktop-10.png",
+      "contact-sheets/desktop-11.png",
+      "contact-sheets/desktop-12.png",
+      "contact-sheets/desktop-13.png",
+      "contact-sheets/desktop-14.png"
+    ],
+    "mobileContactSheets": [
+      "contact-sheets/mobile-01.png",
+      "contact-sheets/mobile-02.png",
+      "contact-sheets/mobile-03.png",
+      "contact-sheets/mobile-04.png",
+      "contact-sheets/mobile-05.png",
+      "contact-sheets/mobile-06.png",
+      "contact-sheets/mobile-07.png",
+      "contact-sheets/mobile-08.png",
+      "contact-sheets/mobile-09.png",
+      "contact-sheets/mobile-10.png",
+      "contact-sheets/mobile-11.png",
+      "contact-sheets/mobile-12.png",
+      "contact-sheets/mobile-13.png",
+      "contact-sheets/mobile-14.png"
+    ]
+  },
+  "desktop": {
+    "captured": 41,
+    "incorrectWidth": [],
+    "horizontalOverflow": [],
+    "consoleMessages": [],
+    "screenshots": [
+      {
+        "id": "button",
+        "screenshot": "desktop/button.png",
+        "width": 1440,
+        "height": 3820,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "icon-button",
+        "screenshot": "desktop/icon-button.png",
+        "width": 1440,
+        "height": 4007,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "fab",
+        "screenshot": "desktop/fab.png",
+        "width": 1440,
+        "height": 3879,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "extended-fab",
+        "screenshot": "desktop/extended-fab.png",
+        "width": 1440,
+        "height": 3635,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "fab-menu",
+        "screenshot": "desktop/fab-menu.png",
+        "width": 1440,
+        "height": 4393,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "split-button",
+        "screenshot": "desktop/split-button.png",
+        "width": 1440,
+        "height": 3605,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "button-group",
+        "screenshot": "desktop/button-group.png",
+        "width": 1440,
+        "height": 4405,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "segmented-button",
+        "screenshot": "desktop/segmented-button.png",
+        "width": 1440,
+        "height": 3850,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "badge",
+        "screenshot": "desktop/badge.png",
+        "width": 1440,
+        "height": 3059,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "linear-progress",
+        "screenshot": "desktop/linear-progress.png",
+        "width": 1440,
+        "height": 3253,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "circular-progress",
+        "screenshot": "desktop/circular-progress.png",
+        "width": 1440,
+        "height": 2901,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "loading-indicator",
+        "screenshot": "desktop/loading-indicator.png",
+        "width": 1440,
+        "height": 3222,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "snackbar",
+        "screenshot": "desktop/snackbar.png",
+        "width": 1440,
+        "height": 3261,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "tooltip",
+        "screenshot": "desktop/tooltip.png",
+        "width": 1440,
+        "height": 3507,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "banner",
+        "screenshot": "desktop/banner.png",
+        "width": 1440,
+        "height": 3213,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "dialog",
+        "screenshot": "desktop/dialog.png",
+        "width": 1440,
+        "height": 3593,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "divider",
+        "screenshot": "desktop/divider.png",
+        "width": 1440,
+        "height": 3064,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "card",
+        "screenshot": "desktop/card.png",
+        "width": 1440,
+        "height": 3533,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "list",
+        "screenshot": "desktop/list.png",
+        "width": 1440,
+        "height": 4471,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "bottom-sheet",
+        "screenshot": "desktop/bottom-sheet.png",
+        "width": 1440,
+        "height": 3839,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "side-sheet",
+        "screenshot": "desktop/side-sheet.png",
+        "width": 1440,
+        "height": 3542,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "carousel",
+        "screenshot": "desktop/carousel.png",
+        "width": 1440,
+        "height": 6797,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "checkbox",
+        "screenshot": "desktop/checkbox.png",
+        "width": 1440,
+        "height": 3369,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "radio",
+        "screenshot": "desktop/radio.png",
+        "width": 1440,
+        "height": 3158,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "switch",
+        "screenshot": "desktop/switch.png",
+        "width": 1440,
+        "height": 2993,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "slider",
+        "screenshot": "desktop/slider.png",
+        "width": 1440,
+        "height": 4585,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "chip",
+        "screenshot": "desktop/chip.png",
+        "width": 1440,
+        "height": 3776,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "date-picker",
+        "screenshot": "desktop/date-picker.png",
+        "width": 1440,
+        "height": 5785,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "time-picker",
+        "screenshot": "desktop/time-picker.png",
+        "width": 1440,
+        "height": 4706,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "text-field",
+        "screenshot": "desktop/text-field.png",
+        "width": 1440,
+        "height": 4221,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "search-bar",
+        "screenshot": "desktop/search-bar.png",
+        "width": 1440,
+        "height": 3503,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "search-view",
+        "screenshot": "desktop/search-view.png",
+        "width": 1440,
+        "height": 3886,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "autocomplete",
+        "screenshot": "desktop/autocomplete.png",
+        "width": 1440,
+        "height": 3240,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "tabs",
+        "screenshot": "desktop/tabs.png",
+        "width": 1440,
+        "height": 3542,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-bar",
+        "screenshot": "desktop/navigation-bar.png",
+        "width": 1440,
+        "height": 4046,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-drawer",
+        "screenshot": "desktop/navigation-drawer.png",
+        "width": 1440,
+        "height": 3818,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-rail",
+        "screenshot": "desktop/navigation-rail.png",
+        "width": 1440,
+        "height": 4317,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "top-app-bar",
+        "screenshot": "desktop/top-app-bar.png",
+        "width": 1440,
+        "height": 4468,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "bottom-app-bar",
+        "screenshot": "desktop/bottom-app-bar.png",
+        "width": 1440,
+        "height": 3591,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "toolbar",
+        "screenshot": "desktop/toolbar.png",
+        "width": 1440,
+        "height": 4378,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "menu",
+        "screenshot": "desktop/menu.png",
+        "width": 1440,
+        "height": 3482,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      }
+    ]
+  },
+  "mobile": {
+    "captured": 41,
+    "incorrectWidth": [],
+    "horizontalOverflow": [],
+    "consoleMessages": [],
+    "screenshots": [
+      {
+        "id": "button",
+        "screenshot": "mobile/button.png",
+        "width": 390,
+        "height": 5877,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "icon-button",
+        "screenshot": "mobile/icon-button.png",
+        "width": 390,
+        "height": 5768,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "fab",
+        "screenshot": "mobile/fab.png",
+        "width": 390,
+        "height": 5347,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "extended-fab",
+        "screenshot": "mobile/extended-fab.png",
+        "width": 390,
+        "height": 5331,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "fab-menu",
+        "screenshot": "mobile/fab-menu.png",
+        "width": 390,
+        "height": 6727,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "split-button",
+        "screenshot": "mobile/split-button.png",
+        "width": 390,
+        "height": 5414,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "button-group",
+        "screenshot": "mobile/button-group.png",
+        "width": 390,
+        "height": 6326,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "segmented-button",
+        "screenshot": "mobile/segmented-button.png",
+        "width": 390,
+        "height": 5188,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "badge",
+        "screenshot": "mobile/badge.png",
+        "width": 390,
+        "height": 4334,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "linear-progress",
+        "screenshot": "mobile/linear-progress.png",
+        "width": 390,
+        "height": 4610,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "circular-progress",
+        "screenshot": "mobile/circular-progress.png",
+        "width": 390,
+        "height": 4260,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "loading-indicator",
+        "screenshot": "mobile/loading-indicator.png",
+        "width": 390,
+        "height": 4951,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "snackbar",
+        "screenshot": "mobile/snackbar.png",
+        "width": 390,
+        "height": 4652,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "tooltip",
+        "screenshot": "mobile/tooltip.png",
+        "width": 390,
+        "height": 5193,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "banner",
+        "screenshot": "mobile/banner.png",
+        "width": 390,
+        "height": 4450,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "dialog",
+        "screenshot": "mobile/dialog.png",
+        "width": 390,
+        "height": 5127,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "divider",
+        "screenshot": "mobile/divider.png",
+        "width": 390,
+        "height": 4296,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "card",
+        "screenshot": "mobile/card.png",
+        "width": 390,
+        "height": 5466,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "list",
+        "screenshot": "mobile/list.png",
+        "width": 390,
+        "height": 6713,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "bottom-sheet",
+        "screenshot": "mobile/bottom-sheet.png",
+        "width": 390,
+        "height": 5462,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "side-sheet",
+        "screenshot": "mobile/side-sheet.png",
+        "width": 390,
+        "height": 5142,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "carousel",
+        "screenshot": "mobile/carousel.png",
+        "width": 390,
+        "height": 8450,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "checkbox",
+        "screenshot": "mobile/checkbox.png",
+        "width": 390,
+        "height": 5110,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "radio",
+        "screenshot": "mobile/radio.png",
+        "width": 390,
+        "height": 4584,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "switch",
+        "screenshot": "mobile/switch.png",
+        "width": 390,
+        "height": 4387,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "slider",
+        "screenshot": "mobile/slider.png",
+        "width": 390,
+        "height": 6782,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "chip",
+        "screenshot": "mobile/chip.png",
+        "width": 390,
+        "height": 5779,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "date-picker",
+        "screenshot": "mobile/date-picker.png",
+        "width": 390,
+        "height": 9286,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "time-picker",
+        "screenshot": "mobile/time-picker.png",
+        "width": 390,
+        "height": 7318,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "text-field",
+        "screenshot": "mobile/text-field.png",
+        "width": 390,
+        "height": 6609,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "search-bar",
+        "screenshot": "mobile/search-bar.png",
+        "width": 390,
+        "height": 5046,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "search-view",
+        "screenshot": "mobile/search-view.png",
+        "width": 390,
+        "height": 5815,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "autocomplete",
+        "screenshot": "mobile/autocomplete.png",
+        "width": 390,
+        "height": 4567,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "tabs",
+        "screenshot": "mobile/tabs.png",
+        "width": 390,
+        "height": 4788,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-bar",
+        "screenshot": "mobile/navigation-bar.png",
+        "width": 390,
+        "height": 5376,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-drawer",
+        "screenshot": "mobile/navigation-drawer.png",
+        "width": 390,
+        "height": 5416,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "navigation-rail",
+        "screenshot": "mobile/navigation-rail.png",
+        "width": 390,
+        "height": 6085,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "top-app-bar",
+        "screenshot": "mobile/top-app-bar.png",
+        "width": 390,
+        "height": 6469,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "bottom-app-bar",
+        "screenshot": "mobile/bottom-app-bar.png",
+        "width": 390,
+        "height": 5299,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "toolbar",
+        "screenshot": "mobile/toolbar.png",
+        "width": 390,
+        "height": 6320,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      },
+      {
+        "id": "menu",
+        "screenshot": "mobile/menu.png",
+        "width": 390,
+        "height": 4932,
+        "documentOverflowPx": 0,
+        "bodyOverflowPx": 0,
+        "console": "",
+        "pageErrors": ""
+      }
+    ]
+  }
+}

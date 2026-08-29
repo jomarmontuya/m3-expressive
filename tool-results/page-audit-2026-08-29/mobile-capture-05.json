@@ -1,0 +1,28 @@
+{
+  "viewport": {
+    "name": "mobile",
+    "width": 390,
+    "height": 844
+  },
+  "rows": [
+    {
+      "id": "menu",
+      "name": "Menu",
+      "screenshot": "mobile/menu.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4932
+      },
+      "console": "",
+      "pageErrors": ""
+    }
+  ]
+}

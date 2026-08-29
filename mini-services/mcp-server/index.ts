@@ -46,19 +46,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
-import {
-  buttonMeta, iconButtonMeta, fabMeta, extendedFabMeta, fabMenuMeta,
-  splitButtonMeta, buttonGroupMeta, segmentedButtonMeta,
-  badgeMeta, linearProgressMeta, circularProgressMeta, loadingIndicatorMeta,
-  snackbarMeta, tooltipMeta, bannerMeta, dialogMeta, dividerMeta,
-  cardMeta, listMeta, bottomSheetMeta, sideSheetMeta,
-  textFieldMeta, searchBarMeta, searchViewMeta, autocompleteMeta,
-  checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
-  tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
-  topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
-  datePickerMeta, timePickerMeta, carouselMeta,
-} from "../../src/lib/m3/meta";
-import type { M3ComponentMeta } from "../../src/lib/m3/types";
+import { agentManifest, buildAgentHandbook, MCP_TOOL_NAMES } from "../../src/lib/m3/agent";
+import { getComponent, m3Registry } from "../../src/lib/m3/registry";
 import {
   springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale,
   elevations, colorRoles,
@@ -71,46 +60,14 @@ import { generateScheme, schemeToCssVars } from "../../src/lib/m3/theme-builder"
 /* ------------------------------------------------------------------ */
 const LIBRARY_ROOT = resolve(fileURLToPath(import.meta.url), "../../..");
 
-/** id → implementation file (relative to src/components/m3). */
-const FILES: Record<string, string> = {
-  button: "Button", "icon-button": "IconButton", fab: "FAB",
-  "extended-fab": "ExtendedFab", "fab-menu": "FabMenu",
-  "split-button": "SplitButton", "button-group": "ButtonGroup",
-  "segmented-button": "SegmentedButton",
-  badge: "Badge", "linear-progress": "LinearProgress",
-  "circular-progress": "CircularProgress", "loading-indicator": "LoadingIndicator",
-  snackbar: "Snackbar", tooltip: "Tooltip", banner: "Banner",
-  dialog: "Dialog", divider: "Divider",
-  card: "Card", list: "List", "bottom-sheet": "BottomSheet", "side-sheet": "SideSheet",
-  "text-field": "TextField", "search-bar": "SearchBar", "search-view": "SearchView", autocomplete: "Autocomplete",
-  checkbox: "Checkbox", radio: "Radio", switch: "Switch", slider: "Slider", chip: "Chip",
-  tabs: "Tabs", "navigation-bar": "NavigationBar", "navigation-drawer": "NavigationDrawer",
-  "navigation-rail": "NavigationRail", "top-app-bar": "TopAppBar",
-  "bottom-app-bar": "BottomAppBar", toolbar: "Toolbar", menu: "Menu",
-  "date-picker": "DatePicker", "time-picker": "TimePicker",
-  carousel: "Carousel",
-};
+const METAS = m3Registry.components;
+const CATEGORIES = m3Registry.categories;
 
-const METAS: M3ComponentMeta[] = [
-  buttonMeta, iconButtonMeta, fabMeta, extendedFabMeta, fabMenuMeta,
-  splitButtonMeta, buttonGroupMeta, segmentedButtonMeta,
-  badgeMeta, linearProgressMeta, circularProgressMeta, loadingIndicatorMeta,
-  snackbarMeta, tooltipMeta, bannerMeta, dialogMeta, dividerMeta,
-  cardMeta, listMeta, bottomSheetMeta, sideSheetMeta,
-  textFieldMeta, searchBarMeta, searchViewMeta, autocompleteMeta,
-  checkboxMeta, radioMeta, switchMeta, sliderMeta, chipMeta,
-  tabsMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta,
-  topAppBarMeta, bottomAppBarMeta, toolbarMeta, menuMeta,
-  datePickerMeta, timePickerMeta, carouselMeta,
-];
-
-const CATEGORIES = ["actions", "communication", "containment", "selection", "textinput", "navigation", "feedback"] as const;
-
-const find = (id: string) => METAS.find((m) => m.id === id);
-const summary = (m: M3ComponentMeta) => ({
+const find = getComponent;
+const summary = (m: (typeof METAS)[number]) => ({
   id: m.id, name: m.name, category: m.category, description: m.description,
   variants: m.variants, m3e: !!m.m3e,
-  source: `src/components/m3/${FILES[m.id]}.tsx`,
+  source: m.file,
   import: m.importLine,
 });
 const notFound = (id: string) => ({
@@ -136,75 +93,8 @@ function search(query: string) {
 /* Resource payloads (read-only knowledge)                             */
 /* ------------------------------------------------------------------ */
 
-/**
- * m3://handbook — mirrors the line structure of the /llms.txt route.
- *
- * WHY NOT import src/app/llms.txt/route.ts directly: that route imports
- * `@/lib/m3/registry` (the Next.js tsconfig path alias) — the mini-service
- * runs under bun with no Next runtime and no `@/` alias mapping, so the
- * import is not robustly resolvable here. Instead the handbook is composed
- * from the SAME local sources of truth this server already imports (METAS
- * + tokens/themes constants), so it always matches the live registry —
- * including components added later — with zero Next dependencies.
- */
-const HANDBOOK_DESCRIPTION =
-  "A complete Material 3 Expressive (M3E) React component library. Every component is built on official M3 design tokens (color roles, shape scale, Roboto Flex typography, physics-based spring motion, state layers) and ships with structured design-guideline metadata for agentic consumption.";
-
-/** Same category order as m3Registry.categories in src/lib/m3/registry.ts. */
-const HANDBOOK_CATEGORIES = [
-  "actions", "communication", "containment", "selection", "textinput", "navigation",
-] as const;
-
-function buildHandbook(): string {
-  const lines: string[] = [];
-  lines.push("# m3-expressive-react");
-  lines.push("");
-  lines.push("> " + HANDBOOK_DESCRIPTION);
-  lines.push("");
-  lines.push(`Version: 1.0.0 · Components: ${METAS.length} · Spec: https://m3.material.io`);
-  lines.push("");
-  lines.push("## How to use this library (for AI agents)");
-  lines.push("");
-  lines.push('- Import from the barrel: `import { Button, Card } from "@/components/m3";`');
-  lines.push('- Icons: Material Symbols ligature names as strings (`icon="edit"`).');
-  lines.push('- Colors: always token roles (`bg-m3-primary`, `text-m3-on-surface-variant`, `bg-m3-surface-container-high`, `border-m3-outline-variant`) — never raw hex.');
-  lines.push('- Motion: springs from `@/lib/m3/tokens` (`springs.expressive` is the signature bouncy M3E spring).');
-  lines.push('- Machine-readable docs: `GET /api/registry`, one component: `GET /api/registry?component=<id>`, tokens: `GET /api/registry?tokens=true`, themes: `GET /api/registry?themes=true`, custom scheme from a seed: `GET /api/theme-builder?seed=<hex>&variant=<tonal-spot|vibrant|expressive|content|fidelity|rainbow|fruit-salad>&contrast=<0|0.5|1>`, agent manifest: `GET /api/agent`.');
-  lines.push('- MCP server (preferred for MCP-capable agents): stdio server at `mini-services/mcp-server` exposing list_components, get_component, get_component_api, get_component_examples, get_component_guidelines, get_component_states, get_component_source, search_components, list_themes, get_theme, generate_theme, get_design_tokens, get_motion_guidance, get_accessibility_guidance. Config: `{"command":"bun","args":["run","--cwd","<abs>/mini-services/mcp-server","start"]}`. Full instructions: `mini-services/mcp-server/README.md`.');
-  lines.push('- MCP over streamable HTTP (stateless, CORS open — for browser/remote agents): `POST http://localhost:3210/mcp` with JSON-RPC 2.0 (also `tools/list`, `tools/call`); health at `GET http://localhost:3210/`; start with `cd mini-services/mcp-server && bun run dev`.');
-  lines.push('- MCP resources + prompts (this server): read-only resources `m3://handbook`, `m3://components`, `m3://components/{id}`, `m3://tokens`, `m3://themes`, `m3://package`; prompts `m3_screen_builder`, `m3_style_audit`, `m3_theme_seed`.');
-  lines.push("- Emit only props documented in the registry; all components accept `className` and native element props.");
-  lines.push("");
-  lines.push("## Package");
-  lines.push("");
-  lines.push('- npm: `m3-expressive-react` v1.0.0 — install with `npm i m3-expressive-react`. Peer deps: react >=18 <20, react-dom >=18 <20, framer-motion >=11 <13.');
-  lines.push('- Exports: `m3-expressive-react` (barrel: all 40 components + primitives + tokens/registry/types/themes re-exports), `m3-expressive-react/styles.css` (standalone `--md-*` token + primitive stylesheet), and subpaths `tokens`, `types`, `meta`, `themes`, `theme-builder`, `registry`, `hooks`.');
-  lines.push('- Without Tailwind: import `m3-expressive-react/compiled.css` — a pre-compiled stylesheet bundling the `--md-*` tokens, `.md-*`/`.m3-*` helpers, and exactly the utilities the components use (no preflight/reset; safe alongside any CSS stack).');
-  lines.push('- Tailwind 4: components style themselves with Tailwind utility classes mapped to M3 tokens — add `@source "../node_modules/m3-expressive-react";` plus the `--color-m3-*` / `--radius-m3-*` `@theme` mapping from the package README, and import `m3-expressive-react/styles.css`.');
-  lines.push('- Theming: dark mode = `.dark` class on `<html>`; curated schemes = `data-theme="ocean" | "emerald" | "coral"` (baseline violet = attribute removed); custom seed→scheme via `m3-expressive-react/theme-builder` (`generateScheme`) or the `hooks` controller (`useM3Theme`).');
-  lines.push("");
-  for (const cat of HANDBOOK_CATEGORIES) {
-    const comps = METAS.filter((m) => m.category === cat);
-    lines.push(`## ${cat} (${comps.length})`);
-    lines.push("");
-    for (const c of comps) {
-      lines.push(`### ${c.name}${c.m3e ? " (NEW in M3 Expressive)" : ""}`);
-      lines.push(`- id: \`${c.id}\``);
-      lines.push(`- ${c.description}`);
-      lines.push(`- import: ${c.importLine}`);
-      if (c.variants?.length) lines.push(`- variants: ${c.variants.join(", ")}`);
-      lines.push(`- props: ${c.props.map((p) => `${p.name}${p.default ? `=${p.default}` : ""}: ${p.type}`).join("; ")}`);
-      lines.push(`- when to use: ${(c.guidelines?.whenToUse ?? []).join(" | ")}`);
-      if (c.guidelines?.donts?.length) lines.push(`- avoid: ${c.guidelines.donts.join(" | ")}`);
-      lines.push("- example:");
-      lines.push("```tsx");
-      lines.push(c.exampleCode);
-      lines.push("```");
-      lines.push("");
-    }
-  }
-  return lines.join("\n");
-}
+/** m3://handbook uses the same builder as the Next.js /llms.txt route. */
+const buildHandbook = buildAgentHandbook;
 
 /** m3://tokens — the raw token object (the values get_design_tokens is built on). */
 const TOKENS_RESOURCE = {
@@ -223,34 +113,8 @@ const THEMES_RESOURCE = {
   themes: m3Themes,
 };
 
-/** m3://package — npm package facts, mirroring the `package` field of /api/agent. */
-const PACKAGE_FACTS = {
-  name: "m3-expressive-react",
-  version: "1.0.0",
-  install: "npm i m3-expressive-react",
-  exports: {
-    ".": `Barrel — all ${METAS.length} components + MaterialSymbol/Ripple primitives + tokens/registry/types/themes re-exports`,
-    "./styles.css": "Standalone token + primitive stylesheet (all --md-* color roles light/dark, 4 curated [data-theme] schemes, .md-* type scale, .m3-state/.m3-focus/.m3-elevation-*/ripple/m3-scroll, Material Symbols icon CSS)",
-    "./compiled.css": "Pre-compiled stylesheet for consumers WITHOUT Tailwind: tokens + helpers + exactly the utilities the components use (no preflight/reset — safe alongside any CSS stack)",
-    "./tokens": "springs, easings, durations, shapes, shapeMorph, stateOpacities, typeScale, elevations, colorRoles",
-    "./types": "M3ComponentMeta / M3Registry contract types",
-    "./meta": "All M3ComponentMeta objects (agentic metadata)",
-    "./themes": "m3Themes, getTheme, themeIds, schemeToCssVars (curated schemes as data)",
-    "./theme-builder": "generateScheme/schemeToCssVars — seed → full light+dark scheme (@material/material-color-utilities, server-safe)",
-    "./registry": "m3Registry, getComponent, searchComponents, getComponentsByCategory (isomorphic)",
-    "./hooks": "useM3Theme — curated + custom scheme and light/dark controller (client)",
-  },
-  peerDependencies: {
-    react: ">=18 <20",
-    "react-dom": ">=18 <20",
-    "framer-motion": ">=11 <13",
-  },
-  styling: {
-    tailwind4: 'Add @source "../node_modules/m3-expressive-react"; plus the --color-m3-*/--radius-m3-* @theme mapping from the package README, then import "m3-expressive-react/styles.css".',
-    withoutTailwind: 'import "m3-expressive-react/compiled.css"; — tokens + helpers + exactly the emitted utilities, no Tailwind build step required.',
-  },
-  note: "Tailwind 4 is required for full component styling on the styles.css path; compiled.css is the no-Tailwind alternative. Both ship all curated schemes and the Material Symbols icon CSS.",
-};
+/** m3://package is the exact package field served by /api/agent. */
+const PACKAGE_FACTS = agentManifest.package;
 
 /* ------------------------------------------------------------------ */
 /* Server factory                                                      */
@@ -266,8 +130,8 @@ const text = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON
  */
 function buildServer(): McpServer {
   const server = new McpServer({
-    name: "m3-expressive",
-    version: "1.0.0",
+    name: agentManifest.forAgents.mcpServer.name,
+    version: m3Registry.version,
   });
 
   /* ---- discovery ---- */
@@ -277,7 +141,12 @@ function buildServer(): McpServer {
       title: "List components",
       description:
         "List every component in the Material 3 Expressive React library with id, name, category, variants, M3E flag, source path and import line. Start here.",
-      inputSchema: { category: z.string().optional().describe("Filter by category: actions | communication | containment | selection | textinput | navigation | feedback") },
+      inputSchema: {
+        category: z
+          .string()
+          .optional()
+          .describe(`Filter by category: ${CATEGORIES.join(" | ")}`),
+      },
     },
     ({ category }) => {
       let list = METAS.map(summary);
@@ -288,9 +157,9 @@ function buildServer(): McpServer {
         list = list.filter((c) => c.category === category);
       }
       return text({
-        library: "m3-expressive-react",
-        version: "1.0.0",
-        spec: "https://m3.material.io",
+        library: m3Registry.library,
+        version: m3Registry.version,
+        spec: m3Registry.spec,
         totalCount: list.length,
         components: list,
       });
@@ -406,7 +275,7 @@ function buildServer(): McpServer {
     ({ id }) => {
       const m = find(id);
       if (!m) return notFound(id);
-      const rel = `src/components/m3/${FILES[m.id]}.tsx`;
+      const rel = m.file;
       try {
         const source = readFileSync(join(LIBRARY_ROOT, rel), "utf8");
         return text({ id: m.id, path: rel, lines: source.split("\n").length, source });
@@ -508,7 +377,7 @@ function buildServer(): McpServer {
         typography: { font: "Roboto Flex (variable)", scale: typeScale, cssClasses: "md-display-large … md-label-small" },
         stateLayers: stateOpacities,
         icons: "Material Symbols Rounded (variable): FILL/wght/GRAD/opsz axes",
-        reducedMotion: "Honored globally via MotionConfig reducedMotion='user' + CSS prefers-reduced-motion",
+        reducedMotion: "Components with JavaScript-specific reduced-motion behavior read the preference directly; MotionConfig and CSS also honor the user preference.",
         theming: {
           themes: m3Themes.map((t) => t.id),
           application: "CSS custom properties --md-* scoped by html[data-theme] and .dark; components read semantic tokens only",
@@ -536,7 +405,7 @@ function buildServer(): McpServer {
           "Enter/exit: container transforms + shared-layout indicators use springs.expressive / defaultSpatial",
           "Small visual feedback (scale, icon pops): springs.fastVisual",
           "Loops (indeterminate progress, loaders): linear or standard easing with token durations",
-          "prefers-reduced-motion: MotionConfig reducedMotion='user' at the app root + CSS media query kills CSS animations",
+          "prefers-reduced-motion: use useReducedMotion for JavaScript-specific fallbacks; MotionConfig and CSS provide the app-level fallback",
         ],
       })
   );
@@ -596,8 +465,8 @@ function buildServer(): McpServer {
     },
     (uri) =>
       jsonResource(uri, {
-        library: "m3-expressive-react",
-        version: "1.0.0",
+        library: m3Registry.library,
+        version: m3Registry.version,
         count: METAS.length,
         components: METAS.map((m) => ({ id: m.id, name: m.name, category: m.category, variants: m.variants, m3e: !!m.m3e })),
       })
@@ -934,8 +803,8 @@ if (!HTTP_REQUESTED) {
         return sendJson(res, 200, {
           service: "m3-expressive-mcp",
           transport: "streamable-http",
-          version: "1.0.0",
-          tools: 14,
+          version: m3Registry.version,
+          tools: MCP_TOOL_NAMES.length,
           components: METAS.length,
           protocol: "MCP streamable HTTP (stateless — no Mcp-Session-Id)",
           endpoints: { health: "GET /", mcp: "POST /mcp" },

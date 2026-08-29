@@ -1,33 +1,53 @@
 "use client";
+/* eslint-disable max-lines -- size, toggle, loading, and motion contracts share one button implementation */
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button as BaseButton } from "@base-ui/react/button";
 import { cn } from "@/lib/utils";
-import { springs, durations, shapeMorph } from "@/lib/m3/tokens";
+import { springs, durations } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text" | "elevated";
-export type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl";
-export type ButtonShape = "full" | "large" | "medium" | "small";
+export type ButtonSize =
+  | "xs"
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "extra-small"
+  | "small"
+  | "medium"
+  | "large"
+  | "extra-large";
+export type ButtonShape = "round" | "square" | "full" | "large" | "medium" | "small";
+
+type ButtonSizeKey = "xs" | "sm" | "md" | "lg" | "xl";
 
 /**
- * M3 Expressive height/typography per size:
- * xs=32, sm=40, md=56, lg=76, xl=96 (official M3E button scale)
- *
- * Padding follows the official spec: 16px dense (xs), 24px standard (sm/md);
- * lg/xl are M3E-only expressive scale-ups (no official padding token — 32/40px).
- * Icon ramp 16/18/20/24/28 keeps dense icons 16–20dp and standard ≤24dp.
- * Type: xs=label-medium, sm/md=label-large (official 14px/0.1px tracking),
- * lg=title-medium, xl=title-large (adjacent scale roles for the M3E sizes).
+ * Official M3 Expressive scale. The large sizes intentionally jump from 56dp
+ * to 96dp and 136dp. Pressed corners are 8/8/12/16/16dp.
  */
-const sizeStyles: Record<ButtonSize, { height: string; padding: string; typeClass: string; iconSize: number; gap: string; touchTarget: string }> = {
-  xs: { height: "32px", padding: "0 16px", typeClass: "md-label-medium", iconSize: 16, gap: "4px", touchTarget: "before:absolute before:-inset-y-2 before:content-['']" },
-  sm: { height: "40px", padding: "0 24px", typeClass: "md-label-large", iconSize: 18, gap: "8px", touchTarget: "before:absolute before:-inset-y-1 before:content-['']" },
-  md: { height: "56px", padding: "0 24px", typeClass: "md-label-large", iconSize: 20, gap: "8px", touchTarget: "" },
-  lg: { height: "76px", padding: "0 32px", typeClass: "md-title-medium", iconSize: 24, gap: "8px", touchTarget: "" },
-  xl: { height: "96px", padding: "0 40px", typeClass: "md-title-large", iconSize: 28, gap: "12px", touchTarget: "" },
+const sizeStyles: Record<ButtonSizeKey, { height: number; padding: number; typeClass: string; iconSize: number; gap: number; pressedRadius: number; squareRadius: number; outline: number; touchTarget: string }> = {
+  xs: { height: 32, padding: 12, typeClass: "md-label-large", iconSize: 20, gap: 8, pressedRadius: 8, squareRadius: 12, outline: 1, touchTarget: "before:absolute before:-inset-y-2 before:content-['']" },
+  sm: { height: 40, padding: 16, typeClass: "md-label-large", iconSize: 20, gap: 8, pressedRadius: 8, squareRadius: 12, outline: 1, touchTarget: "before:absolute before:-inset-y-1 before:content-['']" },
+  md: { height: 56, padding: 24, typeClass: "md-title-medium", iconSize: 24, gap: 8, pressedRadius: 12, squareRadius: 16, outline: 1, touchTarget: "" },
+  lg: { height: 96, padding: 48, typeClass: "md-headline-small", iconSize: 32, gap: 12, pressedRadius: 16, squareRadius: 28, outline: 2, touchTarget: "" },
+  xl: { height: 136, padding: 64, typeClass: "md-headline-large", iconSize: 40, gap: 16, pressedRadius: 16, squareRadius: 28, outline: 3, touchTarget: "" },
+};
+
+const sizeAliases: Record<ButtonSize, ButtonSizeKey> = {
+  xs: "xs",
+  sm: "sm",
+  md: "md",
+  lg: "lg",
+  xl: "xl",
+  "extra-small": "xs",
+  small: "sm",
+  medium: "md",
+  large: "lg",
+  "extra-large": "xl",
 };
 
 /**
@@ -41,10 +61,22 @@ const sizeStyles: Record<ButtonSize, { height: string; padding: string; typeClas
 const variantStyles: Record<ButtonVariant, string> = {
   filled: "bg-m3-primary text-m3-on-primary",
   tonal: "bg-m3-secondary-container text-m3-on-secondary-container",
-  outlined: "border border-m3-outline bg-transparent text-m3-primary",
-  text: "bg-transparent text-m3-primary px-3!",
+  outlined: "border-m3-outline-variant bg-transparent text-m3-on-surface-variant",
+  text: "bg-transparent text-m3-primary",
   elevated:
     "m3-elevation-1 bg-m3-surface-container-low text-m3-primary hover:[box-shadow:0_1px_2px_0_rgb(0_0_0/0.30),0_2px_6px_2px_rgb(0_0_0/0.15)]",
+};
+
+/** Toggle buttons use the current selected/unselected color roles. */
+const toggleUnselectedStyles: Partial<Record<ButtonVariant, string>> = {
+  filled: "bg-m3-surface-container text-m3-on-surface-variant",
+};
+
+const toggleSelectedStyles: Record<Exclude<ButtonVariant, "text">, string> = {
+  filled: "bg-m3-primary text-m3-on-primary",
+  tonal: "bg-m3-secondary text-m3-on-secondary",
+  outlined: "border-transparent bg-m3-inverse-surface text-m3-inverse-on-surface",
+  elevated: "m3-elevation-1 bg-m3-primary text-m3-on-primary",
 };
 
 /**
@@ -55,12 +87,14 @@ const variantStyles: Record<ButtonVariant, string> = {
 const disabledStyles: Record<ButtonVariant, string> = {
   filled: "bg-m3-on-surface/12 text-m3-on-surface/38 shadow-none!",
   tonal: "bg-m3-on-surface/12 text-m3-on-surface/38 shadow-none!",
-  outlined: "border border-m3-on-surface/12 text-m3-on-surface/38",
-  text: "text-m3-on-surface/38 px-3!",
+  outlined: "border-m3-on-surface/12 text-m3-on-surface/38",
+  text: "text-m3-on-surface/38",
   elevated: "bg-m3-on-surface/12 text-m3-on-surface/38",
 };
 
 const shapeStyles: Record<ButtonShape, string> = {
+  round: "rounded-full",
+  square: "rounded-xl",
   full: "rounded-full",
   large: "rounded-2xl",
   medium: "rounded-xl",
@@ -72,14 +106,14 @@ const shapeStyles: Record<ButtonShape, string> = {
  * (motion-specific) signatures — those DOM versions would conflict once they
  * reach the motion element through Base UI's `render` composition.
  */
-export interface ButtonProps
-  extends Omit<
+type ButtonNativeProps = Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration" | "onDragStart" | "onDrag" | "onDragEnd" | "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop"
-  > {
-  variant?: ButtonVariant;
+  >;
+
+interface ButtonCommonProps {
   size?: ButtonSize;
-  /** Corner shape. M3E default "full" morphs toward 20dp on press. */
+  /** Official round/square shape. Legacy fixed-radius names remain supported. */
   shape?: ButtonShape;
   /** Leading Material Symbol name */
   icon?: string;
@@ -93,6 +127,24 @@ export interface ButtonProps
   children?: React.ReactNode;
 }
 
+type ButtonToggleProps =
+  | {
+      variant?: Exclude<ButtonVariant, "text">;
+      /** Enables the current M3 toggle-button selected contract. Text buttons cannot toggle. */
+      toggleable: true;
+      /** Controlled selected state. Omit for internal state. */
+      selected?: boolean;
+      onSelectedChange?: (selected: boolean) => void;
+    }
+  | {
+      variant?: ButtonVariant;
+      toggleable?: false;
+      selected?: never;
+      onSelectedChange?: never;
+    };
+
+export type ButtonProps = ButtonNativeProps & ButtonCommonProps & ButtonToggleProps;
+
 /**
  * M3 Expressive Button.
  *
@@ -101,34 +153,54 @@ export interface ButtonProps
  * pointer events while disabled); the `render` prop composes it with a
  * framer-motion element so WE keep the visuals — press scale, the M3E shape
  * morph, springs and the M3 state layer. Press morphs the corner shape
- * (full → 20dp) with the bouncy expressive spring — the hallmark M3E
- * interaction. Plays for keyboard presses too (Space/Enter), via the shared
- * shapeMorph token pair.
+ * to the size-specific pressed corner with the expressive spring. Keyboard
+ * presses through Space and Enter use the same state.
  */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = "filled",
-    size = "md",
-    shape = "full",
+    size = "sm",
+    shape = "round",
     icon,
     trailingIcon,
     loading = false,
     fullWidth = false,
+    toggleable = false,
+    selected,
+    onSelectedChange,
     className,
     children,
     disabled,
+    onPointerDown,
+    onPointerUp,
+    onPointerCancel,
+    onPointerLeave,
     onKeyDown,
     onKeyUp,
     onBlur,
+    onClick,
     ...props
   },
   ref
 ) {
-  const s = sizeStyles[size];
+  const s = sizeStyles[sizeAliases[size]];
   const isDisabled = disabled || loading;
   const [pressed, setPressed] = React.useState(false);
-  /** M3E shape morph only applies to the default full (pill) shape. */
-  const morphs = shape === "full" && !isDisabled;
+  const [internalSelected, setInternalSelected] = React.useState(false);
+  const isSelected = toggleable ? (selected ?? internalSelected) : false;
+  const morphs = (shape === "round" || shape === "full" || shape === "square") && !isDisabled;
+  const restRadius = shape === "square"
+    ? isSelected
+      ? s.height / 2
+      : s.squareRadius
+    : isSelected
+      ? s.squareRadius
+      : s.height / 2;
+  const enabledStyle = toggleable
+    ? isSelected
+      ? toggleSelectedStyles[variant as Exclude<ButtonVariant, "text">]
+      : (toggleUnselectedStyles[variant] ?? variantStyles[variant])
+    : variantStyles[variant];
 
   /** Space activates on keyup, Enter on keydown (native) — mirror both into
    * the pressed state so the shape morph also plays for keyboard users. */
@@ -150,18 +222,40 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       ref={ref}
       disabled={isDisabled}
       aria-busy={loading || undefined}
+      aria-pressed={toggleable ? isSelected : undefined}
       data-pressed={pressed || undefined}
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
+      onPointerDown={(event) => {
+        setPressed(true);
+        onPointerDown?.(event);
+      }}
+      onPointerUp={(event) => {
+        setPressed(false);
+        onPointerUp?.(event);
+      }}
+      onPointerCancel={(event) => {
+        setPressed(false);
+        onPointerCancel?.(event);
+      }}
+      onPointerLeave={(event) => {
+        setPressed(false);
+        onPointerLeave?.(event);
+      }}
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
       onBlur={handleBlur}
+      onClick={(event) => {
+        if (toggleable) {
+          const next = !isSelected;
+          if (selected === undefined) setInternalSelected(next);
+          onSelectedChange?.(next);
+        }
+        onClick?.(event);
+      }}
       className={cn(
         "m3-state m3-focus relative inline-flex select-none items-center justify-center",
         "transition-colors duration-150",
         s.typeClass,
-        isDisabled ? disabledStyles[variant] : variantStyles[variant],
+        isDisabled ? disabledStyles[variant] : enabledStyle,
         morphs ? undefined : shapeStyles[shape],
         fullWidth && "w-full",
         isDisabled && "pointer-events-none",
@@ -170,8 +264,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
       )}
       style={{
         height: s.height,
-        padding: s.padding,
+        paddingInline: s.padding,
         gap: s.gap,
+        borderWidth: variant === "outlined" ? s.outline : undefined,
       }}
       {...props}
       render={
@@ -179,7 +274,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
           whileTap={isDisabled ? undefined : { scale: 0.96 }}
           animate={
             morphs
-              ? { borderRadius: pressed ? shapeMorph.button.pressed : shapeMorph.button.rest }
+              ? { borderRadius: pressed ? s.pressedRadius : restRadius }
               : undefined
           }
           transition={{ scale: springs.fastVisual, borderRadius: springs.expressiveEffects }}
@@ -189,8 +284,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
             {loading && (
               <motion.span
                 key="spinner"
-                initial={{ width: 0, opacity: 0, marginRight: 0 }}
-                animate={{ width: s.iconSize, opacity: 1, marginRight: parseInt(s.gap) }}
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: s.iconSize, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 transition={springs.fastSpatial}
                 className="inline-flex items-center overflow-hidden"
@@ -208,11 +303,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
             )}
           </AnimatePresence>
           {!loading && icon && (
-            <MaterialSymbol icon={icon} size={s.iconSize} fill={variant === "filled"} />
+            <MaterialSymbol icon={icon} size={s.iconSize} fill={isSelected || variant === "filled"} />
           )}
           {children}
           {trailingIcon && (
-            <MaterialSymbol icon={trailingIcon} size={s.iconSize} fill={variant === "filled"} />
+            <MaterialSymbol icon={trailingIcon} size={s.iconSize} fill={isSelected || variant === "filled"} />
           )}
         </motion.button>
       }

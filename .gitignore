@@ -57,7 +57,8 @@ server.log
 /download/
 
 # internal strategy docs — keep local until public launch
-/audit/
+/audit/*
+!/audit/compliance-2026-08-29.md
 /docs/
 
 # Skills directory

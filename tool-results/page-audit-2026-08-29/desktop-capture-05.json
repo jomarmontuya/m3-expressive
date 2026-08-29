@@ -1,0 +1,28 @@
+{
+  "viewport": {
+    "name": "desktop",
+    "width": 1440,
+    "height": 1000
+  },
+  "rows": [
+    {
+      "id": "menu",
+      "name": "Menu",
+      "screenshot": "desktop/menu.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3482
+      },
+      "console": "",
+      "pageErrors": ""
+    }
+  ]
+}

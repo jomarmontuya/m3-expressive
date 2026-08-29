@@ -1,0 +1,199 @@
+{
+  "viewport": {
+    "name": "mobile",
+    "width": 390,
+    "height": 844
+  },
+  "rows": [
+    {
+      "id": "side-sheet",
+      "name": "Side Sheet",
+      "screenshot": "mobile/side-sheet.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 5142
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "carousel",
+      "name": "Carousel",
+      "screenshot": "mobile/carousel.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 8450
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "checkbox",
+      "name": "Checkbox",
+      "screenshot": "mobile/checkbox.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 5110
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "radio",
+      "name": "Radio",
+      "screenshot": "mobile/radio.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4584
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "screenshot": "mobile/switch.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 4387
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "screenshot": "mobile/slider.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 6782
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "chip",
+      "name": "Chip",
+      "screenshot": "mobile/chip.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 5779
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "date-picker",
+      "name": "Date Picker",
+      "screenshot": "mobile/date-picker.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 9286
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "time-picker",
+      "name": "Time Picker",
+      "screenshot": "mobile/time-picker.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 7318
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "text-field",
+      "name": "TextField",
+      "screenshot": "mobile/text-field.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 390,
+        "documentClientWidth": 390,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 390,
+        "bodyClientWidth": 390,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 6609
+      },
+      "console": "",
+      "pageErrors": ""
+    }
+  ]
+}

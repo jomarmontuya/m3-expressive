@@ -366,9 +366,9 @@ body {
 }
 
 /* ============================================================
-   REDUCED MOTION — honor prefers-reduced-motion for all
-   CSS-driven animation (framer-motion is handled centrally via
-   <MotionConfig reducedMotion="user"> in the components).
+   REDUCED MOTION — honor prefers-reduced-motion for CSS keyframes,
+   transitions, and smooth scrolling. JavaScript motion is separate: package
+   components that call useReducedMotion disable their own motion directly.
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *,

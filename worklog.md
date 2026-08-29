@@ -1305,3 +1305,551 @@ Task: Document Phase 1 (shadcn-style registry) as pending; record spec-audit dep
 
 ## Stage Summary
 Docs-only. No pending implementation work in this session; Phase 1 resumes on Jomar's go once the spec audit lands.
+
+---
+Task ID: task_fa2bf9bd254e
+Agent: dispatched visual QA worker
+Task: Read-only full-page layout audit for all 41 showcase component routes
+
+## Work Log
+- Captured and visually reviewed 82 full-page screenshots from the live local showcase: 41 desktop at 1440 × 1000 and 41 mobile at 390 × 844. Evidence and the route-by-route report are in `tool-results/page-audit-2026-08-29/`.
+- No desktop horizontal overflow or browser console errors/warnings were observed. Mobile horizontal page overflow is reproducible on TextField (20px, showcase size-row layout), SearchBar (11px, fixed 360px minimum), and Time Picker (207px, horizontal analog layout).
+- No application source, existing VR baseline, commit, push, or remote state changed.
+
+## Stage Summary
+Read-only QA complete: 38 routes pass at both audited viewports; 3 mobile responsive issues are documented with screenshot paths, visible evidence, severity, ownership boundary, and minimal recommended fixes in `tool-results/page-audit-2026-08-29/report.md`.
+
+---
+Task ID: task_522230013d68
+Agent: Codex dispatched worker
+Task: Correct the latest actions/navigation audit findings
+
+## Work Log
+- Fixed playground copy output for Button, IconButton, FAB, ExtendedFab, SplitButton, and ButtonGroup against their real component defaults. Added the ExtendedFab size control, corrected the Tabs 48dp claim, and made the BottomAppBar example pass `fabPosition="center"`.
+- Replaced physical edge assumptions in SplitButton, ButtonGroup, SegmentedButton, NavigationDrawer, NavigationRail, Tabs, and Menu with logical CSS or direction-aware behavior. Added one shared document-direction hook for animated offsets, RTL scroll math, and Base UI direction context.
+- Replaced NavigationRail's manual modal scrim and focus loop with Base UI Dialog. The standard in-layout rail remains on its existing path. Removed Button's extra loading-spinner margin.
+
+## Stage Summary
+- Verified with `bunx tsc --noEmit`, focused ESLint, LTR/RTL browser measurements, 48px secondary Tabs, generated playground JSX, modal dialog semantics, focus wrapping, background click blocking, and zero browser console errors. No audit file, commit, push, or generated package artifact was changed by this task.
+
+---
+Task ID: task_9db606dbe9ac
+Agent: Codex dispatched worker
+Task: Correct final inputs, pickers, feedback, and containment audit findings
+
+## Work Log
+- Replaced physical positioning in Slider, TextField, Autocomplete, DatePicker, and Carousel with logical inline positioning or direction-aware geometry. RTL now reverses the Slider active track with the Base UI thumb, mirrors DatePicker navigation and day keys, and keeps Carousel keylines, padding, controls, scrolling, chevrons, and arrow-key focus consistent.
+- Added APG-style roving focus to the TimePicker dial and meridiem controls. Stacked the horizontal picker below 560px, removed SearchBar's compact fixed minimum width, and stacked the TextField demo size row on small screens.
+- Made standard SideSheet visibility controlled by `open`, added a real close/reopen demo path, corrected its playground and metadata, and aligned the requested List, Badge, picker, selection, sheet, carousel, feedback, and extension claims with the public API.
+- Corrected the requested playground explainers and generated examples. Variant-only Chip controls are now hidden outside their valid variants. Updated the package reduced-motion contract and rebuilt generated package output only through `bun run build:package`.
+
+## Stage Summary
+- Verified: `bunx tsc --noEmit` passed; focused ESLint passed; full `bun run lint` passed with the one known `src/app/layout.tsx` warning; package `bun run typecheck` and `bun run build:package` passed; `git diff --check` passed outside generated `dist`.
+- Browser proof: 390×844 TimePicker, SearchBar, and TextField each measured 390px document width with no overflow; TimePicker ArrowRight moved selection, DOM focus, and the single `tabIndex=0`; standard SideSheet closed to zero dialogs and reopened; RTL Slider active track ended at the mirrored thumb, DatePicker ArrowLeft moved Aug 29→30, Autocomplete popup aligned to its field, and Carousel moved focus/scroll in both logical directions with mirrored controls.
+- No historical audit file was edited. No audit report, commit, push, or deployment was created.
+
+---
+Task ID: task_e27797ed1ec9
+Agent: Codex dispatched worker
+Task: Correct final actions/navigation completion-review findings
+
+## Work Log
+- Made `useTextDirection` resolve from an optional component root and observe nested direction changes. Updated direction-aware component roots and portal surfaces so nested RTL direction reaches local motion and portaled content.
+- Kept the NavigationRail modal invoker mounted outside the portal and restored it after Escape or close. Added `.m3-focus` to the named keyboard targets, made Toolbar horizontal padding 8px, and added the opt-in BottomAppBar `exit-always` scroll behavior with positive finite flexible heights.
+- Corrected the affected playground and metadata claims: official toolbar colors, explicit legacy FAB labels, truthful TopAppBar scroll controls/output, functional NavigationRail menu code, and center FAB overlap rather than a cutout.
+
+## Stage Summary
+- Verified: `bunx tsc --noEmit` passed; `bun run lint` had 0 errors and the known `src/app/layout.tsx` warning; `git diff --check` passed with generated `packages/m3-expressive-react/dist/` excluded.
+- Browser proof: nested RTL NavigationRail modal popup resolved `dir="rtl"`; Escape removed the dialog and returned focus to Menu; a keyboard-focused `.m3-focus` target computed a 3px solid outline; the default BottomAppBar measured 64px with no scroll transform. No VR baseline, page screenshot, package build, commit, or push was created.
+- Additional `bun run vr:check` evidence: Carousel, Slider, and SearchBar were identical; the run exited 1 because pre-existing Button (1.1546%) and Banner (1.5302%) captures remained in `changed` status. Their source changes predate this task, so no baseline was refreshed and no unrelated correction was made.
+
+---
+Task ID: task_54f404926253
+Agent: Codex dispatched worker
+Task: Correct final review findings for motion, RTL, modal persistence, props, and copied DatePicker code
+
+## Work Log
+- Added direct `useReducedMotion` handling to Checkbox, Radio, Switch, Chip, SearchBar, and SearchView. Updated public motion guidance to describe direct handling only where it exists.
+- Replaced the remaining physical geometry in Switch, SearchView, and Chip with logical positioning. ChipGroup now follows text direction for horizontal arrow-key focus movement.
+- Removed ComponentView's synthetic native-props row. Modal DatePicker range and TimePicker time now persist confirmed uncontrolled values across reopen, while Cancel keeps staged values uncommitted. DatePicker playground code now declares `addDays` when maxDate uses it.
+
+## Stage Summary
+- Verified: `bunx tsc --noEmit`; `bun run lint` with one known `src/app/layout.tsx` warning; package typecheck and build; and `git diff --check` outside generated `dist` all passed. Local runtime checks confirmed DatePicker confirm/reopen/Cancel, TimePicker confirm/Cancel, LTR ChipGroup ArrowRight focus, and generated DatePicker JSX contains its `addDays` helper when enabled. RTL and reduced-motion behavior were verified from the direction-aware and direct-hook code paths; the running showcase has no control to switch either preference during this focused pass.
+
+---
+Task ID: task_e81fe29913cb
+Agent: Codex dispatched worker
+Task: Correct final feedback and containment review findings
+
+## Work Log
+- Made Divider inset lengths consume the available horizontal or vertical space. The official list preset remains 16dp at start and 24dp at end.
+- Added LoadingIndicator `progress` as the Compose-derived 0–1 determinate Circle-to-SoftBurst API. Updated its live demo, playground, metadata, package motion copy, and compliance mapping. Restored the Tooltip `m3-focus` outline, removed Badge's false disabled contract and demo, and made LinearProgress playground use `wavy` only.
+
+## Stage Summary
+- Verified the focused local routes: Divider insets stayed inside their parent, Tooltip keyboard focus computed a 3px solid ring, LoadingIndicator exposed 0/0.5/1 progress semantics and emitted `progress={0.5}`, and LinearProgress emitted `wavy`. Focused VR captures passed with Divider identical, Badge and Tooltip minor, and animated LoadingIndicator and LinearProgress capped as informational; no baseline or page-audit screenshot changed.
+
+---
+Task ID: 22-badge-source-correction
+Agent: Codex coordinator
+Task: Correct the historical Badge radius source arbitration
+
+## Work Log
+- The Task 20 note that called AndroidX full-round Badge geometry stale is superseded. The live Material 3 page did not expose its token table, so the agreed source order falls back to AndroidX Material3 at `38aa2e813c80c10eb2326e211f9091ee7d79e069`.
+- That audited AndroidX source defines both Badge shapes as `CornerFull`. `src/components/m3/Badge.tsx` therefore uses `rounded-full` for the 6px dot and the 16px content badge.
+
+## Stage Summary
+- Current Badge geometry and documentation follow the agreed source hierarchy. The earlier 3dp/8dp statement remains only as superseded historical evidence because `worklog.md` is append-only.
+
+---
+Task ID: task_a67c99a751c4
+Agent: Codex dispatched worker
+Task: Final repository pass for element-scoped text direction and truthful reduced-motion compliance wording
+
+## Work Log
+- Scoped every `useTextDirection` call in `src/components/m3/` to a rendered component root, scroller, or display-contents anchor. Switch, ChipGroup, DatePicker, SearchView, and Autocomplete now resolve nested direction locally; Menu's coordinator wrapper remains in place and its main and submenu popup roots now also receive `dir`.
+- Passed resolved direction into every affected portaled or overlay surface. This covers Autocomplete, Menu, SplitButton, SearchView, modal DatePicker, NavigationDrawer, and SideSheet without adding layout wrappers.
+- Corrected the compliance report so it promises direct JavaScript reduced-motion fallbacks only for components that call `useReducedMotion`, while retaining the CSS `prefers-reduced-motion` suppression contract.
+
+## Stage Summary
+- Verified: every `useTextDirection` call has an element ref; `bunx tsc --noEmit`, `bun run lint` with the known `src/app/layout.tsx` warning only, package typecheck, package build, and source-only `git diff --check` passed.
+- Local showcase runtime confirmed LTR `dir` propagation on Menu, Autocomplete popup, docked SearchView, docked DatePicker, Switch, and ChipGroup with no browser console errors. The showcase has no nested-RTL control for this focused pass, so nested behavior was verified from the element-scoped hook and explicit portal-root `dir` paths rather than a live nested-RTL toggle.
+- No final review verdict line, VR baseline, page screenshot, commit, push, or Badge `rounded-full` change was edited by this task.
+
+---
+Task ID: 23-final-material-3-compliance
+Agent: Codex coordinator with Orca Terra and Luna reviewers
+Task: Complete the 41-component Material 3 and Material 3 Expressive compliance pass
+
+## Work Log
+- Completed the source, metadata, demo, accessibility, motion, responsive, RTL, picker-state, overlay, and package-output corrections for all 41 registered components. The source order was the current Material 3 pages, AndroidX Material3 at `38aa2e813c80c10eb2326e211f9091ee7d79e069` for values not exposed by the live pages, and Material Web at `cac97678831d48d4eb4a606ca50f92673a1dc20c` as a web baseline only.
+- Classified 39 components as compliant current Material 3 or Material 3 Expressive web implementations. Kept `Banner` labeled as a Material 2 and Flutter compatibility extension and `Autocomplete` labeled as a text-field and combobox extension.
+- Received independent APPROVE verdicts for actions/navigation, inputs/pickers, and feedback/containment after their correction passes. Focused rechecks also approved Badge source arbitration, Menu nested RTL, and all 15 `useTextDirection` callers after removing Carousel's circular self-applied direction.
+- Used a temporary local nested-RTL route to verify inherited direction, portal direction, Menu, Autocomplete, SearchView, DatePicker, Switch, and ChipGroup behavior. Deleted the route after verification.
+- A Terra visual QA worker captured and inspected 82 fresh full-page screenshots: 41 desktop at 1440 × 1000 and 41 mobile at 390 × 844. All 41 routes passed with no visible overlap, clipping, cut-off controls, broken wrapping, spacing defect, horizontal page overflow, console message, or page error. The report and evidence are in `tool-results/page-audit-2026-08-29/`.
+
+## Stage Summary
+- Verified `bunx tsc --noEmit`; `bun run lint` with 0 errors and the known `src/app/layout.tsx` warning; package typecheck; package build; and source-only `git diff --check`.
+- The final visual-regression evidence contains 18 identical and 23 minor components, with 0 changed, 0 new, and 0 missing. The full run briefly saved Carousel under SideSheet; a focused SideSheet retry restored the correct capture at 0.7483%, inside the minor band.
+- The final compliance scorecard is `audit/compliance-2026-08-29.md`. The closed-state page-layout audit does not replace focused interactive testing for open overlays. No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 24-mobile-sidebar-search-overlap
+Agent: Codex
+Task: Fix the SearchBar overflow inside the mobile and tablet navigation drawer
+
+## Work Log
+- Reproduced the issue at the 768px responsive viewport. `SearchBar` applied `sm:min-w-[360px]` even with `fullWidth`, so the 360px field extended 56px past the 320px SideSheet.
+- Moved the 360px minimum width into the non-`fullWidth` branch in `src/components/m3/SearchBar.tsx`. Full-width search bars can now shrink to their parent without changing the default standalone 360px size.
+- Verified the live drawer at 390px, 768px, and 1023px. The search field measured 288px with 16px start and end insets and zero page overflow. At the 1024px desktop boundary, it measured 267px inside the 300px sidebar with 16px and 17px insets.
+
+## Stage Summary
+- Passed repository TypeScript, focused ESLint, package TypeScript, package build, and source-only `git diff --check`.
+- The focused SearchBar visual-regression capture was identical at 0.0000%. No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 25-shared-playground-control-layout
+Agent: Codex
+Task: Fix shared playground Variant and text-field layout across component pages
+
+## Work Log
+- Reproduced the shared control defect on Button: the 40px SegmentedButton was forced into a two-row CSS grid, which collapsed each option to 19px. The same renderer affected Icon Button, FAB, and other component playgrounds.
+- Restored one horizontal connected row with a safe overflow container and tighter segment padding. Short groups fit in the panel; long groups keep full labels and can scroll horizontally.
+- Removed the duplicate floating label and leading icon from playground text fields. Each field now uses the existing visible control heading plus an accessible `aria-label`.
+
+## Stage Summary
+- Live browser checks passed on Button, Icon Button, FAB, and Extended FAB. Button variant and label interactions updated the preview, all segment rows measured 40px with 38px options, and text fields had no duplicate floating label or icon.
+- Focused ESLint, package TypeScript, and `git diff --check` passed. Full repository TypeScript and lint remain blocked by unrelated existing errors in `mini-services/mcp-server/index.ts` (`FILES` is undefined and three imports are unused); the known `src/app/layout.tsx` warning remains.
+- No VR baseline, generated package build, commit, push, publish, or deployment was performed.
+
+Task ID: split-button-live-demo-radius
+Agent: Codex
+Task: Fix Split Button segments rendering with square corners on initial showcase mount.
+Work Log:
+- Reproduced the defect on `/#/component/split-button`: all eight Live Demo instances computed every segment corner as `0px`, while the Playground instance rendered the intended radii.
+- Added `initial={false}` to both Split Button segment motion elements so Framer Motion applies the resting M3 shape on mount and preserves later pressed/open animations.
+Stage Summary: Implementation complete. Runtime and repository verification follow.
+
+Verification:
+- Live LTR resting radii passed for all eight demo instances: xs `16/4`, sm `20/4`, md `28/4`, lg `48/8`, and xl `68/12` outer/inner values.
+- Live interaction checks passed: the sm trigger morphed to `20px` on every corner while open, the sm action inner corner reached `12px` while pressed, and RTL reversed the outer and inner corners.
+- `bunx tsc --noEmit`, `bun run lint`, package typecheck, and `bun run build:package` passed. Lint kept only the documented `src/app/layout.tsx` warning.
+- The full 41-route VR capture classified Split Button as minor at `0.1253%`. The suite remained failed because unrelated Button and Badge captures were above the threshold. Refreshed only the intended Split Button baseline; its focused baseline/current comparison is identical at `0.0038%`.
+- Orca Terra task `task_2995d4ba8a73` returned APPROVE after checking all size radii, the md open morph, menu roles, Home/End navigation, Escape cleanup, focus return, focused lint/typecheck, and zero browser errors.
+
+Stage Summary: Split Button radius fix verified. No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 26-badge-hover-target
+Agent: Codex
+Task: Fix the Badge demo hover target rendering as a vertical pill.
+
+## Work Log
+- Reproduced the Inbox hover defect live on `/#/component/badge`. The raw demo button measured 40px wide by 47px tall, so its inherited `rounded-full` state layer rendered as a vertical pill.
+- Replaced that raw button with the library's existing standard small `IconButton`. The Badge component and its positioning logic remain unchanged.
+
+## Stage Summary
+- Live verification measured a settled 40px by 40px target with a 20px radius and the token-driven 8% hover state layer. Clicking still changed the badge count from 3 to 4, and the browser reported no warnings or errors.
+- `bunx tsc --noEmit`, `bun run lint`, and source `git diff --check` passed. Lint retained the one known `src/app/layout.tsx` warning.
+- A temporary focused Badge capture differed from the committed baseline by 2.1174%. The baseline also contains unrelated pre-existing demo and page changes, so this task did not overwrite it. No package build, baseline refresh, commit, push, publish, or deployment was performed.
+
+---
+Task ID: 27-agent-contract-single-source
+Agent: Codex
+Task: Verify the Agents MCP flow and make the registry, agent manifest, and MCP component data share one source.
+
+## Work Log
+- Reproduced the live `/#/agents` failure on `localhost:3000`: the MCP Playground posted to the Caddy-only `XTransformPort` path and received HTTP 404 even though the MCP service on `localhost:3210` was healthy.
+- Found contract drift in `/api/agent`: the registry and MCP server exposed 41 components, but two package descriptions still said 40 and the manifest listed 13 tools while the server exposed 14. `generate_theme` was missing from the manifest.
+- Added `src/lib/m3/agent.ts` as the shared manifest and handbook builder. It derives component counts, categories, M3E ids, version, package facts, themes, and handbook component sections from `src/lib/m3/registry.ts` and `src/lib/m3/themes.ts`.
+- Removed the MCP server's duplicate 41-entry metadata array and component file map. MCP tools and resources now read `m3Registry.components` and its canonical `file` values. `/api/agent`, `/llms.txt`, `m3://handbook`, and `m3://package` now use the same shared agent data.
+- Updated the browser MCP client to use direct `http://localhost:3210/mcp` on local hosts and retain the relative gateway URL for preview hosts.
+
+## Stage Summary
+- RED confirmed stale manifest counts and a 13-versus-14 tool mismatch. GREEN contract checks confirmed 41 unique registry components, 14 matching manifest and MCP tools, matching component ids and source paths, four themes, and byte-identical `/llms.txt` and `m3://handbook` output.
+- Live browser verification on `http://localhost:3000/#/agents` connected to `m3-expressive` v1.0.0, listed all 14 tools, and ran `list_components` with `totalCount: 41`. A real stdio SDK client also connected and returned 14 tools and 41 components.
+- `bunx tsc --noEmit`, focused ESLint for all changed source files, package TypeScript, and `bun run build:package` passed. Full `bun run lint` remains blocked by the unrelated existing `src/components/m3/SplitButton.tsx` 285-line `max-lines` error; the known `src/app/layout.tsx` warning remains.
+- `bun run vr:check` completed all 41 captures. Existing component work left six `changed` results: Button, ButtonGroup, SegmentedButton, Badge, SideSheet, and NavigationRail. This task did not change or approve those component visuals and did not refresh baselines.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-chip-selection-motion-fix
+Agent: Codex
+Task: Remove the filter Chip selection jump while preserving Material 3 geometry.
+
+## Work Log
+- Reproduced the Playground defect frame by frame. Deselection grew from 82.125px to 98.125px before settling at 72.125px. Selection shrank from 72.125px to about 64px before growing to 82.125px.
+- Kept the existing 32dp height, 8dp corners, 18dp check icon, 8dp icon gap, and final selected and unselected widths.
+- Replaced the conditional padding swap with one shared MotionValue. It drives the leading icon slot and trailing balance space together, so their opposing width changes cannot drift.
+- Added `scripts/check-chip-selection-motion.ts` as a live regression check for both directions. It rejects endpoint overshoot and reverse steps above 0.05px.
+- Updated the Chip section in `audit/inputs.md` to remove stale pill-shape and assist-selection claims and record the current pinned AndroidX contract.
+- Rebuilt the npm package output from the shared component source.
+
+## Stage Summary
+- RED: the new regression check failed on the original 82.125px to 98.125px deselection jump.
+- GREEN: the final check measured 82.125px to 72.125px and 72.125px to 82.125px. One repeated run measured a maximum reverse step of 0.015625px, below the 0.05px browser-rounding limit.
+- Independent Orca Luna review returned APPROVE. It measured 32px height, 8px corners, exact settled widths, zero visible icon and label overlap, and no page errors or warnings.
+- `bunx tsc --noEmit`, focused ESLint, full lint, package TypeScript, package build, and source diff check passed. Full lint retained only the known `src/app/layout.tsx` warning.
+- Full VR captured all 41 routes. Chip stayed within the accepted minor band at 0.7493%. The repository-wide gate still exited 1 for unrelated existing Badge, Tooltip, and Carousel changes.
+- No baseline was refreshed. No commit, push, publish, or deployment was performed.
+
+## Verification follow-up
+- The final post-baseline 41-route VR run measured Carousel at 0.0007% and `identical`.
+- The full gate still exits 1 for unrelated existing changes in Badge, Tooltip, Radio, BottomAppBar, and Menu. Radio crossed the 1% band during the final run while concurrent work was still changing the shared worktree. No unrelated baseline was refreshed.
+
+## Documentation follow-up
+- Updated the shipped package README and package description from 40 to 41 components.
+- Replaced the MCP README's old 39-versus-40 count note with `src/lib/m3/registry.ts` as the canonical catalog and `src/lib/m3/meta.ts` as its metadata source.
+
+---
+Task ID: 28-tooltip-spec-and-playground-parity
+Agent: Codex
+Task: Remove the non-spec rich Tooltip outline and make the Live Demo and Playground use the same setup.
+
+## Work Log
+- Confirmed the current Material Tooltip source uses a 4dp anchor gap, a 16×8dp caret, and a borderless rich surface.
+- Removed the rich popup border and caret stroke without changing the 4px offset, caret size, placement, or collision behavior.
+- Changed the Live Demo, Playground defaults, generated code, and metadata example to use one rich, persistent, bottom-end Tooltip with a caret, one action, the Attach trigger, and the same title and content.
+- Added Playground controls for persistent behavior and caret visibility. Persistent is available only for the rich variant.
+
+## Stage Summary
+- Live Chrome verification measured a 3.93px rendered popup gap, a 16×8px caret, bottom-end placement, 0px border, no caret stroke, and one Learn more action.
+- Playground Chrome verification matched the same geometry and content. Rich, Persistent, and Caret defaulted on; the Caret switch removed the caret; switching Rich off disabled Persistent; Reset restored all defaults. Generated code matched the rendered defaults. The browser console had no warnings or errors.
+- Focused ESLint, `bunx tsc --noEmit`, package TypeScript, source `git diff --check`, and full `bun run lint` passed. Full lint retained the documented `src/app/layout.tsx` warning.
+- Package build and VR commands were not run because their output files and captures already contain unrelated dirty work. No baseline, commit, push, publish, or deployment was performed.
+
+---
+Task ID: 28-snackbar-showcase-position-and-list-audit
+Agent: Codex
+Task: Center the Snackbar demo on wide screens and audit the complete List live demo against current Material 3 guidance.
+
+## Work Log
+- Reproduced the Snackbar placement issue at 1440px. The Snackbar started at x=24 while the persistent navigation ended at x=300, so the demo covered the navigation area.
+- Added a showcase-only responsive position override in `src/components/showcase/demos/feedback-demos.tsx`. The base `Snackbar` default remains unchanged.
+- Audited all three List examples live. Standard rows measured 56px, 72px, and 88px as applicable. The segmented list used the official 2px gap.
+- Confirmed that the selected standard row's 16px corners and close contact with adjacent rows are intentional for a continuous list. Found a separate segmented-list mismatch: the selected first row measured 16px top corners and 4px bottom corners, while the current M3 selected shape requires 16px on all four corners. No List source was edited.
+
+## Stage Summary
+- RED browser check: Snackbar x=24 was inside the 300px persistent navigation area.
+- GREEN browser checks: both simple and actionable Snackbars centered at x=720 on a 1440px viewport; the 390px layout retained 16px left, right, and bottom spacing. No browser errors appeared.
+- `bunx tsc --noEmit`, focused ESLint, full `bun run lint`, and source `git diff --check` passed. Full lint retained the one known `src/app/layout.tsx` warning.
+- Package build and closed-state VR were not rerun because this task changed only an open showcase overlay. No commit, push, publish, or deployment was performed.
+
+## List audit follow-up
+- The current AndroidX Material 3 Expressive tokens specify 20dp leading and trailing icons and 16dp trailing content spacing. `src/components/m3/List.tsx` currently renders 24px icons by default and uses 24px trailing padding. These are source-level spec mismatches in addition to the selected segmented corner mismatch. No List code was changed during this read-only audit.
+
+---
+Task ID: 29-tooltip-spec-and-playground-parity
+Agent: Codex
+Task: Record the completed Tooltip correction under a unique task ID after a concurrent worklog ID collision.
+
+## Work Log
+- The implementation details and evidence are recorded in the earlier `28-tooltip-spec-and-playground-parity` block.
+- This pointer does not replace or remove that append-only entry. It gives the Tooltip task a unique final ID after another task concurrently used Task ID 28.
+
+## Stage Summary
+- Final task ID: `29-tooltip-spec-and-playground-parity`.
+
+---
+Task ID: 30-list-expressive-token-corrections
+Agent: Codex
+Task: Correct the selected segmented shape, icon size, and inline-end padding in the List component.
+
+## Work Log
+- Reproduced the three audited mismatches in the live List demo: the selected segmented row used 16/16/4/4px corners, default icons rendered at 24px, and rows used 24px inline-end padding.
+- Kept the standard continuous-list spacing unchanged. Its selected row already used 16px corners, and its adjacent rows are intentionally continuous.
+- Excluded selected rows from segmented position shaping, applied the selected 16px shape on all corners, and kept that shape during hover.
+- Changed List Material Symbols to the current expressive 20dp size and changed row inline-end padding to 16dp. Updated the matching List metadata.
+
+## Stage Summary
+- GREEN browser checks confirmed a 2px segmented gap, 16px selected corners at rest and hover, 20px leading/trailing icons, and 16px inline-end padding. The standard demo retained its 72px rows, 1px divider contact, and 16px selected corners. The browser reported no page errors.
+- Focused ESLint, `bunx tsc --noEmit`, package TypeScript, and visual screenshot inspection passed.
+- Full `bun run lint` is blocked by an unrelated untracked `scripts/check-chip-selection-motion.ts:44` `no-promise-executor-return` error. The known `src/app/layout.tsx` warning remains.
+- Package build and VR commands were not run because their generated files and captures already contain unrelated dirty work. No baseline, commit, push, publish, or deployment was performed.
+
+---
+Task ID: 31-navigation-drawer-spec-audit
+Agent: Codex
+Task: Audit the Navigation Drawer page layout and component against current Material 3 guidance.
+
+## Work Log
+- Measured both standard drawers on `/#/component/navigation-drawer` and compared them with current AndroidX main source and generated Navigation Drawer tokens.
+- Confirmed the 360px container, 336×56px destination rows, 12px external item padding, 24px icons, 12px icon-to-label gap, square standard surface, modal trailing 16px corners, modal surface-container-low color, and 32% scrim.
+- Found a 360px drawer inside a 318px-wide Playground frame, which clips 42px from the selected item and badge. The Live Demo frame gives 318px height to 352px of drawer content, causing 34px of internal overflow.
+- Found component-level token mismatches: destination rows use 16px instead of 24px inline-end padding; the automatic badge is a red 12px pill instead of label-large drawer-colored content; and the public examples use label-large instead of title-small for the headline.
+- Found demo-only presentation drift: both standard examples add a 1px outline and 16px frame corners even though the standard drawer itself is square and borderless.
+
+## Stage Summary
+- Severity 3: the Playground clips interactive content because its frame is narrower than the fixed drawer.
+- Severity 2: the fixed 360px component width does not follow the current AndroidX 240–360px size constraint; row end padding and badge treatment also miss current tokens.
+- Severity 1: the Live Demo height, rounded outline frame, and headline type make a mostly correct component look wrong.
+- Modal Escape dismissal, focus lock, focus return, and browser error checks passed. RTL, narrow-viewport behavior, scrim click, and destination-click dismissal were not runtime-tested in this audit.
+- No component, demo, metadata, baseline, package output, commit, push, publish, or deployment was changed.
+
+---
+Task ID: 32-text-field-notched-outline
+Agent: Codex
+Task: Replace the visible outlined TextField label background with a Material 3 notched outline.
+
+## Work Log
+- Reproduced the mismatch in the live TextField demo. In dark mode, the focused `Name` label used `rgb(20, 18, 24)` over a host area using `rgb(15, 13, 19)`, which made the label background visible.
+- Removed the outlined label background. Replaced the single painted border with logical start, notch, and end outline segments.
+- Kept the existing label positions, 1px resting outline, 2px focused outline, state colors, rounded corners, filled variant, icons, and RTL-aware inline geometry.
+- Refreshed only `tool-results/vr-baselines/text-field.png`. Other component baselines and current captures were left untouched.
+
+## Stage Summary
+- GREEN browser checks confirmed a transparent label background, an exact label-width notch, a 2px primary focused outline, a continuous 1px resting outline, and the existing error and disabled colors. Light and dark screenshots passed visual inspection. The browser reported no page errors.
+- `bunx tsc --noEmit`, package TypeScript, focused TextField ESLint, `bun run build:package`, and source `git diff --check` passed.
+- A second isolated TextField VR capture differed from the refreshed baseline by `0.000694%`, which is in the `identical` band.
+- Full `bun run lint` remains blocked by the unrelated existing `src/components/m3/NavigationRail.tsx` 253-line `max-lines` error. The known `src/app/layout.tsx` warning remains.
+- The all-component VR command was not run because it would overwrite unrelated dirty files under `tool-results/vr-current/` and `tool-results/vr-report.json`. No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-side-sheet-spacing
+Agent: Codex
+Task: Align Side Sheet title and list content to the Material 3 24dp content grid.
+
+## Work Log
+- Reproduced the open Playground modal with three leading edges: the divider started at 24px, the title at 28px, and the selected list row at 32px.
+- Removed the title's extra 4px inline padding in `src/components/m3/SideSheet.tsx`.
+- Removed the List container's 8px inline padding only in the Side Sheet Live Demo and Playground. The shared `List` component remains unchanged.
+- Updated the generated Playground code so copied code matches the rendered example.
+
+## Stage Summary
+- GREEN browser measurements confirmed 24px title, divider, list, and row offsets in the Playground modal and Live Demo modal. The standard sheet measured 25px from its outer edge because it includes the intended 1px border. Row height stayed 56px, and a fresh final browser session reported zero page errors.
+- Root TypeScript, package TypeScript, full lint, package build, source diff check, and visual screenshot inspection passed. Full lint retained the documented `src/app/layout.tsx` warning.
+- A focused Side Sheet capture against the existing baseline reported a 0.8718% `minor` diff, below the 1% failure band. The repo VR baseline and current folders already contain unrelated dirty work, so this task did not overwrite them or run the full 41-component capture.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-picker-visual-corrections
+Agent: Codex
+Task: Correct the Date Picker input label, picker surface, month-label wrapping, and Time Picker period-selector and dial presentation.
+
+## Work Log
+- Reproduced the reported Date Picker defects in the live route. Single-date input mode used `Enter date`, the floating `Date` label painted the base surface over a surface-container-high picker, and one `August 2026` header measured 64px tall because it wrapped.
+- Checked the current AndroidX Material 3 source. Single-date input mode uses `Select date`; range input mode keeps `Enter dates`.
+- Changed both single-date input headers to `Select date`, kept the range wording as `Enter dates`, matched the floating label background to the picker surface, and prevented the month-year button from wrapping.
+- Reproduced the selected AM/PM segment as a fully rounded inner pill and every clock dial with a nested elevation-1 shadow.
+- Changed each AM/PM option to fill its half of the shared selector with a flat divider edge and removed the dial-only shadow. The picker panel keeps elevation 3.
+
+## Stage Summary
+- GREEN browser measurements: both `August 2026` headers measured 36px with `white-space: nowrap`; the modal and inline input labels matched the picker RGB background; input mode exposed `Select date`; selected AM/PM options had 0px radii at the divider; all dial shadows computed to `none`.
+- Desktop screenshots covered docked open, inline input, modal calendar, modal input, and all Time Picker live/playground layouts. A 390×844 check measured `scrollWidth = clientWidth = 390`.
+- Root lint, package TypeScript, package build, source diff check, and settled axe scans passed. Axe reported 0 violations on both picker routes and retained manual checks for existing code-block ARIA and overlapped contrast samples.
+- Root TypeScript is blocked by an unrelated existing `src/components/m3/Carousel.tsx:839` icon-size type error.
+- Focused VR results passed: `date-picker` was `minor` at 0.2167% and `time-picker` was `identical` at 0.0000%. The full 41-component run captured 41/41 but exited 1 for unrelated `badge`, `tooltip`, `carousel`, and `menu` diffs above 1%.
+- Refreshed only `tool-results/vr-baselines/date-picker.png` and `tool-results/vr-baselines/time-picker.png`. No commit, push, publish, or deployment was performed.
+
+## Verification follow-up
+
+- A final root `bunx tsc --noEmit` rerun passed after the unrelated concurrent Carousel error cleared.
+
+---
+Task ID: 2026-08-29-carousel-keyline-and-demo-fix
+Agent: Codex
+Task: Fix Carousel keyline sizing and make the live demo directly usable on desktop and mobile.
+
+## Work Log
+- Reproduced the desktop defect. At the initial scroll position, item 1 was marked small at 56px while item 2 was marked large at 571px. Right Arrow moved focus to item 2 but enlarged item 3.
+- Compared the component with the current Material 3 Carousel guidance and Android implementation notes. The start-aligned multi-browse layout must begin with large, medium, and small items, use 8dp spacing, and adapt item sizes to the available window.
+- Changed focal detection to prefer a nearby start or end keyline and use the viewport center between snap points. Added a short programmatic lock so width animation cannot undo arrow or keyboard navigation.
+- Made multi-browse and hero arrows advance every logical focal item, including items beyond the physical scroll range. Kept RTL scroll direction and icon direction consistent.
+- Reduced the requested multi-browse item count when a narrow viewport cannot keep the large item at least as wide as the medium item.
+- Hid visual labels and reduced icons to 24px in small keyline items. Narrow medium items use 32px icons and tighter padding. Accessible item names remain unchanged.
+- Enabled the existing always-visible arrow controls in the four horizontal live demos. Added clear interaction instructions and polite live status feedback.
+- Rebuilt the npm package output and refreshed only the Carousel visual baseline.
+
+## Stage Summary
+- Desktop runtime started with widths 571px, 223px, 56px, and 56px in the correct large, medium, small, small order. Arrow navigation reached focal items 0 through 7. Item click feedback, Home, End, Hero navigation, and Uncontained scrolling worked.
+- At 390x844, the first four widths were 116px, 72px, 40px, and 40px. The page had zero horizontal overflow. Desktop also had zero page overflow.
+- RTL advanced focal item 0 to 1 with `scrollLeft` changing from -16 to -90. Reduced motion rendered four equal 227px items and kept arrow navigation.
+- Focused axe reported 0 violations. Browser checks reported no page errors.
+- `bunx tsc --noEmit`, focused ESLint, full `bun run lint`, package TypeScript, and `bun run build:package` passed. Full lint kept the known `src/app/layout.tsx` warning.
+- Full VR captured 41 of 41 routes. It still exits 1 for unrelated existing changes in Badge, Tooltip, BottomAppBar, and Menu. After the scoped baseline refresh, Carousel measured 0.0021% and was `identical`.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-carousel-keyline-vr-follow-up
+Agent: Codex
+Task: Record the final post-baseline Carousel VR result and correct a concurrent worklog placement collision.
+
+## Work Log
+- The final post-baseline 41-route VR run measured Carousel at 0.0007% and `identical`.
+- The full gate still exits 1 for unrelated existing changes in Badge, Tooltip, Radio, BottomAppBar, and Menu. Radio crossed the 1% band during the final run while concurrent work was still changing the shared worktree. No unrelated baseline was refreshed.
+- The same two verification lines also appear under Task ID `27-agent-contract-single-source` because an append patch matched that task's identical final sentence. This follow-up is the canonical placement for the Carousel result. The earlier append-only text was left intact.
+
+## Stage Summary
+- Carousel passes its visual regression check. The repository-wide gate remains blocked only by unrelated routes.
+
+---
+Task ID: 32-text-field-notched-outline-verification-follow-up
+Agent: Codex
+Task: Record the final TextField verification after concurrent workspace checks settled.
+
+## Work Log
+- Reran root TypeScript, full lint, focused TextField lint, package TypeScript, and the package build after concurrent work finished.
+- Read the newest full visual-regression report captured after the TextField baseline refresh.
+
+## Stage Summary
+- Root TypeScript, full lint, focused TextField lint, package TypeScript, package build, and source diff check passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- The full 41-route report measured TextField at `0.0007%` and `identical`. The repository-wide visual gate still failed on unrelated routes recorded by their owning tasks.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-chip-selection-motion-worklog-follow-up
+Agent: Codex
+Task: Record the final Chip selection-motion result at the append-only end of the worklog.
+
+## Work Log
+- The full implementation and verification record is in the earlier `2026-08-29-chip-selection-motion-fix` block.
+- That block was appended after a repeated sentence that was no longer at the end because concurrent tasks added entries. This follow-up is the canonical final placement. The earlier append-only text remains unchanged.
+
+## Stage Summary
+- Filter Chip selection motion passes the focused regression check and the independent Orca Luna review. No further Chip correction remains.
+
+---
+Task ID: 2026-08-29-navigation-surfaces-demo-parity
+Agent: Codex
+Task: Align Navigation Rail, Top App Bar, Bottom App Bar, Toolbar, and Menu live demos and playgrounds with the current component contracts and Material 3 guidance.
+
+## Work Log
+- Reproduced Navigation Rail clipping in both 500px live frames and the 300px Playground. Aligned the wide rail to its 96dp collapsed width, 64dp destination rows, 4dp row gap, 44dp outer vertical padding, and 40dp header-to-destination spacing. Increased only the showcase frames needed to display the anatomy without clipping.
+- Connected both Top App Bar live scroll areas to explicit scroll behaviors. Added real scrollable Playground content and a copyable ref-based scroll example. Exposed the medium-flexible and large-flexible variants in the Playground.
+- Changed the Bottom App Bar Playground to the current 64dp flexible end-FAB layout, exposed the 80dp standard variant, and kept the end FAB 16px from the bar edge in both variants.
+- Restored the Toolbar Playground's 560px current default while keeping the 64dp current container height.
+- Added the missing `menuitem` role to standard Menu items, aligned the two live trigger captions, and increased only the live-demo stage so an open menu stays inside its card.
+- Refreshed only the five requested visual baselines: Navigation Rail, Top App Bar, Bottom App Bar, Toolbar, and Menu.
+
+## Stage Summary
+- GREEN browser checks measured zero Navigation Rail overflow in both live frames and the Playground. Standard expansion reached 360px. Modal expansion exposed an ARIA modal dialog, closed with Escape, and restored focus to Menu.
+- Top App Bar pinned scrolling changed the container color, large-flexible collapsed from 144px to 64px, and the Playground scroll target changed state after scrolling. Bottom App Bar measured 64px flexible and 80px standard with a 16px end inset. Toolbar measured 64px high and 560px wide in the Playground.
+- Menu exposed four standard `menuitem` roles, stayed 27px inside the live card when open, and returned focus to the File trigger after Escape. Browser checks reported zero page errors.
+- Root TypeScript, focused lint, full lint, package TypeScript, source diff checks, and an isolated package build passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- A post-refresh focused visual-regression run measured all five requested routes at 0.0000% and `identical`. The full 41-route gate was not run because the shared baseline and current folders already contain unrelated active changes.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-navigation-drawer-spec-alignment
+Agent: Codex
+Task: Fix Navigation Drawer component tokens, responsive sizing, demo frames, and Playground code parity.
+
+## Work Log
+- Reproduced the audited RED state: the Playground clipped a 360px drawer inside 318px, the Live Demo had 352px of content inside 318px, destination rows used 16px inline-end padding, and badges rendered as red 12px pills.
+- Made standard and modal drawers adapt from the official 240px minimum to the 360px maximum. Changed destination content padding to 16px inline-start and 24px inline-end.
+- Changed trailing counts to label-large drawer-colored text, kept 12px label-to-badge spacing, and removed the error pill treatment. Labels without icons no longer receive the icon gap.
+- Changed both Live Demo headlines to title-small. Made standard demo frames square, borderless, responsive, and tall enough for their content.
+- Fixed the shared Playground stage width and compact padding so wide components can shrink instead of forcing a min-content overflow. Fixed Navigation Drawer generated code to include `variant="standard"` when the standard control is selected.
+- Updated Navigation Drawer metadata to document the 240–360dp width, title-small headline, and label-large badge treatment.
+
+## Stage Summary
+- Desktop GREEN measured 360px drawers and frames, zero width or height overflow, 16px start and 24px end item padding, transparent 14px badges, title-small headlines, and square borderless standard frames.
+- At a 320px viewport, Live and Playground standard drawers shrank to 240px and 254px without clipping or page overflow. The modal measured 320px from x=0 to x=320.
+- Modal body scroll lock, destination-click dismissal, focus return, Playground variant switching, generated code parity, and zero browser warnings or errors passed.
+- Focused ESLint, `bunx tsc --noEmit`, package TypeScript, source diff checks, and full `bun run lint` passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- Package build and VR were not run because their generated files and captures contain unrelated active work. No baseline, commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-date-picker-rounded-shadow
+Agent: Codex
+Task: Make the docked Date Picker shadow follow its rounded container.
+
+## Work Log
+- Reproduced the live defect. The popup shadow wrapper had a 0px radius while the Date Picker surface had a 28px radius.
+- Added `rounded-[28px]` to the docked popup wrapper in `src/components/m3/DatePicker.tsx`. The existing surface, motion, layout, and elevation stayed unchanged.
+- Refreshed only `tool-results/vr-baselines/date-picker.png`.
+
+## Stage Summary
+- The same runtime check changed from 0px versus 28px to matching 28px wrapper and surface radii. The popup retained its elevation-3 shadow and reported no browser errors.
+- Root TypeScript, package TypeScript, full lint, package build, and source diff checks passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- The full 41-component VR gate passed with 23 identical, 18 minor, and 0 changed components. `date-picker` was identical at 0.0000%.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-hash-route-refresh-navigation-shift
+Agent: Codex
+Task: Remove the false active-navigation state that appeared while a hash route hydrated after refresh.
+
+## Work Log
+- Reproduced the refresh sequence on `#/component/split-button` eight times. The first frame always selected Overview and rendered the Home route even though the URL already contained the Split Button hash.
+- Measured the sidebar shell before and after hydration. Its 300px width, button positions, search field, scroll position, and main-content start stayed unchanged, which ruled out the responsive breakpoint, font loading, sticky layout, and scroll restoration.
+- Changed the initial route to unresolved instead of Home. Sidebar active-state checks now accept that unresolved state, and main content waits for the real hash route instead of rendering the wrong page.
+
+## Stage Summary
+- GREEN refresh checks passed on Split Button, Button, Getting Started, and Overview. Every first frame had no false active item. Every settled frame selected the requested route. Sidebar width and main-content start stayed at 300px throughout.
+- Server HTML no longer contains a false `aria-current="page"`. Five final Split Button refresh checks and browser screenshots showed no Overview-to-Split-Button highlight jump. Browser logs reported zero errors.
+- Root TypeScript, focused lint, full lint, package TypeScript, isolated package build, and source diff checks passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- Focused visual regression measured Split Button at 0.0014% and `identical`. No baseline was changed.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-final-vr-baseline-reconciliation
+Agent: Codex
+Task: Reconcile and clear the remaining full-suite visual-regression failures.
+
+## Work Log
+- Reproduced the stale full-report failures for Badge, Tooltip, Radio, Bottom App Bar, and Menu. Compared each baseline with two isolated fresh captures before changing any approved reference.
+- Confirmed Badge and Tooltip had stable, intended visual changes already recorded by their owning tasks. Refreshed only `tool-results/vr-baselines/badge.png` and `tool-results/vr-baselines/tooltip.png`.
+- Confirmed Radio was stable inside the minor band. Confirmed Bottom App Bar and Menu already matched their refreshed baselines. Their baselines stayed unchanged.
+- Investigated one transient Navigation Bar failure from the first full rerun. The failed image caught the whole page in a faded transition frame. Two immediate isolated captures matched its existing baseline at 0.0000% and 0.0021%, so its baseline stayed unchanged.
+
+## Stage Summary
+- The final 41-component visual-regression gate passed with 23 identical, 18 minor, and 0 changed components. Badge and Tooltip were both identical at 0.0000%; Navigation Bar was identical at 0.0101%.
+- Root TypeScript, package TypeScript, full lint, package build, and visual regression passed. Full lint kept only the known `src/app/layout.tsx` warning.
+- No production source was changed by this reconciliation. The full VR run refreshed generated current screenshots and `tool-results/vr-report.json`; the package build regenerated the already-dirty package output.
+- No commit, push, publish, or deployment was performed.
+
+---
+Task ID: 2026-08-29-navigation-icon-font-refresh-shift
+Agent: Codex
+Task: Fix the navigation layout shift shown in the Text Field hard-refresh recording.
+
+## Work Log
+- Inspected the 6.425-second recording frame by frame. During each refresh, the Material Symbols font entered its block period, so the hidden ligature strings reserved different fallback widths and moved every navigation label.
+- Added a fixed square inline size and clipping to the shared Material Symbol class. Icons now keep their final geometry before, during, and after the font load.
+- Superseded the earlier null-route workaround without rewriting its append-only record. The main content keeps its server-rendered Home fallback, while the Sidebar alone stays unselected until the real hash route resolves. This removes the blank main panel without restoring the false Overview selection in the server HTML.
+
+## Stage Summary
+- A controlled runtime check delayed the 5.1 MB icon font by 10 seconds. With `document.fonts.check(...)` still false, all five guide icons measured 22px and all five labels stayed at x=66. Before the fix, the same icons measured 48.89–124.61px and the labels moved to different x-positions.
+- Five live Text Field hard refreshes settled on the correct heading and active item. Every run kept the Sidebar at 299px, the main start at x=300, each icon at 22px, and each guide label at x=66. Server HTML contains no false `aria-current="page"` and still contains the Home heading fallback.
+- Root TypeScript, full lint, package TypeScript, package build, and the full 41-component visual-regression gate passed. Lint kept only the known `src/app/layout.tsx` warning. VR finished with 23 identical, 18 minor, and 0 changed components; Text Field, Navigation Rail, Top App Bar, Bottom App Bar, Toolbar, and Menu were identical.
+- No visual baseline, commit, push, publish, or deployment was changed or performed. The required package build regenerated already-dirty package output, and VR regenerated current captures plus `tool-results/vr-report.json`.

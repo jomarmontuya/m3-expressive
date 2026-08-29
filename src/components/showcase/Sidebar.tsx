@@ -49,7 +49,7 @@ export function parseHash(hash: string): Route {
 }
 
 interface SidebarProps {
-  route: Route;
+  route: Route | null;
   navigate: (r: Route) => void;
 }
 
@@ -61,10 +61,10 @@ export function Sidebar({ route, navigate }: SidebarProps) {
     .map((cat) => ({ cat, items: results.filter((c) => c.category === cat) }))
     .filter((g) => g.items.length > 0);
 
-  const isHome = route.kind === "home";
-  const isDocs = route.kind === "docs";
-  const isFoundations = route.kind === "foundations";
-  const isAgents = route.kind === "agents";
+  const isHome = route?.kind === "home";
+  const isDocs = route?.kind === "docs";
+  const isFoundations = route?.kind === "foundations";
+  const isAgents = route?.kind === "agents";
 
   return (
     <nav aria-label="Component library navigation" className="flex h-full flex-col gap-2 p-4">
@@ -104,7 +104,7 @@ export function Sidebar({ route, navigate }: SidebarProps) {
           onClick={() => navigate({ kind: "agents" })}
         />
         <NavItem
-          active={route.kind === "components"}
+          active={route?.kind === "components"}
           icon="grid_view"
           label="All components"
           onClick={() => navigate({ kind: "components" })}
@@ -123,7 +123,7 @@ export function Sidebar({ route, navigate }: SidebarProps) {
               {categoryLabels[cat as M3Category]}
             </div>
             {items.map((c) => {
-              const active = route.kind === "component" && route.id === c.id;
+              const active = route?.kind === "component" && route.id === c.id;
               return (
                 <button
                   key={c.id}

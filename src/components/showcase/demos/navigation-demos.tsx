@@ -13,6 +13,7 @@ import { Menu } from "@/components/m3/Menu";
 import type { MenuItemData } from "@/components/m3/Menu";
 import { MaterialSymbol } from "@/components/m3/MaterialSymbol";
 import { Button } from "@/components/m3/Button";
+import { Fab } from "@/components/m3/FAB";
 import { springs } from "@/lib/m3/tokens";
 import type { Transition } from "framer-motion";
 
@@ -75,13 +76,29 @@ function ListRows() {
 /* ------------------------------------------------------------------ */
 
 export function TabsDemo() {
+  const [labelPrimary, setLabelPrimary] = React.useState("overview");
   const [primary, setPrimary] = React.useState("today");
   const [secondary, setSecondary] = React.useState("all");
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      <span className="w-full md-label-medium text-m3-on-surface-variant">Primary label-only · official 48dp</span>
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
+        <Tabs
+          items={[
+            { value: "overview", label: "Overview" },
+            { value: "activity", label: "Activity" },
+            { value: "settings", label: "Settings" },
+          ]}
+          value={labelPrimary}
+          onChange={setLabelPrimary}
+          fullWidth
+        />
+      </div>
+      <span className="w-full md-label-medium text-m3-on-surface-variant">Primary icon + label · official 64dp treatment</span>
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
         <Tabs items={tabItems} value={primary} onChange={setPrimary} fullWidth />
       </div>
+      <span className="w-full md-label-medium text-m3-on-surface-variant">Compatibility extension: secondary-tab icons</span>
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
         <Tabs items={scrollTabItems} value={secondary} onChange={setSecondary} variant="secondary" fullWidth />
       </div>
@@ -93,6 +110,9 @@ export function NavigationBarDemo() {
   const [value, setValue] = React.useState("home");
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      <span className="w-full md-label-medium text-m3-on-surface-variant">
+        Current 64dp short bar: surface-container, active top label uses secondary
+      </span>
       <div className="flex h-64 w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-m3-outline-variant">
         <div className="flex flex-1 items-center justify-center p-4 text-center">
           <span className="md-body-medium text-m3-on-surface-variant">
@@ -100,6 +120,25 @@ export function NavigationBarDemo() {
           </span>
         </div>
         <NavigationBar items={navItems} value={value} onChange={setValue} fullWidth />
+      </div>
+      <span className="w-full md-label-medium text-m3-on-surface-variant">
+        Current short horizontal compatibility arrangement
+      </span>
+      <div className="flex h-40 w-full max-w-2xl flex-col justify-end overflow-hidden rounded-2xl border border-m3-outline-variant">
+        <NavigationBar
+          items={navItems}
+          value={value}
+          onChange={setValue}
+          iconPosition="start"
+          arrangement="centered"
+          fullWidth
+        />
+      </div>
+      <span className="w-full md-label-medium text-m3-on-surface-variant">
+        Baseline 80dp tall bar: surface with elevation 2 and on-surface active label
+      </span>
+      <div className="flex h-40 w-full max-w-2xl flex-col justify-end overflow-hidden rounded-2xl border border-m3-outline-variant">
+        <NavigationBar items={navItems} value={value} onChange={setValue} variant="tall" fullWidth />
       </div>
     </div>
   );
@@ -111,6 +150,9 @@ export function NavigationDrawerDemo() {
   const [standardValue, setStandardValue] = React.useState("starred");
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      <span className="w-full md-label-medium text-m3-on-surface-variant">
+        Baseline modal: surface-container-low, elevation 1 · standard: square surface, elevation 0
+      </span>
       <div className="flex max-w-xs flex-col items-start gap-3">
         <Button variant="filled" icon="menu" onClick={() => setModalOpen(true)}>
           Open modal drawer
@@ -119,14 +161,14 @@ export function NavigationDrawerDemo() {
           Modal drawers slide over a scrim. Press Escape or the scrim to dismiss.
         </p>
       </div>
-      <div className="h-80 overflow-hidden rounded-2xl border border-m3-outline-variant">
+      <div className="h-[360px] w-[360px] min-w-[240px] max-w-full overflow-hidden">
         <NavigationDrawer
           variant="standard"
           fullHeight
           items={drawerItems}
           value={standardValue}
           onChange={setStandardValue}
-          header={<span className="md-label-large text-m3-on-surface-variant">Mail</span>}
+          header={<span className="md-title-small text-m3-on-surface-variant">Mail</span>}
         />
       </div>
       <NavigationDrawer
@@ -136,7 +178,7 @@ export function NavigationDrawerDemo() {
         items={drawerItems}
         value={modalValue}
         onChange={setModalValue}
-        header={<span className="md-label-large text-m3-on-surface-variant">Mail</span>}
+        header={<span className="md-title-small text-m3-on-surface-variant">Mail</span>}
         footer={
           <Button variant="text" icon="settings">
             Settings
@@ -149,14 +191,17 @@ export function NavigationDrawerDemo() {
 
 export function NavigationRailDemo() {
   const [value, setValue] = React.useState("home");
+  const [expanded, setExpanded] = React.useState(false);
+  const [modalExpanded, setModalExpanded] = React.useState(false);
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
-      <div className="flex h-80 w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
+      <div className="flex h-[500px] w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
         <NavigationRail
           items={navItems}
           value={value}
           onChange={setValue}
-          onMenuClick={() => {}}
+          expanded={expanded}
+          onMenuClick={() => setExpanded((current) => !current)}
           header={
             <motion.button
               type="button"
@@ -171,7 +216,22 @@ export function NavigationRailDemo() {
         />
         <div className="flex flex-1 items-center justify-center p-4 text-center">
           <span className="md-body-medium text-m3-on-surface-variant">
-            Rail navigation for medium screens — the header slot hosts a FAB.
+            Default standard expanded rail stays in layout — the header slot hosts a FAB.
+          </span>
+        </div>
+      </div>
+      <div className="flex h-[500px] w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
+        <NavigationRail
+          items={navItems}
+          value={value}
+          onChange={setValue}
+          expanded={modalExpanded}
+          expandedMode="modal"
+          onMenuClick={() => setModalExpanded((current) => !current)}
+        />
+        <div className="flex flex-1 items-center justify-center p-4 text-center">
+          <span className="md-body-medium text-m3-on-surface-variant">
+            Modal expanded rail traps focus. Press Escape to close and restore focus.
           </span>
         </div>
       </div>
@@ -180,10 +240,11 @@ export function NavigationRailDemo() {
 }
 
 export function TopAppBarDemo() {
+  const [search, setSearch] = React.useState("");
   const smallScrollRef = React.useRef<HTMLDivElement>(null);
   const largeScrollRef = React.useRef<HTMLDivElement>(null);
   const actions = [
-    { icon: "search", label: "Search" },
+    { icon: "favorite", label: "Favorite", variant: "filled" as const },
     { icon: "more_vert", label: "More options" },
   ];
   return (
@@ -192,8 +253,11 @@ export function TopAppBarDemo() {
         <TopAppBar
           variant="small"
           title="Small app bar"
+          subtitle="Subtitle"
+          logo={<span className="flex h-8 w-8 items-center justify-center rounded-lg bg-m3-primary text-m3-on-primary md-label-large">M</span>}
           onBack={() => {}}
           actions={actions}
+          scrollBehavior="pinned"
           scrollTargetRef={smallScrollRef}
         />
         <div ref={smallScrollRef} className="m3-scroll h-48 overflow-y-auto">
@@ -202,15 +266,31 @@ export function TopAppBarDemo() {
       </div>
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
         <TopAppBar
-          variant="large"
-          title="Large flexible app bar"
+          variant="large-flexible"
+          title={<>Large flexible app bar<br />with a multi-line title</>}
+          subtitle="Gallery and albums"
           onBack={() => {}}
           actions={actions}
+          scrollBehavior="exit-until-collapsed"
           scrollTargetRef={largeScrollRef}
         />
         <div ref={largeScrollRef} className="m3-scroll h-48 overflow-y-auto">
           <ListRows />
         </div>
+      </div>
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-m3-outline-variant">
+        <TopAppBar
+          variant="small"
+          title="Search"
+          search={{
+            value: search,
+            onChange: setSearch,
+            placeholder: "Search contacts",
+            recentSearches: ["Ava", "Project team"],
+            children: search ? `Results for “${search}”` : "Type a name to search contacts",
+          }}
+          actions={[{ icon: "close", label: "Clear", onClick: () => setSearch("") }]}
+        />
       </div>
     </div>
   );
@@ -219,10 +299,13 @@ export function TopAppBarDemo() {
 export function BottomAppBarDemo() {
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      <span className="w-full md-label-medium text-m3-on-surface-variant">
+        Current flexible bar: 64dp, space-between content, and an end FAB
+      </span>
       <div className="relative flex h-52 w-full max-w-2xl flex-col justify-end overflow-hidden rounded-2xl border border-m3-outline-variant">
         <div className="flex flex-1 items-center justify-center p-4 text-center">
           <span className="md-body-medium text-m3-on-surface-variant">
-            Screen content — the center-docked FAB notches the bar and morphs on press.
+            Screen content — the end FAB follows the flexible M3 app-bar layout and morphs on press.
           </span>
         </div>
         <BottomAppBar
@@ -232,7 +315,7 @@ export function BottomAppBarDemo() {
             { icon: "check_box", label: "Select" },
             { icon: "edit", label: "Edit" },
           ]}
-          trailingIcons={["more_vert"]}
+          trailingActions={[{ icon: "more_vert", label: "More options" }]}
           fab={{ icon: "add", onClick: () => {} }}
         />
       </div>
@@ -245,12 +328,28 @@ export function ToolbarDemo() {
   const floatingIcons = [
     { icon: "arrow_back", label: "Back" },
     { icon: "grid_view", label: "Grid view", active: true },
-    { icon: "favorite", label: "Favorite" },
+    { icon: "favorite", label: "Favorite", active: false },
     { icon: "delete", label: "Delete" },
     { icon: "more_vert", label: "More" },
   ];
   return (
     <div className="flex flex-wrap items-start gap-6 p-2">
+      <span className="w-full md-label-medium text-m3-on-surface-variant">Current arbitrary content + optional FAB</span>
+      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-m3-outline-variant bg-m3-surface p-3">
+        <Toolbar
+          variant="dockable"
+          fullWidth
+          icons={[{ icon: "arrow_back", label: "Back" }]}
+          fab={<Fab size="standard" icon="add" aria-label="Add" />}
+        >
+          <input
+            aria-label="Toolbar search"
+            placeholder="Search"
+            className="h-10 min-w-0 flex-1 rounded-full bg-m3-surface-container-high px-4 outline-none md-body-medium"
+          />
+          <Button size="sm" variant="tonal">Apply</Button>
+        </Toolbar>
+      </div>
       <div className="relative h-40 w-full max-w-xl overflow-hidden rounded-2xl border border-m3-outline-variant bg-m3-surface">
         <span className="absolute left-4 top-4 md-label-large text-m3-on-surface-variant">
           Floating — bottom position
@@ -259,9 +358,18 @@ export function ToolbarDemo() {
       </div>
       <div className="relative h-40 w-full max-w-xl overflow-hidden rounded-2xl border border-m3-outline-variant bg-m3-surface">
         <span className="absolute left-4 top-4 md-label-large text-m3-on-surface-variant">
-          Floating — primary container, top position
+          Compatibility color alias: primary container, top position
         </span>
         <Toolbar icons={floatingIcons} variant="floating" position="top" color="primary" width={420} />
+      </div>
+      <div className="relative h-64 w-40 overflow-hidden rounded-2xl border border-m3-outline-variant bg-m3-surface">
+        <Toolbar
+          icons={floatingIcons.slice(0, 4)}
+          variant="floating"
+          orientation="vertical"
+          position="right"
+          color="surface"
+        />
       </div>
       <div className="w-full max-w-xl">
         <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -269,7 +377,7 @@ export function ToolbarDemo() {
             {docked ? "Undock" : "Dock"}
           </Button>
           <span className="md-body-small text-m3-on-surface-variant">
-            Dockable toolbar — {docked ? "docked: square corners, elevation 1" : "floating pill, elevation 2"}
+          Compatibility dockable toolbar — {docked ? "docked: square corners" : "floating pill"}
           </span>
         </div>
         <div className="overflow-hidden rounded-2xl border border-m3-outline-variant">
@@ -291,22 +399,32 @@ export function MenuDemo() {
   const fileItems: MenuItemData[] = [
     { type: "label", label: "File" },
     { icon: "note_add", label: "New file", shortcut: "⌘N", onClick: () => setLastAction("New file") },
-    { icon: "folder_open", label: "Open…", shortcut: "⌘O", onClick: () => setLastAction("Open") },
+    {
+      icon: "folder_open",
+      label: "Open recent",
+      trailingIcon: "history",
+      submenu: [
+        { icon: "description", label: "Proposal.docx", badge: 2, onClick: () => setLastAction("Proposal") },
+        { icon: "table_chart", label: "Budget.xlsx", onClick: () => setLastAction("Budget") },
+      ],
+    },
     { icon: "save", label: "Save", shortcut: "⌘S", disabled: true },
     { type: "divider" },
     { icon: "delete", label: "Delete project", shortcut: "⇧⌫", destructive: true, onClick: () => setLastAction("Delete project") },
   ];
   const overflowItems: MenuItemData[] = [
-    { icon: "push_pin", label: "Pin to top" },
-    { icon: "content_copy", label: "Duplicate" },
-    { icon: "download", label: "Download" },
+    { icon: "push_pin", selectedIcon: "keep", label: "Pin to top", supportingText: "Keep this item visible", selected: true, role: "menuitemcheckbox", closeOnClick: false },
+    { icon: "content_copy", label: "Duplicate", supportingText: "Create a new copy" },
+    { icon: "download", label: "Download", badge: "New" },
     { type: "divider" },
     { icon: "report", label: "Report", destructive: true },
   ];
   return (
-    <div className="flex flex-wrap items-start gap-6 p-2">
+    <div className="flex min-h-[360px] flex-wrap items-start gap-6 p-2">
       <div className="flex flex-col items-start gap-3">
+        <span className="md-body-small text-m3-on-surface-variant">Baseline list menu</span>
         <Menu
+          variant="standard"
           trigger={
             <Button variant="tonal" trailingIcon="arrow_drop_down">
               File
@@ -317,9 +435,10 @@ export function MenuDemo() {
         {lastAction && <span className="md-body-small text-m3-on-surface-variant">Last action: {lastAction}</span>}
       </div>
       <div className="flex flex-col items-start gap-3">
-        <span className="md-body-small text-m3-on-surface-variant">bottom-end placement</span>
+        <span className="md-body-small text-m3-on-surface-variant">Vibrant · bottom-end</span>
         <Menu
           placement="bottom-end"
+          color="vibrant"
           trigger={
             <button
               type="button"

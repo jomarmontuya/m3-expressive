@@ -1,11 +1,13 @@
 'use client';
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { HTMLMotionProps, Transition } from "framer-motion";
 import { Autocomplete as BaseAutocomplete } from "@base-ui/react/autocomplete";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { cn } from "@/lib/utils";
 import { springs as springsTokens } from "@/lib/m3/tokens";
+import { useTextDirection } from "@/lib/m3/use-text-direction";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 
@@ -20,12 +22,17 @@ export interface AutocompleteProps {
   placeholder?: string;
   fullWidth?: boolean;
   disabled?: boolean;
+  id?: string;
+  name?: string;
+  form?: string;
+  required?: boolean;
+  "aria-label"?: string;
   className?: string;
 }
 
 /**
- * M3 Autocomplete — an outlined text field that suggests options from a
- * filterable dropdown menu.
+ * Library extension, not a standalone M3 component. It composes the
+ * official outlined TextField geometry with an official Menu-style popup.
  *
  * Built on Base UI's headless Autocomplete: Root owns the combobox state,
  * live list filtering (`mode="list"` — the input query filters `options`
@@ -40,51 +47,90 @@ export interface AutocompleteProps {
  * `value`/`onChange` contract.
  */
 export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(function Autocomplete(
-  { options, value, onChange, label, placeholder = "Type to filter", fullWidth = false, disabled = false, className },
+  {
+    options,
+    value,
+    onChange,
+    label,
+    placeholder = "Type to filter",
+    fullWidth = false,
+    disabled = false,
+    id,
+    name,
+    form,
+    required = false,
+    "aria-label": ariaLabel,
+    className,
+  },
   ref
 ) {
+  const reduceMotion = useReducedMotion() ?? false;
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const direction = useTextDirection(rootRef);
+  const generatedId = React.useId();
+  const inputId = id ?? `m3-autocomplete-${generatedId.replace(/:/g, "")}`;
+  const [focused, setFocused] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const active = focused || open;
   // Base UI owns popup mount/unmount (no deferred-unmount hook on this
   // primitive), so only the entrance spring plays — the close is instant.
 
   const popupMotion: HTMLMotionProps<"div"> = {
-    initial: { opacity: 0, scale: 0.96, y: -4 },
+    initial: reduceMotion ? false : { opacity: 0, scale: 0.96, y: -4 },
     animate: { opacity: 1, scale: 1, y: 0 },
-    transition: springs.fastSpatial,
+    transition: reduceMotion ? { duration: 0 } : springs.fastSpatial,
     style: { transformOrigin: "top center" },
   };
 
   return (
-    <BaseAutocomplete.Root
+    <DirectionProvider direction={direction}>
+      <BaseAutocomplete.Root
       items={options}
       value={value}
       onValueChange={(next) => onChange(next)}
+      onOpenChange={setOpen}
       disabled={disabled}
       mode="list"
     >
       <div
+        ref={rootRef}
+        data-m3-extension="autocomplete"
         className={cn("relative", fullWidth && "w-full", disabled && "pointer-events-none opacity-38", className)}
       >
-        {label && <div className="mb-1 px-1 md-body-small text-m3-on-surface-variant">{label}</div>}
+        {label && (
+          <label htmlFor={inputId} className="mb-1 block px-1 md-body-small text-m3-on-surface-variant">
+            {label}
+          </label>
+        )}
         <div
           className={cn(
-            "m3-state relative flex h-14 items-center rounded-m3-xs border transition-[border-color,box-shadow] duration-150",
+            "relative flex h-14 items-center rounded-m3-xs border transition-[border-color,box-shadow] duration-150",
             disabled
               ? "border-m3-outline/12"
-              : "border-m3-outline hover:border-m3-on-surface data-[open]:border-m3-primary data-[open]:shadow-[inset_0_0_0_1px_var(--md-primary)]"
+              : active
+                ? "border-m3-primary shadow-[inset_0_0_0_1px_var(--md-primary)]"
+                : "border-m3-outline hover:border-m3-on-surface"
           )}
         >
           <BaseAutocomplete.Input
             ref={ref}
+            id={inputId}
+            name={name}
+            form={form}
+            required={required}
+            aria-label={label ? undefined : ariaLabel ?? placeholder}
             placeholder={placeholder}
-            className="h-full w-full bg-transparent pl-4 pr-12 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            className="h-full w-full bg-transparent ps-4 pe-12 text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant md-body-large"
           />
           <BaseAutocomplete.Trigger
             aria-label="Toggle suggestions"
-            className="m3-state absolute right-1.5 grid h-9 w-9 cursor-pointer place-items-center overflow-hidden rounded-full text-m3-on-surface-variant outline-none"
+            className="m3-state m3-focus absolute end-0 grid h-12 w-12 cursor-pointer place-items-center overflow-hidden rounded-full text-m3-on-surface-variant outline-none [&[data-popup-open]>span]:rotate-180"
           >
             <Ripple disabled={disabled} />
             {/* Rotating chevron — Base UI sets data-popup-open on the Trigger */}
-            <span className="inline-flex transition-transform duration-200 data-[popup-open]:rotate-180">
+            <span className="inline-flex transition-transform duration-200">
               <MaterialSymbol icon="arrow_drop_down" size={24} />
             </span>
           </BaseAutocomplete.Trigger>
@@ -92,6 +138,7 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
         <BaseAutocomplete.Portal>
             <BaseAutocomplete.Positioner side="bottom" sideOffset={4} className="z-10 outline-none">
               <BaseAutocomplete.Popup
+                dir={direction}
                 render={<motion.div {...popupMotion} />}
                 className="m3-scroll m3-elevation-2 max-h-72 w-[var(--anchor-width)] overflow-y-auto rounded-m3-xs bg-m3-surface-container py-2 outline-none"
               >
@@ -120,7 +167,8 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
             </BaseAutocomplete.Positioner>
           </BaseAutocomplete.Portal>
       </div>
-    </BaseAutocomplete.Root>
+      </BaseAutocomplete.Root>
+    </DirectionProvider>
   );
 });
 

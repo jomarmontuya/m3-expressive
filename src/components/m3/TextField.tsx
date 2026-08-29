@@ -1,7 +1,8 @@
 'use client';
+/* eslint-disable max-lines -- single-line and multiline controls share one public field contract */
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Transition } from "framer-motion";
 import { Field } from "@base-ui/react/field";
 import { Input } from "@base-ui/react/input";
@@ -22,7 +23,7 @@ const sizeHeights: Record<TextFieldSize, number> = { xs: 32, sm: 40, md: 56, lg:
 const fieldRadius = "rounded-m3-xs";
 const fieldTopRadius = "rounded-t-m3-xs";
 
-export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size" | "prefix"> {
   variant?: TextFieldVariant;
   size?: TextFieldSize;
   label?: string;
@@ -32,6 +33,14 @@ export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInput
   leadingIcon?: string;
   /** Trailing Material Symbol name (overridden by the error icon) */
   trailingIcon?: string;
+  /** Content shown immediately before the editable text. */
+  prefix?: React.ReactNode;
+  /** Content shown immediately after the editable text. */
+  suffix?: React.ReactNode;
+  /** Render a vertically growing textarea instead of a single-line input. */
+  multiline?: boolean;
+  /** Initial visible lines when `multiline` is true. */
+  rows?: number;
   fullWidth?: boolean;
 }
 
@@ -59,25 +68,38 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
     error = false,
     leadingIcon,
     trailingIcon,
+    prefix,
+    suffix,
+    multiline = false,
+    rows = 3,
     fullWidth = false,
     disabled = false,
     required = false,
     id,
     value,
+    defaultValue,
     onChange,
     placeholder,
     type = "text",
     className,
     onFocus,
     onBlur,
+    "aria-describedby": ariaDescribedBy,
     ...props
   },
   ref
 ) {
+  const reduceMotion = useReducedMotion() ?? false;
   const [focused, setFocused] = React.useState(false);
+  const [hasContent, setHasContent] = React.useState(
+    () => String(value ?? defaultValue ?? "").length > 0
+  );
 
-  const hasValue = value != null && String(value).length > 0;
-  const floated = focused || hasValue;
+  React.useEffect(() => {
+    if (value !== undefined) setHasContent(String(value).length > 0);
+  }, [value]);
+
+  const floated = focused || hasContent;
   const height = sizeHeights[size];
   const centerY = height / 2;
   const compact = size === "xs" || size === "sm";
@@ -86,6 +108,48 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
   const labelRestClass = compact ? "md-body-medium" : "md-body-large";
   const labelRestHalf = compact ? 10 : 12;
   const showPlaceholder = placeholder != null && (!label || floated);
+  const showAffixes = !label || floated;
+  const generatedDescriptionId = React.useId().replace(/:/g, "");
+  const prefixId = prefix != null ? `m3-field-prefix-${generatedDescriptionId}` : undefined;
+  const suffixId = suffix != null ? `m3-field-suffix-${generatedDescriptionId}` : undefined;
+  const helperId = helperText ? `m3-field-helper-${generatedDescriptionId}` : undefined;
+  const describedBy = [
+    ariaDescribedBy,
+    showAffixes ? prefixId : undefined,
+    showAffixes ? suffixId : undefined,
+    helperId,
+  ]
+    .filter(Boolean)
+    .join(" ") || undefined;
+  const controlClassName = cn(
+    "min-w-0 flex-1 bg-transparent text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant",
+    inputTextClass,
+    multiline ? "min-h-[inherit] resize-y py-4" : "h-full",
+    disabled && "opacity-38"
+  );
+  const controlStyle =
+    variant === "filled" && label ? { paddingTop: Math.round(height * 0.28) } : undefined;
+  const strongOutline = focused && !error && !disabled;
+  const outlineColorClass =
+    error && !disabled
+      ? "text-m3-error"
+      : focused
+        ? "text-m3-primary"
+        : disabled
+          ? "text-m3-outline/12"
+          : "text-m3-outline group-hover/field:text-m3-on-surface";
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setHasContent(event.target.value.length > 0);
+    onChange?.(event as React.ChangeEvent<HTMLInputElement>);
+  };
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFocused(true);
+    onFocus?.(event as React.FocusEvent<HTMLInputElement>);
+  };
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFocused(false);
+    onBlur?.(event as React.FocusEvent<HTMLInputElement>);
+  };
 
   return (
     <Field.Root
@@ -95,67 +159,147 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
     >
       <div
         className={cn(
-          "group/field relative flex items-center transition-[border-color,box-shadow] duration-150",
+          "group/field relative flex",
+          multiline ? "items-start" : "items-center",
           variant === "outlined"
-            ? cn(
-                "border bg-transparent",
-                fieldRadius,
-                error && !disabled
-                  ? "border-m3-error"
-                  : focused
-                    ? "border-m3-primary shadow-[inset_0_0_0_1px_var(--md-primary)]"
-                    : disabled
-                      ? "border-m3-outline/12"
-                      : "border-m3-outline hover:border-m3-on-surface"
-              )
+            ? cn("bg-transparent", fieldRadius)
             : cn(fieldTopRadius, disabled ? "bg-m3-on-surface/4" : "bg-m3-surface-container-highest")
         )}
-        style={{ height }}
+        style={multiline ? { minHeight: height } : { height }}
       >
+        {variant === "outlined" && (
+          label ? (
+            <div
+              aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute inset-0 flex transition-colors duration-150",
+                outlineColorClass
+              )}
+            >
+              <span
+                className={cn(
+                  "shrink-0 rounded-s-m3-xs border-current",
+                  strongOutline ? "border-s-2 border-y-2" : "border-s border-y"
+                )}
+                style={{ width: leadingIcon ? 40 : 12 }}
+              />
+              <span
+                className={cn("shrink-0 border-current", strongOutline ? "border-y-2" : "border-y")}
+                style={{ borderTopColor: floated ? "transparent" : "currentColor" }}
+              >
+                <span className="invisible block whitespace-nowrap px-1 md-body-small">
+                  {label}
+                  {required && " *"}
+                </span>
+              </span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 rounded-e-m3-xs border-current",
+                  strongOutline ? "border-e-2 border-y-2" : "border-e border-y"
+                )}
+              />
+            </div>
+          ) : (
+            <div
+              aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute inset-0 transition-colors duration-150",
+                fieldRadius,
+                "border-current",
+                strongOutline ? "border-2" : "border",
+                outlineColorClass
+              )}
+            />
+          )
+        )}
         {leadingIcon && (
           <MaterialSymbol
             icon={leadingIcon}
             size={iconSize}
             className={cn(
-              "pointer-events-none absolute left-3 top-1/2 -translate-y-1/2",
+              "pointer-events-none absolute start-3 top-1/2 -translate-y-1/2",
               disabled && "opacity-38",
               error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
             )}
           />
         )}
-        <Input
-          ref={ref}
-          id={id}
-          type={type}
-          value={value}
-          onChange={onChange}
-          required={required}
-          placeholder={showPlaceholder ? placeholder : undefined}
-          onFocus={(e) => {
-            setFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            onBlur?.(e);
-          }}
+        <div
           className={cn(
-            "h-full w-full bg-transparent text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant",
-            inputTextClass,
-            disabled && "opacity-38",
-            leadingIcon ? "pl-12" : "pl-4",
-            error || trailingIcon ? "pr-12" : "pr-4"
+            "flex min-w-0 flex-1 items-center",
+            multiline ? "min-h-[inherit] self-stretch" : "h-full",
+            leadingIcon ? (compact ? "ps-12" : "ps-[52px]") : "ps-4",
+            error || trailingIcon ? (compact ? "pe-12" : "pe-[52px]") : "pe-4"
           )}
-          style={variant === "filled" && label ? { paddingTop: Math.round(height * 0.28) } : undefined}
-          {...props}
-        />
+        >
+          {prefix != null && (
+            <span
+              id={prefixId}
+              aria-hidden={!showAffixes || undefined}
+              className={cn(
+                "me-1 shrink-0 text-m3-on-surface-variant",
+                !showAffixes && "invisible",
+                disabled && "opacity-38"
+              )}
+            >
+              {prefix}
+            </span>
+          )}
+          {multiline ? (
+            <Field.Control
+              ref={ref as React.Ref<HTMLTextAreaElement>}
+              render={<textarea rows={rows} />}
+              id={id}
+              value={value}
+              defaultValue={defaultValue}
+              onChange={handleChange}
+              required={required}
+              placeholder={showPlaceholder ? placeholder : undefined}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              aria-describedby={describedBy}
+              className={controlClassName}
+              style={controlStyle}
+              {...props}
+            />
+          ) : (
+            <Input
+              ref={ref}
+              id={id}
+              type={type}
+              value={value}
+              defaultValue={defaultValue}
+              onChange={handleChange}
+              required={required}
+              placeholder={showPlaceholder ? placeholder : undefined}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              aria-describedby={describedBy}
+              className={controlClassName}
+              style={controlStyle}
+              {...props}
+            />
+          )}
+          {suffix != null && (
+            <span
+              id={suffixId}
+              aria-hidden={!showAffixes || undefined}
+              className={cn(
+                "ms-1 shrink-0 text-m3-on-surface-variant",
+                !showAffixes && "invisible",
+                disabled && "opacity-38"
+              )}
+            >
+              {suffix}
+            </span>
+          )}
+        </div>
         {(error || trailingIcon) && (
           <MaterialSymbol
             icon={error ? "error" : (trailingIcon as string)}
             size={iconSize}
             fill={error ? true : undefined}
             className={cn(
-              "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2",
+              "pointer-events-none absolute end-3 top-1/2 -translate-y-1/2",
               disabled && "opacity-38",
               error ? "text-m3-error" : "text-m3-on-surface-variant"
             )}
@@ -180,7 +324,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
               )}
               initial={false}
               animate={{ scaleX: focused || error ? 1 : 0 }}
-              transition={springs.fastSpatial}
+              transition={reduceMotion ? { duration: 0 } : springs.fastSpatial}
             />
           </>
         )}
@@ -190,7 +334,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
               <motion.label
                 className={cn(
                   "pointer-events-none absolute z-[1]",
-                  variant === "outlined" ? "bg-m3-surface px-1" : "px-0",
+                  variant === "outlined" ? "px-1" : "px-0",
                   disabled && "opacity-38",
                   floated ? "md-body-small" : labelRestClass,
                   error ? "text-m3-error" : focused ? "text-m3-primary" : "text-m3-on-surface-variant"
@@ -198,7 +342,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
                 initial={false}
                 animate={{
                   top: variant === "outlined" ? (floated ? -8 : centerY - labelRestHalf) : floated ? 8 : centerY - labelRestHalf,
-                  left: variant === "outlined"
+                  insetInlineStart: variant === "outlined"
                     ? floated
                       ? leadingIcon
                         ? 40
@@ -210,7 +354,7 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
                       ? 48
                       : 16,
                 }}
-                transition={springs.fastSpatial}
+                transition={reduceMotion ? { duration: 0 } : springs.fastSpatial}
               >
                 {label}
                 {required && <span className="text-m3-error"> *</span>}
@@ -221,6 +365,8 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
       </div>
       {helperText && (
         <Field.Description
+          id={helperId}
+          role={error ? "alert" : undefined}
           className={cn(
             "mt-1 px-4 md-body-small",
             disabled && "opacity-38",

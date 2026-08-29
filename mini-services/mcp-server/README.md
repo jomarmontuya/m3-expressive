@@ -8,7 +8,7 @@ Windsurf, Zed, Gemini CLI, …) as **structured component knowledge** — not ra
 
 | Tool | Purpose |
 |---|---|
-| `list_components` | All 39 component metas (the Next.js registry advertises 40 entries): id, name, category, variants, M3E flag, source path, import line |
+| `list_components` | Every registered component: id, name, category, variants, M3E flag, source path, import line |
 | `search_components` | Full-text search across descriptions, when-to-use guidance and props |
 | `get_component` | Complete structured knowledge for one component |
 | `get_component_api` | Typed props reference (name / type / default / description) |
@@ -215,7 +215,8 @@ npx @modelcontextprotocol/inspector bun /ABSOLUTE/PATH/TO/PROJECT/mini-services/
 
 The server imports the library's single source of truth directly:
 
-- `src/lib/m3/meta.ts` — structured component metadata (39 metas; the Next.js `/api/registry` totalCount is 40)
+- `src/lib/m3/registry.ts` — canonical component catalog shared by the Next.js APIs and this MCP server
+- `src/lib/m3/meta.ts` — structured metadata for every catalog entry
 - `src/lib/m3/tokens.ts` — design tokens
 - `src/lib/m3/themes.ts` — curated theme registry
 

@@ -8,28 +8,37 @@ import { springs } from "@/lib/m3/tokens";
 import { Ripple } from "./Ripple";
 import { MaterialSymbol } from "./MaterialSymbol";
 
-export type FabColor = "primary" | "secondary" | "tertiary" | "surface";
-export type FabSize = "small" | "medium" | "large" | "extra-large";
+export type FabColor =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "primary-container"
+  | "secondary-container"
+  | "tertiary-container"
+  | "surface";
+export type FabSize = "small" | "standard" | "medium" | "large" | "extra-large";
 
 /**
- * M3E FAB size scale: 40 / 56 / 96 / 132 px with 24 / 24 / 36 / 48 icons.
- * Shape: 16dp corners (small/medium), 28dp on large/extra-large per the
- * official FAB shape tokens. The 40dp small FAB extends its touch target
- * to the 48dp minimum with an invisible ::before hit-area extension.
+ * Current M3E FABs are standard 56dp, medium 80dp, and large 96dp. The old
+ * 40dp small and 132dp extra-large names remain as explicit legacy options.
  */
 const sizeStyles: Record<FabSize, { container: number; icon: number; shape: string; touchTarget: string }> = {
-  small: { container: 40, icon: 24, shape: "rounded-2xl", touchTarget: "before:absolute before:-inset-1 before:content-['']" },
-  medium: { container: 56, icon: 24, shape: "rounded-2xl", touchTarget: "" },
-  large: { container: 96, icon: 36, shape: "rounded-[28px]", touchTarget: "" },
+  small: { container: 40, icon: 24, shape: "rounded-xl", touchTarget: "before:absolute before:-inset-1 before:content-['']" },
+  standard: { container: 56, icon: 24, shape: "rounded-2xl", touchTarget: "" },
+  medium: { container: 80, icon: 28, shape: "rounded-[20px]", touchTarget: "" },
+  large: { container: 96, icon: 32, shape: "rounded-[28px]", touchTarget: "" },
   "extra-large": { container: 132, icon: 48, shape: "rounded-[28px]", touchTarget: "" },
 };
 
 /** Shared FAB color-role mapping (also used by ExtendedFab and FabMenu) */
 export const fabColorStyles: Record<FabColor, string> = {
-  primary: "bg-m3-primary-container text-m3-on-primary-container",
-  secondary: "bg-m3-secondary-container text-m3-on-secondary-container",
-  tertiary: "bg-m3-tertiary-container text-m3-on-tertiary-container",
-  surface: "bg-m3-surface-container-high text-m3-on-surface",
+  primary: "bg-m3-primary text-m3-on-primary",
+  secondary: "bg-m3-secondary text-m3-on-secondary",
+  tertiary: "bg-m3-tertiary text-m3-on-tertiary",
+  "primary-container": "bg-m3-primary-container text-m3-on-primary-container",
+  "secondary-container": "bg-m3-secondary-container text-m3-on-secondary-container",
+  "tertiary-container": "bg-m3-tertiary-container text-m3-on-tertiary-container",
+  surface: "bg-m3-surface-container-high text-m3-primary",
 };
 
 /**
@@ -62,7 +71,7 @@ export interface FabProps
  * on-surface 12%/38% disabled tokens with no elevation.
  */
 export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
-  { color = "primary", size = "medium", icon, lowered = false, disabled, className, ...props },
+  { color = "primary-container", size = "standard", icon, lowered = false, disabled, className, ...props },
   ref
 ) {
   const s = sizeStyles[size];
@@ -74,6 +83,7 @@ export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
     <BaseButton
       ref={ref}
       disabled={disabled}
+      aria-label={props["aria-label"] ?? icon.replaceAll("_", " ")}
       className={cn(
         "m3-state m3-focus relative inline-flex select-none items-center justify-center",
         "transition-[background-color,box-shadow] duration-200",

@@ -20,6 +20,7 @@ import type { IconButtonSize, IconButtonVariant } from "@/components/m3/IconButt
 import { Fab } from "@/components/m3/FAB";
 import type { FabColor, FabSize } from "@/components/m3/FAB";
 import { ExtendedFab } from "@/components/m3/ExtendedFab";
+import type { ExtendedFabSize } from "@/components/m3/ExtendedFab";
 import { Chip } from "@/components/m3/Chip";
 import type { ChipSize, ChipVariant } from "@/components/m3/Chip";
 import { Badge } from "@/components/m3/Badge";
@@ -87,26 +88,31 @@ import { NavigationDrawer } from "@/components/m3/NavigationDrawer";
 import { TopAppBar } from "@/components/m3/TopAppBar";
 import type { TopAppBarVariant } from "@/components/m3/TopAppBar";
 
-/**
- * Stage Switch with an accessible name. The library Switch forwards its ref
- * to the DOM button but takes no aria props, so the name is attached via ref.
- */
 function StageSwitch({
   checked,
   onCheckedChange,
   disabled,
   label,
+  showIcon,
+  showUnselectedIcon,
 }: {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled: boolean;
   label: string;
+  showIcon?: boolean;
+  showUnselectedIcon?: boolean;
 }) {
-  const ref = React.useRef<HTMLButtonElement>(null);
-  React.useEffect(() => {
-    ref.current?.setAttribute("aria-label", label);
-  }, [label]);
-  return <Switch ref={ref} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />;
+  return (
+    <Switch
+      aria-label={label}
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+      disabled={disabled}
+      showIcon={showIcon}
+      showUnselectedIcon={showUnselectedIcon}
+    />
+  );
 }
 
 export type PlaygroundValue = string | number | boolean;
@@ -119,6 +125,7 @@ export type PlaygroundControl =
       label: string;
       icon?: string;
       options: { value: string; label: string }[];
+      hiddenWhen?: (v: PlaygroundValues) => boolean;
       disabledWhen?: (v: PlaygroundValues) => boolean;
     }
   | {
@@ -126,6 +133,7 @@ export type PlaygroundControl =
       key: string;
       label: string;
       icon?: string;
+      hiddenWhen?: (v: PlaygroundValues) => boolean;
       disabledWhen?: (v: PlaygroundValues) => boolean;
     }
   | {
@@ -133,6 +141,7 @@ export type PlaygroundControl =
       key: string;
       label: string;
       icon?: string;
+      hiddenWhen?: (v: PlaygroundValues) => boolean;
       disabledWhen?: (v: PlaygroundValues) => boolean;
     }
   | {
@@ -143,6 +152,7 @@ export type PlaygroundControl =
       min: number;
       max: number;
       step: number;
+      hiddenWhen?: (v: PlaygroundValues) => boolean;
       disabledWhen?: (v: PlaygroundValues) => boolean;
     };
 
@@ -239,6 +249,39 @@ const PG_CAROUSEL_ITEMS: CarouselItem[] = [
   { id: "flight", label: "Getaways", icon: "flight_takeoff", tone: "secondary", onClick: () => undefined },
 ];
 
+const TOP_APP_BAR_PLAYGROUND_ROWS = Array.from({ length: 12 }, (_, index) => index + 1);
+
+function TopAppBarPlaygroundPreview({ values }: { values: PlaygroundValues }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  return (
+    <div className="flex h-[300px] w-[420px] max-w-full flex-col overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+      <TopAppBar
+        variant={pgStr(values.variant, "small") as TopAppBarVariant}
+        title={pgStr(values.title, "").trim() || "Overview"}
+        scrollBehavior={pgStr(values.scrollBehavior, "none") as "none" | "pinned" | "enter-always" | "exit-until-collapsed"}
+        scrollTargetRef={scrollRef}
+        onBack={values.back === true ? () => undefined : undefined}
+        actions={
+          values.actions === true
+            ? [
+                { icon: "favorite", label: "Like" },
+                { icon: "more_vert", label: "More" },
+              ]
+            : []
+        }
+      />
+      <div ref={scrollRef} className="m3-scroll min-h-0 flex-1 overflow-y-auto">
+        {TOP_APP_BAR_PLAYGROUND_ROWS.map((row) => (
+          <div key={row} className="flex items-center gap-3 border-b border-m3-outline-variant/50 px-4 py-3">
+            <MaterialSymbol icon="description" size={20} className="text-m3-on-surface-variant" />
+            <span className="md-body-medium text-m3-on-surface">Content row {row}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* PLAYGROUND_SPECS — 41 components                                   */
 /* ------------------------------------------------------------------ */
@@ -285,7 +328,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     code: (v) => {
       const props: string[] = [];
       if (v.variant !== "filled") props.push(`variant="${pgStr(v.variant, "filled")}"`);
-      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       if (v.icon === true) props.push('icon="bolt"');
       if (v.disabled === true) props.push("disabled");
       const label = pgStr(v.label, "").trim();
@@ -343,8 +386,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     code: (v) => {
       const toggleable = v.toggleable === true;
       const props: string[] = [];
-      if (v.variant !== "standard") props.push(`variant="${pgStr(v.variant, "standard")}"`);
-      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.variant !== "filled") props.push(`variant="${pgStr(v.variant, "filled")}"`);
+      if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       props.push(`icon="${pgStr(v.icon, "favorite").trim() || "favorite"}"`);
       if (toggleable) props.push("toggleable");
       if (toggleable && v.selected === true) props.push("selected");
@@ -357,15 +400,15 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
   fab: {
     id: "fab",
     component: "Fab",
-    explainer: "Pick the FAB color role and expressive size (40–132dp); lowered drops rest elevation to level 1.",
-    defaults: { color: "primary", size: "medium", lowered: false, disabled: false, icon: "add" },
+    explainer: "Pick an official FAB color and size. The old 40dp small and 132dp extra-large sizes remain available only for compatibility.",
+    defaults: { color: "primary-container", size: "standard", lowered: false, disabled: false, icon: "add" },
     controls: [
       {
         kind: "segmented",
         key: "color",
         label: "Color role",
         icon: "palette",
-        options: sizeOptions(["primary", "secondary", "tertiary", "surface"]),
+        options: sizeOptions(["primary-container", "secondary-container", "tertiary-container"]),
       },
       {
         kind: "segmented",
@@ -373,10 +416,10 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         label: "Size",
         icon: "straighten",
         options: [
-          { value: "small", label: "S" },
+          { value: "small", label: "S legacy" },
           { value: "medium", label: "M" },
           { value: "large", label: "L" },
-          { value: "extra-large", label: "XL" },
+          { value: "extra-large", label: "XL legacy" },
         ],
       },
       { kind: "switch", key: "lowered", label: "Lowered elevation", icon: "south" },
@@ -395,8 +438,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     ),
     code: (v) => {
       const props: string[] = [];
-      if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
-      if (v.size !== "medium") props.push(`size="${pgStr(v.size, "medium")}"`);
+      if (v.color !== "primary-container") props.push(`color="${pgStr(v.color, "primary-container")}"`);
+      if (v.size !== "standard") props.push(`size="${pgStr(v.size, "standard")}"`);
       props.push(`icon="${pgStr(v.icon, "add").trim() || "add"}"`);
       if (v.lowered === true) props.push("lowered");
       if (v.disabled === true) props.push("disabled");
@@ -409,8 +452,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "extended-fab",
     component: "ExtendedFab",
     explainer:
-      "Icon + label FAB. Height is fixed at the official 56dp — ExtendedFab has no size prop, so color, icon, label and elevation are the real knobs.",
-    defaults: { color: "primary", lowered: false, disabled: false, icon: "edit", label: "Compose" },
+      "Icon + label FAB with small, medium and large expressive sizes from 56dp to 96dp.",
+    defaults: { color: "primary", size: "small", lowered: false, disabled: false, icon: "edit", label: "Compose" },
     controls: [
       {
         kind: "segmented",
@@ -418,6 +461,13 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         label: "Color role",
         icon: "palette",
         options: sizeOptions(["primary", "secondary", "tertiary", "surface"]),
+      },
+      {
+        kind: "segmented",
+        key: "size",
+        label: "Size",
+        icon: "straighten",
+        options: sizeOptions(["small", "medium", "large"]),
       },
       { kind: "switch", key: "lowered", label: "Lowered elevation", icon: "south" },
       { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
@@ -427,6 +477,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     render: (v) => (
       <ExtendedFab
         color={pgStr(v.color, "primary") as FabColor}
+        size={pgStr(v.size, "small") as ExtendedFabSize}
         icon={pgStr(v.icon, "edit").trim() || "edit"}
         label={pgStr(v.label, "Compose").trim() || "Compose"}
         lowered={v.lowered === true}
@@ -435,7 +486,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     ),
     code: (v) => {
       const props: string[] = [];
-      if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
+      if (v.color !== "primary-container") props.push(`color="${pgStr(v.color, "primary-container")}"`);
+      if (v.size !== "small") props.push(`size="${pgStr(v.size, "small")}"`);
       props.push(`icon="${pgStr(v.icon, "edit").trim() || "edit"}"`);
       props.push(`label="${pgStr(v.label, "Compose").trim() || "Compose"}"`);
       if (v.lowered === true) props.push("lowered");
@@ -470,14 +522,14 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         key: "selected",
         label: "Selected",
         icon: "check_circle",
-        disabledWhen: (v) => pgStr(v.variant, "filter") === "input",
+        hiddenWhen: (v) => pgStr(v.variant, "filter") !== "filter",
       },
       {
         kind: "switch",
         key: "removable",
         label: "Removable (input)",
         icon: "cancel",
-        disabledWhen: (v) => pgStr(v.variant, "filter") !== "input",
+        hiddenWhen: (v) => pgStr(v.variant, "filter") !== "input",
       },
       { kind: "switch", key: "elevated", label: "Elevated", icon: "arrow_upward" },
       { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
@@ -485,7 +537,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     ],
     render: (v, set) => {
       const variant = pgStr(v.variant, "filter") as ChipVariant;
-      const selectable = variant !== "input";
+      const selectable = variant === "filter";
       const removable = variant === "input" && v.removable === true;
       return (
         <Chip
@@ -503,7 +555,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     },
     code: (v) => {
       const variant = pgStr(v.variant, "filter");
-      const selectable = variant !== "input";
+      const selectable = variant === "filter";
       const props: string[] = [];
       if (variant !== "assist") props.push(`variant="${variant}"`);
       if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
@@ -562,10 +614,12 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "switch",
     component: "Switch",
     explainer:
-      "Flip the stage switch or the controls — the on-thumb check glyph is built into the component (its API has no icon props).",
-    defaults: { checked: false, disabled: false },
+      "Flip the stage switch or the controls. showIcon adds the optional checked glyph; showUnselectedIcon adds the optional unchecked close glyph.",
+    defaults: { checked: false, showIcon: false, showUnselectedIcon: false, disabled: false },
     controls: [
       { kind: "switch", key: "checked", label: "On", icon: "toggle_on" },
+      { kind: "switch", key: "showIcon", label: "Checked icon", icon: "check" },
+      { kind: "switch", key: "showUnselectedIcon", label: "Unchecked icon", icon: "close" },
       { kind: "switch", key: "disabled", label: "Disabled", icon: "block" },
     ],
     render: (v, set) => (
@@ -574,12 +628,16 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         checked={v.checked === true}
         onCheckedChange={(on) => set("checked", on)}
         disabled={v.disabled === true}
+        showIcon={v.showIcon === true}
+        showUnselectedIcon={v.showUnselectedIcon === true}
       />
     ),
     code: (v) => {
       const props: string[] = [];
       if (v.checked === true) props.push("checked");
       props.push("onCheckedChange={setChecked}");
+      if (v.showIcon === true) props.push("showIcon");
+      if (v.showUnselectedIcon === true) props.push("showUnselectedIcon");
       if (v.disabled === true) props.push("disabled");
       return joinCode("Switch", props);
     },
@@ -645,7 +703,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         key: "inset",
         label: "Inset",
         icon: "format_indent_increase",
-        options: sizeOptions(["none", "start", "middle", "end"]),
+        options: sizeOptions(["none", "start", "list", "middle", "end"]),
       },
       {
         kind: "segmented",
@@ -690,7 +748,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
   "circular-progress": {
     id: "circular-progress",
     component: "CircularProgress",
-    explainer: "Indeterminate sweep or determinate arc with the fixed stop dot — drag the value while determinate.",
+    explainer: "Indeterminate sweep or determinate arc with a real 4dp gap between the active arc and track. Circular progress has no stop dot.",
     defaults: { mode: "indeterminate", value: 64, color: "primary" },
     controls: [
       {
@@ -865,8 +923,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "linear-progress",
     component: "LinearProgress",
     explainer:
-      "Indeterminate sweep or a determinate bar with the trailing stop dot — Wavey switches to the Expressive wavy line.",
-    defaults: { mode: "indeterminate", value: 60, wavey: false, color: "primary", label: "" },
+      "Indeterminate sweep or a determinate bar with the trailing stop dot — Wavy switches to the Expressive wavy line.",
+    defaults: { mode: "indeterminate", value: 60, wavy: false, color: "primary", label: "" },
     controls: [
       {
         kind: "segmented",
@@ -885,7 +943,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         step: 1,
         disabledWhen: (v) => v.mode !== "determinate",
       },
-      { kind: "switch", key: "wavey", label: "Wavey (M3E)", icon: "waves" },
+      { kind: "switch", key: "wavy", label: "Wavy (M3E)", icon: "waves" },
       {
         kind: "segmented",
         key: "color",
@@ -902,7 +960,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         <div className="w-[320px]">
           <LinearProgress
             value={v.mode === "determinate" ? pgNum(v.value, 60) : undefined}
-            wavey={v.wavey === true}
+            wavy={v.wavy === true}
             color={pgStr(v.color, "primary") as LinearProgressColor}
             label={label || undefined}
             fullWidth
@@ -913,7 +971,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     code: (v) => {
       const props: string[] = [];
       if (v.mode === "determinate") props.push(`value={${pgNum(v.value, 60)}}`);
-      if (v.wavey === true) props.push("wavey");
+      if (v.wavy === true) props.push("wavy");
       if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
       const label = pgStr(v.label, "").trim();
       if (label) props.push(`label="${label}"`);
@@ -926,11 +984,34 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "loading-indicator",
     component: "LoadingIndicator",
     explainer:
-      "The signature M3E shape-morphing loader — turning Animate off rests it at a 38%-opacity circle (the reduced-motion fallback).",
-    defaults: { size: 48, active: true, color: "primary" },
+      "The signature M3E loader. Indeterminate mode loops through seven shapes; determinate progress morphs from Circle to SoftBurst as progress moves from 0 to 1.",
+    defaults: { mode: "indeterminate", progress: 0.5, size: 48, active: true, color: "primary" },
     controls: [
+      {
+        kind: "segmented",
+        key: "mode",
+        label: "Mode",
+        icon: "autorenew",
+        options: sizeOptions(["indeterminate", "determinate"]),
+      },
+      {
+        kind: "slider",
+        key: "progress",
+        label: "Progress",
+        icon: "data_usage",
+        min: 0,
+        max: 1,
+        step: 0.05,
+        disabledWhen: (v) => v.mode !== "determinate",
+      },
       { kind: "slider", key: "size", label: "Size", icon: "photo_size_select_large", min: 24, max: 96, step: 8 },
-      { kind: "switch", key: "active", label: "Animate", icon: "animation" },
+      {
+        kind: "switch",
+        key: "active",
+        label: "Animate",
+        icon: "animation",
+        disabledWhen: (v) => v.mode === "determinate",
+      },
       {
         kind: "segmented",
         key: "color",
@@ -942,15 +1023,17 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     render: (v) => (
       <LoadingIndicator
         size={pgNum(v.size, 48)}
+        progress={v.mode === "determinate" ? pgNum(v.progress, 0.5) : undefined}
         active={v.active !== false}
         color={pgStr(v.color, "primary") as LoadingIndicatorColor}
       />
     ),
     code: (v) => {
       const props: string[] = [];
+      if (v.mode === "determinate") props.push(`progress={${pgNum(v.progress, 0.5)}}`);
       const size = pgNum(v.size, 48);
       if (size !== 48) props.push(`size={${size}}`);
-      if (v.active === false) props.push("active={false}");
+      if (v.mode !== "determinate" && v.active === false) props.push("active={false}");
       if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
       return joinCode("LoadingIndicator", props);
     },
@@ -961,10 +1044,26 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "tooltip",
     component: "Tooltip",
     explainer:
-      "Hover or focus the trigger (500ms show delay) — Rich swaps the plain label for a titled card with an action.",
-    defaults: { rich: false, title: "Archived", actionLabel: "Undo", placement: "top", content: "Adds to your archived list" },
+      "Click the persistent rich trigger, or turn Rich off to test the 500ms plain tooltip.",
+    defaults: {
+      rich: true,
+      persistent: true,
+      showCaret: true,
+      title: "Attach file",
+      actionLabel: "Learn more",
+      placement: "bottom",
+      content: "Attach documents, images, or videos up to 25 MB per file.",
+    },
     controls: [
       { kind: "switch", key: "rich", label: "Rich", icon: "article" },
+      {
+        kind: "switch",
+        key: "persistent",
+        label: "Persistent",
+        icon: "keep",
+        disabledWhen: (v) => v.rich !== true,
+      },
+      { kind: "switch", key: "showCaret", label: "Caret", icon: "change_history" },
       {
         kind: "text",
         key: "title",
@@ -996,13 +1095,18 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       return (
         <Tooltip
           rich={rich}
+          persistent={rich && v.persistent === true}
           title={rich && title ? title : undefined}
           actionLabel={rich && actionLabel ? actionLabel : undefined}
-          placement={pgStr(v.placement, "top") as "top" | "bottom"}
-          content={pgStr(v.content, "").trim() || "Adds to your archived list"}
+          showCaret={v.showCaret === true}
+          placement={pgStr(v.placement, rich ? "bottom" : "top") as "top" | "bottom"}
+          content={
+            pgStr(v.content, "").trim() ||
+            "Attach documents, images, or videos up to 25 MB per file."
+          }
         >
-          <Button variant="outlined" size="sm">
-            Hover me
+          <Button variant="outlined" icon="attach_file">
+            Attach
           </Button>
         </Tooltip>
       );
@@ -1011,14 +1115,21 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const rich = v.rich === true;
       const props: string[] = [];
       if (rich) props.push("rich");
+      if (rich && v.persistent === true) props.push("persistent");
       const title = pgStr(v.title, "").trim();
       if (rich && title) props.push(`title="${title}"`);
       const actionLabel = pgStr(v.actionLabel, "").trim();
       if (rich && actionLabel) props.push(`actionLabel="${actionLabel}"`);
-      if (v.placement !== "top") props.push(`placement="${pgStr(v.placement, "top")}"`);
-      props.push(`content="${pgStr(v.content, "").trim() || "Adds to your archived list"}"`);
+      if (v.showCaret === true) props.push("showCaret");
+      const defaultPlacement = rich ? "bottom" : "top";
+      if (v.placement !== defaultPlacement) {
+        props.push(`placement="${pgStr(v.placement, defaultPlacement)}"`);
+      }
+      props.push(
+        `content="${pgStr(v.content, "").trim() || "Attach documents, images, or videos up to 25 MB per file."}"`,
+      );
       const open = `<Tooltip${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { Tooltip, Button } from "m3-expressive-react";\n\n${open}\n  <Button variant="outlined" size="sm">Hover me</Button>\n</Tooltip>`;
+      return `import { Tooltip, Button } from "m3-expressive-react";\n\n${open}\n  <Button variant="outlined" icon="attach_file">Attach</Button>\n</Tooltip>`;
     },
   },
 
@@ -1231,8 +1342,9 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.icon === true) props.push('icon="restart_alt"');
       props.push(`headline="${pgStr(v.headline, "").trim() || "Reset settings?"}"`);
       if (v.dismissible === false) props.push("dismissible={false}");
+      props.push('actions={<>\n  <Button variant="text" onClick={handleClose}>Cancel</Button>\n  <Button variant="text" onClick={handleReset}>Reset</Button>\n</>}');
       const open = `<Dialog${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { Dialog, Button } from "m3-expressive-react";\n\n${open}\n  This will reset all app settings to their defaults.\n  <>\n    <Button variant="text" onClick={handleClose}>Cancel</Button>\n    <Button variant="text" onClick={handleReset}>Reset</Button>\n  </>\n</Dialog>`;
+      return `import { Dialog, Button } from "m3-expressive-react";\n\n${open}\n  This will reset all app settings to their defaults.\n</Dialog>`;
     },
   },
 
@@ -1241,7 +1353,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "banner",
     component: "Banner",
     explainer:
-      "Inline system notice — toggling Open collapses the container through AnimatePresence; actions sit at the trailing edge.",
+      "Material 2 and Flutter compatibility extension, not a current standalone Material 3 component. Open collapses the notice; actions sit at the trailing edge.",
     defaults: { open: true, icon: true, actions: true, fullWidth: false, text: "You're offline — messages will send once you reconnect" },
     controls: [
       { kind: "switch", key: "open", label: "Open", icon: "visibility" },
@@ -1330,7 +1442,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "autocomplete",
     component: "Autocomplete",
     explainer:
-      "Type-ahead text field — suggestions filter as you type and fill the input on click; selection lands back in the control.",
+      "Library extension, not a standalone Material 3 component. It combines outlined text-field styling with an accessible filterable combobox and listbox.",
     defaults: { value: "", label: "Fruit", disabled: false },
     controls: [
       { kind: "text", key: "label", label: "Label", icon: "edit" },
@@ -1364,7 +1476,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "tabs",
     component: "Tabs",
     explainer:
-      "Primary or secondary navigation — the active indicator springs under the selected tab; Secondary drops to the compact 64dp row.",
+      "Primary or secondary navigation — the active indicator springs under the selected tab; Secondary uses the live-spec 48dp row.",
     defaults: { variant: "primary", value: "chats", badges: false, fullWidth: false },
     controls: [
       {
@@ -1526,7 +1638,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = ["buttons={buttons}"];
       if (v.variant !== "outlined") props.push(`variant="${pgStr(v.variant, "outlined")}"`);
       if (v.selection !== "none") props.push(`selection="${pgStr(v.selection, "single")}"`, "value={selected}", "onValueChange={setSelected}");
-      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       const open = `<ButtonGroup${props.length ? " " + props.join(" ") : ""} />`;
       return `import { ButtonGroup } from "m3-expressive-react";\n\nconst buttons = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
@@ -1605,7 +1717,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     component: "Toolbar",
     explainer:
       "Floating icon rail — Floating pins the pill to a positioned edge; Dockable morphs square and full-bleed the moment Docked is on.",
-    defaults: { variant: "floating", color: "surface", docked: false, position: "bottom", width: 280 },
+    defaults: { variant: "floating", color: "standard", docked: false, position: "bottom", width: 560 },
     controls: [
       {
         kind: "segmented",
@@ -1619,7 +1731,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         key: "color",
         label: "Color",
         icon: "palette",
-        options: sizeOptions(["surface", "primary", "secondary", "tertiary"]),
+        options: sizeOptions(["standard", "vibrant"]),
       },
       {
         kind: "segmented",
@@ -1641,9 +1753,9 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         key: "width",
         label: "Width",
         icon: "straighten",
-        min: 200,
-        max: 300,
-        step: 10,
+        min: 240,
+        max: 560,
+        step: 40,
         disabledWhen: (v) => v.docked === true,
       },
     ],
@@ -1655,17 +1767,17 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         { icon: "format_underlined", label: "Underline" },
         { icon: "more_horiz", label: "More" },
       ];
-      const color = pgStr(v.color, "surface") as ToolbarColor;
-      const width = pgNum(v.width, 280);
+      const color = pgStr(v.color, "standard") as ToolbarColor;
+      const width = pgNum(v.width, 560);
       if (v.variant === "dockable") {
         return (
-          <div className="w-[320px] max-w-full">
+          <div className="w-[600px] max-w-full">
             <Toolbar icons={icons} variant="dockable" color={color} docked={v.docked === true} width={width} />
           </div>
         );
       }
       return (
-        <div className="relative h-[220px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <div className="relative h-[220px] w-[600px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
           <Toolbar icons={icons} color={color} position={pgStr(v.position, "bottom") as "top" | "bottom"} width={width} />
         </div>
       );
@@ -1679,11 +1791,11 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       ];
       const props: string[] = ["icons={icons}"];
       if (v.variant === "dockable") props.push('variant="dockable"');
-      if (v.color !== "surface") props.push(`color="${pgStr(v.color, "surface")}"`);
+      if (v.color !== "standard") props.push(`color="${pgStr(v.color, "standard")}"`);
       if (v.variant === "dockable" && v.docked === true) props.push("docked");
       if (v.variant === "floating" && v.position === "top") props.push('position="top"');
-      const width = pgNum(v.width, 280);
-      if (width !== 280 && v.docked !== true) props.push(`width={${width}}`);
+      const width = pgNum(v.width, 560);
+      if (width !== 560 && v.docked !== true) props.push(`width={${width}}`);
       const open = `<Toolbar${props.length ? " " + props.join(" ") : ""} />`;
       return `import { Toolbar } from "m3-expressive-react";\n\nconst icons = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
@@ -1694,8 +1806,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "date-picker",
     component: "DatePicker",
     explainer:
-      "Pick live on the calendar — Range switches to the start/end band selection; Modal presents the official scrim dialog that only closes on a complete range.",
-    defaults: { presentation: "inline", mode: "single", open: false, closeOnSelect: true, minToday: false, maxPlus7: false, value: "", start: "", end: "" },
+      "Pick live in the inline calendar. The modal stages changes for OK by default; Close on pick opts into live apply and only closes a range after both dates exist.",
+    defaults: { presentation: "inline", mode: "single", open: false, closeOnSelect: false, minToday: false, maxPlus7: false, value: "", start: "", end: "" },
     controls: [
       {
         kind: "segmented",
@@ -1755,7 +1867,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
             selectionMode={range ? "range" : "single"}
             open={v.open === true}
             onOpenChange={(o) => set("open", o)}
-            closeOnSelect={v.closeOnSelect !== false}
+            closeOnSelect={v.closeOnSelect === true}
             minDate={v.minToday === true ? PG_TODAY() : undefined}
             maxDate={v.maxPlus7 === true ? PG_PLUS7() : undefined}
             value={range ? undefined : (pgIso(v.value) ?? undefined)}
@@ -1773,7 +1885,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = [];
       if (v.presentation === "modal") {
         props.push('presentation="modal"', "open={open}", "onOpenChange={setOpen}");
-        if (v.closeOnSelect === false) props.push("closeOnSelect={false}");
+        if (v.closeOnSelect === true) props.push("closeOnSelect");
       }
       if (v.minToday === true) props.push("minDate={new Date()}");
       if (v.maxPlus7 === true) props.push("maxDate={addDays(new Date(), 7)}");
@@ -1782,7 +1894,10 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       } else {
         props.push("value={value}", "onChange={setValue}");
       }
-      return joinCode("DatePicker", props);
+      const addDays = v.maxPlus7 === true
+        ? "const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);\n\n"
+        : "";
+      return addDays + joinCode("DatePicker", props);
     },
   },
 
@@ -1822,15 +1937,15 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "carousel",
     component: "Carousel",
     explainer:
-      "M3E expressive carousel — Multi-browse shows 4-up with hover-grow, Hero leads large, Inline pages one item per view; arrows appear per overflow.",
-    defaults: { layout: "multi-browse", shape: "round", arrows: "auto" },
+      "Four current layouts: Multi-browse uses large, medium, and small keylines; Uncontained uses fixed cards; Hero emphasizes one item; Full-screen scrolls vertically. Compatibility arrows default off.",
+    defaults: { layout: "multi-browse", shape: "round", arrows: "never" },
     controls: [
       {
         kind: "segmented",
         key: "layout",
         label: "Layout",
         icon: "view_carousel",
-        options: sizeOptions(["multi-browse", "hero", "inline"]),
+        options: sizeOptions(["multi-browse", "uncontained", "hero", "full-screen"]),
       },
       {
         kind: "segmented",
@@ -1854,7 +1969,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
           items={PG_CAROUSEL_ITEMS}
           layout={pgStr(v.layout, "multi-browse") as CarouselLayout}
           shape={pgStr(v.shape, "round") as CarouselShape}
-          arrows={pgStr(v.arrows, "auto") as CarouselArrows}
+          arrows={pgStr(v.arrows, "never") as CarouselArrows}
           ariaLabel="Playground carousel"
         />
       </div>
@@ -1863,7 +1978,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = ["items={items}"];
       if (v.layout !== "multi-browse") props.push(`layout="${pgStr(v.layout, "multi-browse")}"`);
       if (v.shape !== "round") props.push(`shape="${pgStr(v.shape, "round")}"`);
-      if (v.arrows !== "auto") props.push(`arrows="${pgStr(v.arrows, "auto")}"`);
+      if (v.arrows !== "never") props.push(`arrows="${pgStr(v.arrows, "never")}"`);
       const open = `<Carousel${props.length ? " " + props.join(" ") : ""} />`;
       const rows = PG_CAROUSEL_ITEMS.map(
         (it) => `  { id: "${it.id}", label: "${it.label}", icon: "${it.icon}", tone: "${it.tone}", onClick: handlePick },`
@@ -1877,7 +1992,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "search-view",
     component: "SearchView",
     explainer:
-      "Full-screen search takeover — Search opens the scrim view with recents; Docked drops a compact panel under the field instead.",
+      "Full-screen search replaces the viewport without a scrim. Docked opens a compact result panel over a dismissible scrim.",
     defaults: { mode: "full-screen", open: false, recents: true, q: "" },
     controls: [
       {
@@ -2049,7 +2164,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       ];
       const props: string[] = [`label="${label}"`, "onClick={handleMain}", "items={items}"];
       if (v.variant !== "filled") props.push(`variant="${pgStr(v.variant, "filled")}"`);
-      if (v.size !== "md") props.push(`size="${pgStr(v.size, "md")}"`);
+      if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       if (v.disabled === true) props.push("disabled");
       const open = `<SplitButton${props.length ? " " + props.join(" ") : ""} />`;
       return `import { SplitButton } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
@@ -2061,7 +2176,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "bottom-sheet",
     component: "BottomSheet",
     explainer:
-      "Modal slides up over a 32% scrim with the 24dp drag handle — Standard renders inline with no scrim (open is ignored).",
+      "Modal slides up over a 32% scrim. A 48dp focusable handle target contains the 32×4dp visual handle; Standard renders inline with no scrim.",
     defaults: { variant: "modal", open: false, footer: true, title: "Choose a playlist" },
     controls: [
       {
@@ -2112,9 +2227,11 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       ];
       const title = pgStr(v.title, "").trim() || "Choose a playlist";
       props.push(`title="${title}"`);
+      if (v.footer === true) {
+        props.push('footer={<Button variant="filled" fullWidth onClick={handleClose}>Save</Button>}');
+      }
       const open = `<BottomSheet${props.length ? " " + props.join(" ") : ""}>`;
-      const footer = v.footer === true ? '\n  <Button variant="filled" fullWidth onClick={handleClose}>Save</Button>' : "";
-      return `import { BottomSheet, List, ListItem, Button, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" />\n  <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" />${footer}\n</BottomSheet>`;
+      return `import { BottomSheet, List, ListItem, Button, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <List>\n    <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" />\n    <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" />\n  </List>\n</BottomSheet>`;
     },
   },
 
@@ -2123,15 +2240,15 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "side-sheet",
     component: "SideSheet",
     explainer:
-      "Detail panel docked to a viewport edge over a scrim — Standard docks inline without the scrim, Left/Right picks the edge.",
-    defaults: { side: "right", variant: "modal", open: false, title: "Filters" },
+      "Dialog panel docked to a logical inline edge over a scrim. Standard docks inline without the scrim. Start/End mirrors in RTL.",
+    defaults: { side: "end", variant: "modal", open: false, title: "Filters" },
     controls: [
       {
         kind: "segmented",
         key: "side",
         label: "Side",
         icon: "swap_horiz",
-        options: sizeOptions(["left", "right"]),
+        options: sizeOptions(["start", "end"]),
       },
       {
         kind: "segmented",
@@ -2142,7 +2259,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       },
       { kind: "text", key: "title", label: "Title", icon: "title" },
     ],
-    stageKey: (v) => `${pgStr(v.side, "right")}-${pgStr(v.variant, "modal")}`,
+    stageKey: (v) => `${pgStr(v.side, "end")}-${pgStr(v.variant, "modal")}`,
     render: (v, set) => {
       const close = () => set("open", false);
       const title = pgStr(v.title, "").trim() || "Filters";
@@ -2154,11 +2271,11 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
           <SideSheet
             open={v.open === true}
             onClose={close}
-            side={pgStr(v.side, "right") as SideSheetSide}
+            side={pgStr(v.side, "end") as SideSheetSide}
             variant={pgStr(v.variant, "modal") as SideSheetVariant}
             title={title}
           >
-            <List dividers>
+            <List dividers className="!px-0">
               <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" onClick={close} selected />
               <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" onClick={close} />
               <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" onClick={close} />
@@ -2171,13 +2288,13 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = [
         "open={open}",
         "onClose={handleClose}",
-        `side="${pgStr(v.side, "right")}"`,
+        `side="${pgStr(v.side, "end")}"`,
         `variant="${pgStr(v.variant, "modal")}"`,
       ];
       const title = pgStr(v.title, "").trim() || "Filters";
       props.push(`title="${title}"`);
       const open = `<SideSheet${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { SideSheet, List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" selected />\n  <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" />\n  <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" />\n</SideSheet>`;
+      return `import { SideSheet, List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <List className="!px-0">\n    <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" selected />\n    <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" />\n    <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" />\n  </List>\n</SideSheet>`;
     },
   },
 
@@ -2226,21 +2343,29 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "bottom-app-bar",
     component: "BottomAppBar",
     explainer:
-      "Action bar with a cutout FAB — the 56dp FAB floats half-out of the notch; trailing icons anchor the far edge.",
-    defaults: { fab: true, trailing: true },
+      "Action bar with an optional end FAB. Center docking remains a compatibility layout and overlaps the bar; it does not create a cutout.",
+    defaults: { variant: "flexible", fab: true, trailing: true },
     controls: [
-      { kind: "switch", key: "fab", label: "Center FAB", icon: "add" },
+      {
+        kind: "segmented",
+        key: "variant",
+        label: "Variant",
+        icon: "category",
+        options: sizeOptions(["flexible", "standard"]),
+      },
+      { kind: "switch", key: "fab", label: "End FAB", icon: "add" },
       { kind: "switch", key: "trailing", label: "Trailing icons", icon: "more_vert" },
     ],
     render: (v) => (
-      <div className="flex h-[170px] w-[320px] max-w-full flex-col justify-end overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+      <div className="flex h-[190px] w-[420px] max-w-full flex-col justify-end overflow-hidden rounded-m3-lg border border-m3-outline-variant">
         <BottomAppBar
+          variant={pgStr(v.variant, "flexible") as "flexible" | "standard"}
           navigationIcon={{ icon: "menu", label: "Menu" }}
           actions={[
             { icon: "check_box", label: "Select" },
             { icon: "edit", label: "Edit" },
           ]}
-          trailingIcons={v.trailing === true ? ["more_vert"] : []}
+          trailingActions={v.trailing === true ? [{ icon: "more_vert", label: "More options" }] : []}
           fab={v.fab === true ? { icon: "add", onClick: () => undefined } : undefined}
         />
       </div>
@@ -2250,7 +2375,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         'navigationIcon={{ icon: "menu", label: "Menu" }}',
         "actions={actions}",
       ];
-      if (v.trailing === true) props.push('trailingIcons={["more_vert"]}');
+      if (v.variant === "standard") props.push('variant="standard"');
+      if (v.trailing === true) props.push('trailingActions={[{ icon: "more_vert", label: "More options" }]}');
       if (v.fab === true) props.push('fab={{ icon: "add", onClick: handleCreate }}');
       const rows = [
         '  { icon: "check_box", label: "Select" },',
@@ -2267,7 +2393,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     component: "NavigationRail",
     explainer:
       "Medium-extended side rail — the FAB header slot, menu icon and folding line are each optional anatomy.",
-    defaults: { value: "home", badges: true, header: true, menu: false, foldingLine: true },
+    defaults: { value: "home", badges: true, header: true, menu: false, expanded: false, foldingLine: true },
     controls: [
       { kind: "switch", key: "badges", label: "Badges", icon: "mark_chat_unread" },
       { kind: "switch", key: "header", label: "FAB header", icon: "add" },
@@ -2275,7 +2401,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       { kind: "switch", key: "foldingLine", label: "Folding line", icon: "border_vertical" },
     ],
     render: (v, set) => (
-      <div className="flex h-[300px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+      <div className="flex h-[440px] w-[380px] max-w-full overflow-auto rounded-m3-lg border border-m3-outline-variant">
         <NavigationRail
           items={[
             { value: "home", icon: "home", label: "Home" },
@@ -2284,9 +2410,10 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
           ]}
           value={pgStr(v.value, "home")}
           onChange={(x) => set("value", x)}
+          expanded={v.expanded === true}
           header={v.header === true ? <Fab color="primary" size="small" icon="add" onClick={() => undefined} /> : undefined}
           menuIcon={v.menu === true ? "menu" : undefined}
-          onMenuClick={v.menu === true ? () => undefined : undefined}
+          onMenuClick={v.menu === true ? () => set("expanded", v.expanded !== true) : undefined}
           foldingLine={v.foldingLine === true}
         />
       </div>
@@ -2299,10 +2426,13 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       ];
       const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
       if (v.header === true) props.push("header={<Fab size=\"small\" icon=\"add\" />}");
-      if (v.menu === true) props.push('menuIcon="menu"', "onMenuClick={handleMenu}");
+      if (v.menu === true) props.push('menuIcon="menu"', "expanded={expanded}", "onMenuClick={handleMenu}");
       if (v.foldingLine === false) props.push("foldingLine={false}");
       const open = `<NavigationRail${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { NavigationRail, Fab } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      const state = 'import { useState } from "react";\n';
+      const valueState = 'const [value, setValue] = useState("home");\n';
+      const handler = v.menu === true ? "\nconst [expanded, setExpanded] = useState(false);\nconst handleMenu = () => setExpanded((open) => !open);\n" : "";
+      return `${state}import { NavigationRail, Fab } from "m3-expressive-react";\n\n${valueState}${handler}\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2351,7 +2481,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         );
       }
       return (
-        <div className="flex h-[280px] w-[320px] max-w-full overflow-hidden rounded-m3-lg border border-m3-outline-variant">
+        <div className="flex h-[280px] w-full min-w-0 max-w-[360px] overflow-hidden">
           <NavigationDrawer
             items={items}
             value={pgStr(v.value, "inbox")}
@@ -2373,7 +2503,8 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         '  { value: "drafts", icon: "draft", label: "Drafts" },',
       ];
       const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
-      if (v.variant === "modal") props.push('variant="modal"', "open={open}", "onClose={handleClose}");
+      if (v.variant === "standard") props.push('variant="standard"');
+      else props.push("open={open}", "onClose={handleClose}");
       const open = `<NavigationDrawer${props.length ? " " + props.join(" ") : ""} />`;
       return `import { NavigationDrawer } from "m3-expressive-react";\n\nconst items = [\n${(v.badges === true ? rows : rowsNoBadge).join("\n")}\n];\n\n${open}`;
     },
@@ -2384,47 +2515,45 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
     id: "top-app-bar",
     component: "TopAppBar",
     explainer:
-      "Small/Center stay fixed; Medium/Large flex their title area and collapse on scroll of the scroll target.",
-    defaults: { variant: "small", title: "Overview", actions: true, back: true },
+      "Top app bars stay static by default. Choose a scroll policy to add the matching browser scroll behavior.",
+    defaults: { variant: "small", scrollBehavior: "none", title: "Overview", actions: true, back: true },
     controls: [
       {
         kind: "segmented",
         key: "variant",
         label: "Variant",
         icon: "category",
-        options: sizeOptions(["small", "center", "medium", "large"]),
+        options: sizeOptions(["small", "center", "medium", "large", "medium-flexible", "large-flexible"]),
+      },
+      {
+        kind: "segmented",
+        key: "scrollBehavior",
+        label: "Scroll behavior",
+        icon: "swap_vert",
+        options: sizeOptions(["none", "pinned", "enter-always", "exit-until-collapsed"]),
       },
       { kind: "switch", key: "actions", label: "Action icons", icon: "apps" },
       { kind: "switch", key: "back", label: "Back arrow", icon: "arrow_back" },
       { kind: "text", key: "title", label: "Title", icon: "title" },
     ],
     stageKey: (v) => pgStr(v.variant, "small"),
-    render: (v) => (
-      <div className="flex h-[240px] w-[340px] max-w-full flex-col overflow-hidden rounded-m3-lg border border-m3-outline-variant">
-        <TopAppBar
-          variant={pgStr(v.variant, "small") as TopAppBarVariant}
-          title={pgStr(v.title, "").trim() || "Overview"}
-          onBack={v.back === true ? () => undefined : undefined}
-          actions={
-            v.actions === true
-              ? [
-                  { icon: "favorite", label: "Like" },
-                  { icon: "more_vert", label: "More" },
-                ]
-              : []
-          }
-        />
-      </div>
-    ),
+    render: (v) => <TopAppBarPlaygroundPreview values={v} />,
     code: (v) => {
       const props: string[] = [];
+      const scrollBehavior = pgStr(v.scrollBehavior, "none");
       if (v.variant !== "small") props.push(`variant="${pgStr(v.variant, "small")}"`);
       props.push(`title="${pgStr(v.title, "").trim() || "Overview"}"`);
+      if (scrollBehavior !== "none") {
+        props.push(`scrollBehavior="${scrollBehavior}"`, "scrollTargetRef={scrollRef}");
+      }
       if (v.back === true) props.push("onBack={handleBack}");
       if (v.actions === true) props.push("actions={actions}");
       const rows = ['  { icon: "favorite", label: "Like" },', '  { icon: "more_vert", label: "More" },'];
       const open = `<TopAppBar${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+      if (scrollBehavior === "none") {
+        return `import { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+      }
+      return `import { useRef } from "react";\nimport { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\nexport function Example() {\n  const scrollRef = useRef<HTMLDivElement>(null);\n\n  return (\n    <div className="h-80 overflow-hidden">\n      ${open}\n      <div ref={scrollRef} className="h-64 overflow-y-auto">\n        {/* scrollable content */}\n      </div>\n    </div>\n  );\n}`;
     },
   },
 };

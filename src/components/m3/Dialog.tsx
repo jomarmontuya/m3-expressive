@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { HTMLMotionProps } from "framer-motion";
 import {
   Dialog as BaseDialog,
@@ -15,16 +15,20 @@ import { MaterialSymbol } from "./MaterialSymbol";
 export interface DialogProps {
   open: boolean;
   /** Scrim click + Escape + close handling; ignored when dismissible is false. */
-  onClose?: () => void;
+  onClose: () => void;
   /** Leading Material Symbol centered above the headline. */
   icon?: string;
   headline?: string;
+  /** Accessible name used when no visible headline is present. */
+  ariaLabel?: string;
   /** Dialog body content. */
   children?: React.ReactNode;
-  /** Row of action buttons, right-aligned with the official 8dp gap. */
+  /** Trailing action buttons. Full-screen dialogs place them in a 56dp bottom bar. */
   actions?: React.ReactNode;
-  /** Edge-to-edge full screen variant. */
+  /** @deprecated Use `fullScreen`. */
   fullscreen?: boolean;
+  /** Edge-to-edge full-screen variant with the official header app bar. */
+  fullScreen?: boolean;
   /** Allow Escape and scrim-tap dismissal. Default true. */
   dismissible?: boolean;
   className?: string;
@@ -34,7 +38,11 @@ export interface DialogProps {
  * M3 Dialog — a modal window that blocks the page underneath with a 32%
  * scrim. Basic dialogs center on screen on surface-container-high with
  * 28dp corners, elevation 3 and the official 280–560dp width range;
- * fullscreen dialogs cover the viewport edge-to-edge.
+ * full-screen dialogs cover the viewport edge-to-edge and move the close
+ * affordance and headline into the official 56dp header app bar. Full-screen
+ * actions stay pinned in a separate 56dp bottom bar.
+ * Titles and actions stay pinned while long body content scrolls inside the
+ * bounded panel.
  *
  * Built on Base UI's headless Dialog: Root owns the focus trap, page
  * scroll lock, focus restore to the trigger, Escape/outside-press
@@ -46,22 +54,33 @@ export interface DialogProps {
  * element-form `render` prop; Base UI defers unmounting until the exit
  * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
-export function Dialog({
-  open,
-  onClose,
-  icon,
-  headline,
-  children,
-  actions,
-  fullscreen = false,
-  dismissible = true,
-  className,
-}: DialogProps) {
+export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
+  function Dialog(
+    {
+      open,
+      onClose,
+      icon,
+      headline,
+      ariaLabel,
+      children,
+      actions,
+      fullscreen = false,
+      fullScreen,
+      dismissible = true,
+      className,
+    },
+    ref,
+  ) {
+  const reduceMotion = useReducedMotion() ?? false;
+  const isFullScreen = fullScreen ?? fullscreen;
   const headlineId = React.useId();
   const bodyId = React.useId();
 
   // Keep the dialog mounted while the framer-motion exit plays, then unmount.
-  const actionsRef = React.useRef<DialogRootActions>({ unmount() {}, close() {} });
+  const actionsRef = React.useRef<DialogRootActions>({
+    unmount() {},
+    close() {},
+  });
 
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean, eventDetails: DialogRootChangeEventDetails) => {
@@ -70,82 +89,166 @@ export function Dialog({
       // programmatic closes (imperative action / close press) still flow.
       if (
         !dismissible &&
-        (eventDetails.reason === "escape-key" || eventDetails.reason === "outside-press")
+        (eventDetails.reason === "escape-key" ||
+          eventDetails.reason === "outside-press")
       ) {
         return;
       }
       eventDetails.preventUnmountOnClose();
-      onClose?.();
+      onClose();
     },
-    [dismissible, onClose]
+    [dismissible, onClose],
   );
 
   const scrimMotion: HTMLMotionProps<"div"> = {
-    initial: { opacity: 0 },
+    initial: reduceMotion ? false : { opacity: 0 },
     animate: { opacity: 1 },
-    exit: { opacity: 0 },
+    exit: reduceMotion ? { opacity: 1 } : { opacity: 0 },
     // Named framer easing (tokens.ts easings.* are CSS strings, not
     // framer Easing tuples); "easeOut" ≙ easings.standardDecelerate
-    transition: { duration: durations.short4 / 1000, ease: "easeOut" },
+    transition: reduceMotion
+      ? { duration: 0 }
+      : { duration: durations.short4 / 1000, ease: "easeOut" },
   };
 
   const panelMotion: HTMLMotionProps<"div"> = {
-    initial: { scale: 0.9, y: 20, opacity: 0 },
-    animate: { scale: 1, y: 0, opacity: 1 },
-    exit: { scale: 0.9, y: 20, opacity: 0 },
-    transition: springs.expressive,
+    initial: reduceMotion
+      ? false
+      : isFullScreen
+        ? { y: 24, opacity: 0 }
+        : { scale: 0.9, y: 20, opacity: 0 },
+    animate: isFullScreen
+      ? { y: 0, opacity: 1 }
+      : { scale: 1, y: 0, opacity: 1 },
+    exit: reduceMotion
+      ? isFullScreen
+        ? { y: 0, opacity: 1 }
+        : { scale: 1, y: 0, opacity: 1 }
+      : isFullScreen
+        ? { y: 24, opacity: 0 }
+        : { scale: 0.9, y: 20, opacity: 0 },
+    transition: reduceMotion ? { duration: 0 } : springs.expressive,
   };
 
   return (
-    <BaseDialog.Root open={open} onOpenChange={handleOpenChange} actionsRef={actionsRef} modal>
-      <AnimatePresence>
+    <BaseDialog.Root
+      open={open}
+      onOpenChange={handleOpenChange}
+      actionsRef={actionsRef}
+      modal
+    >
+      <AnimatePresence onExitComplete={() => actionsRef.current?.unmount()}>
         {open && (
           <BaseDialog.Portal>
-            <BaseDialog.Backdrop render={<motion.div {...scrimMotion} />} className="fixed inset-0 z-[80] bg-m3-scrim/32" />
+            <BaseDialog.Backdrop
+              render={<motion.div {...scrimMotion} />}
+              className="fixed inset-0 z-[80] bg-m3-scrim/32"
+            />
             <BaseDialog.Popup
+              ref={ref}
+              role={isFullScreen ? "dialog" : "alertdialog"}
               aria-labelledby={headline ? headlineId : undefined}
+              aria-label={headline ? undefined : (ariaLabel ?? "Dialog")}
               aria-describedby={children ? bodyId : undefined}
               render={<motion.div {...panelMotion} />}
               className={cn(
-                "m3-elevation-3 bg-m3-surface-container-high p-6 outline-none",
+                "bg-m3-surface-container-high outline-none",
                 // Transform-free centering (inset-0 + margin auto) — framer owns
                 // the transform for the M3 entrance spring.
-                fullscreen
-                  ? "fixed inset-0 z-[80] h-full w-full rounded-none"
-                  : "fixed inset-0 z-[80] m-auto h-fit w-[min(560px,calc(100vw-3rem))] min-w-[280px] rounded-[28px]",
-                className
+                isFullScreen
+                  ? "fixed inset-0 z-[80] flex h-full w-full flex-col rounded-none"
+                  : "fixed inset-0 z-[80] m-auto flex h-fit max-h-[calc(100dvh-48px)] w-[min(560px,calc(100vw-3rem))] min-w-[280px] flex-col overflow-hidden rounded-[28px] m3-elevation-3",
+                className,
               )}
             >
-              {icon && (
-                // Official: 24dp primary icon, center-aligned, 16dp above the headline
-                <span className="mb-4 flex justify-center">
-                  <MaterialSymbol icon={icon} size={24} className="text-m3-primary" />
-                </span>
+              {isFullScreen && (
+                <header className="flex h-14 shrink-0 items-center gap-2 border-b border-m3-outline-variant bg-m3-surface px-1 pr-4">
+                  <button
+                    type="button"
+                    aria-label="Close dialog"
+                    onClick={onClose}
+                    className="m3-state m3-focus flex size-12 shrink-0 items-center justify-center rounded-full text-m3-on-surface outline-none"
+                  >
+                    <MaterialSymbol icon="close" size={24} />
+                  </button>
+                  {headline && (
+                    <h2
+                      id={headlineId}
+                      className="md-title-large min-w-0 flex-1 truncate text-m3-on-surface"
+                    >
+                      {headline}
+                    </h2>
+                  )}
+                </header>
               )}
-              {headline && (
-                // Official: headline center-aligns when an icon is present, start-aligns otherwise
-                <h2
-                  id={headlineId}
-                  className={cn("md-headline-small mb-4 text-m3-on-surface", icon && "text-center")}
-                >
-                  {headline}
-                </h2>
+              {isFullScreen ? (
+                children && (
+                  <div
+                    id={bodyId}
+                    className="m3-scroll md-body-medium min-h-0 flex-1 overflow-y-auto px-6 py-6 text-m3-on-surface-variant"
+                  >
+                    {children}
+                  </div>
+                )
+              ) : (
+                <>
+                  {(icon || headline) && (
+                    <div className="shrink-0 px-6 pt-6">
+                      {icon && (
+                        <span className="mb-4 flex justify-center">
+                          <MaterialSymbol
+                            icon={icon}
+                            size={24}
+                            className="text-m3-primary"
+                          />
+                        </span>
+                      )}
+                      {headline && (
+                        <h2
+                          id={headlineId}
+                          className={cn(
+                            "md-headline-small text-m3-on-surface",
+                            icon && "text-center",
+                          )}
+                        >
+                          {headline}
+                        </h2>
+                      )}
+                    </div>
+                  )}
+                  {children && (
+                    <div
+                      id={bodyId}
+                      className={cn(
+                        "m3-scroll md-body-medium min-h-0 overflow-y-auto px-6 text-m3-on-surface-variant",
+                        icon || headline ? "pt-4" : "pt-6",
+                        !actions && "pb-6",
+                      )}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  {actions && (
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 px-6 pb-6 pt-6">
+                      {actions}
+                    </div>
+                  )}
+                </>
               )}
-              {children && (
-                <div id={bodyId} className="md-body-medium text-m3-on-surface-variant">
-                  {children}
+              {isFullScreen && actions && (
+                <div className="flex h-14 shrink-0 flex-wrap items-center justify-end gap-2 border-t border-m3-outline-variant bg-m3-surface px-4">
+                  {actions}
                 </div>
-              )}
-              {actions && (
-                // Official action area: 8dp between text buttons, 24dp above / 24dp sides+below
-                <div className="flex flex-wrap items-center justify-end gap-2 pt-6">{actions}</div>
               )}
             </BaseDialog.Popup>
           </BaseDialog.Portal>
         )}
       </AnimatePresence>
     </BaseDialog.Root>
-  );
-}
+    );
+  },
+);
+
+Dialog.displayName = "Dialog";
 
 export { dialogMeta } from "@/lib/m3/meta";

@@ -1,0 +1,199 @@
+{
+  "viewport": {
+    "name": "desktop",
+    "width": 1440,
+    "height": 1000
+  },
+  "rows": [
+    {
+      "id": "circular-progress",
+      "name": "Circular progress",
+      "screenshot": "desktop/circular-progress.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3850
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "loading-indicator",
+      "name": "Loading indicator",
+      "screenshot": "desktop/loading-indicator.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3059
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "snackbar",
+      "name": "Snackbar",
+      "screenshot": "desktop/snackbar.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3253
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "tooltip",
+      "name": "Tooltip",
+      "screenshot": "desktop/tooltip.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 2901
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "banner",
+      "name": "Banner",
+      "screenshot": "desktop/banner.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3222
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "dialog",
+      "name": "Dialog",
+      "screenshot": "desktop/dialog.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3261
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "divider",
+      "name": "Divider",
+      "screenshot": "desktop/divider.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3507
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "screenshot": "desktop/card.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3213
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "list",
+      "name": "List",
+      "screenshot": "desktop/list.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3593
+      },
+      "console": "",
+      "pageErrors": ""
+    },
+    {
+      "id": "bottom-sheet",
+      "name": "Bottom Sheet",
+      "screenshot": "desktop/bottom-sheet.png",
+      "captured": true,
+      "metrics": {
+        "documentScrollWidth": 1440,
+        "documentClientWidth": 1440,
+        "documentOverflowPx": 0,
+        "bodyScrollWidth": 1440,
+        "bodyClientWidth": 1440,
+        "bodyOverflowPx": 0,
+        "htmlOverflowX": "visible",
+        "bodyOverflowX": "visible",
+        "pageHeight": 3064
+      },
+      "console": "",
+      "pageErrors": ""
+    }
+  ]
+}
