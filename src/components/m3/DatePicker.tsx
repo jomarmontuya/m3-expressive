@@ -1191,6 +1191,7 @@ export interface DatePickerProps {
  * the range is complete — Escape/scrim mid-selection never fabricate an
  * end. The forwardRef lands on the inline root / the modal dialog panel.
  */
+/** Material 3 date picker for calendar selection. @see https://m3.material.io/components/date-pickers/overview */
 export const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(function DatePicker(
   {
     value,

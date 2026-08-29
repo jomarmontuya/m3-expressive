@@ -60,9 +60,6 @@ const maxLinesBaseline = [
   '**/src/components/showcase/demos/feedback-demos.tsx', // 256
   '**/src/components/showcase/demos/inputs-demos.tsx', // 298
   '**/src/components/showcase/demos/navigation-demos.tsx', // 322
-  '**/src/components/ui/chart.tsx', // 315
-  '**/src/components/ui/menubar.tsx', // 257
-  '**/src/components/ui/sidebar.tsx', // 661
 ];
 
 /** @type {import('eslint').Linter.Config[]} */

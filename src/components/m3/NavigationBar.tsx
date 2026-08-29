@@ -47,6 +47,7 @@ export interface NavigationBarProps {
  * roving/tab behavior stays intentionally simple (every destination is
  * tabbable) which suits a 3–5 item bar.
  */
+/** Material 3 navigation bar for top-level destinations. @see https://m3.material.io/components/navigation-bar/overview */
 export const NavigationBar = React.forwardRef<HTMLElement, NavigationBarProps>(function NavigationBar({
   items,
   value,

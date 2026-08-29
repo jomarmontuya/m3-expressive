@@ -86,6 +86,7 @@ const colorStyles: Record<ToolbarColor, { container: string; icon: string; activ
  * prop so the bar keeps its framer-motion animation while still being the
  * toolbar root (Base UI merges role/aria/handlers onto the motion element).
  */
+/** Material 3 Expressive toolbar for frequent actions. @see https://m3.material.io/components/toolbars/overview */
 export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(function Toolbar({
   icons = [],
   children,

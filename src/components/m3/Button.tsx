@@ -156,6 +156,7 @@ export type ButtonProps = ButtonNativeProps & ButtonCommonProps & ButtonTogglePr
  * to the size-specific pressed corner with the expressive spring. Keyboard
  * presses through Space and Enter use the same state.
  */
+/** Material 3 Expressive button for user actions. @see https://m3.material.io/components/buttons/overview */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = "filled",

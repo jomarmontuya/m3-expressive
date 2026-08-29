@@ -20,9 +20,13 @@ The audit used this order when sources differed or omitted a value:
 2. AndroidX Compose Material3 source and token files when the live page did not expose an implementation value. Audited reference: `38aa2e813c80c10eb2326e211f9091ee7d79e069`.
 3. Material Web docs and source as a web behavior baseline only. Audited reference: `cac97678831d48d4eb4a606ca50f92673a1dc20c`.
 
+Compatibility extensions also pin their implementation references: Flutter Material Banner at `d3b14c876900e553bc736ca19295fc09e3853e8e`, and Base UI Autocomplete at `254f4744f0a241c20697b9eeab33402f4469a081`.
+
 Material Web is useful but is not the full M3 Expressive specification. It covers only part of this registry and is in maintenance mode.
 
 Jomar supplied the source-currency evidence for this pass: every component spec page used by the 2026-08-28 per-component audit was last modified on or before 2026-04-28, and those specs remain current on 2026-08-29. This pass therefore reused that source set and checked implementation behavior against the live pages without doing a new modification-date scrape.
+
+Per-component exact source references are exposed through `meta.spec` for agent and documentation consumers.
 
 ## Component scorecard
 
@@ -84,15 +88,32 @@ Jomar supplied the source-currency evidence for this pass: every component spec 
 
 ## Verification evidence
 
+The final implementation and open-source cleanup recorded these results:
+
+- Reproducible install: `bun install --frozen-lockfile` passed with no changes.
 - Repository typecheck: `bunx tsc --noEmit` passed.
 - Lint: `bun run lint` passed with 0 errors and the known `src/app/layout.tsx` `@next/next/no-css-tags` warning.
-- Package typecheck: `packages/m3-expressive-react` `bun run typecheck` passed.
-- Package build: `bun run build:package` passed.
-- Source diff check: `git diff --check -- . ':(exclude)packages/m3-expressive-react/dist/**'` passed. Generated `dist/` is excluded because its bundler output contains pre-existing trailing whitespace.
-- Component contract: all files in `src/components/m3/` retain the client-component and named `forwardRef` contract.
-- Stable page-layout audit: 41/41 routes passed at desktop `1440x1000` and mobile `390x844`; 82 screenshots, 28 contact sheets, and measured evidence are in `tool-results/page-audit-2026-08-29/`.
-- Browser evidence: no page horizontal overflow and no captured console errors or warnings on the 41 stable routes. Focus, RTL, modal background blocking, sheet close behavior, and picker keyboard behavior also received focused runtime checks.
-- Visual regression: the full 41-component capture plus a focused `SideSheet` retry produced a final report with 0 changed, 0 new, and 0 missing components. The first pass briefly saved the `Carousel` route under `SideSheet`; the verified retry measured `SideSheet` at 0.7483%, inside the minor band.
+- Package typecheck and build: `packages/m3-expressive-react` `bun run typecheck` and `bun run build:package` passed.
+- Showcase production build: `bun run build` passed.
+- Package consumer check: a fresh install of the generated npm tarball imported all ESM and CommonJS entry points, generated a theme, exposed 41 component records, and included the required third-party license files.
+- Package hygiene: 0 source maps, 0 workstation paths, and no bundled Base UI runtime markers.
+- Full diff check: `git diff --check` and `git diff --cached --check` passed, including generated package output.
+- Component contract: all files in `src/components/m3/` retain the client-component and named `forwardRef` contract. Comment-stripped transpilation was identical before and after the 43 source-comment edits.
+- Visual regression: all 41 baselines were captured; 23 were identical, 18 were minor, and 0 were changed, new, or missing.
+- Source resolution: all 39 direct component-comment URLs and all 40 unique live or pinned metadata URLs resolved.
+
+The page-audit bundle, current captures, and generated visual-regression report are not tracked release evidence after this cleanup. Only the 41 approved baselines remain tracked.
+
+## Rerunnable release gates
+
+Run these commands from a fresh checkout before release:
+
+1. `bun run lint`
+2. `bunx tsc --noEmit`
+3. `bun run build:package`
+4. Start the dev server on `:3000`, then run `bun run vr:check`
+
+The cleanup passed all four gates locally. CI reruns them from a clean checkout on push or pull request.
 
 ## Review history
 
@@ -102,4 +123,4 @@ Independent read-only family reviews found and then rechecked issues across acti
 - Inputs and pickers: APPROVE after the correction pass and focused element-scoped direction recheck.
 - Feedback and containment: APPROVE after the correction pass, Badge source arbitration, and focused Carousel nested-RTL recheck.
 
-Historical files in `audit/` remain local evidence. This report replaces their interim verdicts and stale geometry notes.
+Per-family interim reviews are not tracked release documentation. This report is the tracked compliance reference.

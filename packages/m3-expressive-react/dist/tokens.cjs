@@ -145,4 +145,3 @@ var paletteColor = {
 
 
 exports.colorRoles = colorRoles; exports.colorVar = colorVar; exports.durations = durations; exports.easings = easings; exports.elevations = elevations; exports.paletteColor = paletteColor; exports.shapeMorph = shapeMorph; exports.shapes = shapes; exports.springs = springs; exports.stateOpacities = stateOpacities; exports.typeScale = typeScale;
-//# sourceMappingURL=tokens.cjs.map

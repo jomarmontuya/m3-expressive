@@ -39,6 +39,7 @@ const ListContext = React.createContext({
  * M3 List — a vertical collection of ListItem rows.
  * Long lists scroll with the thin m3-scroll styling.
  */
+/** Material 3 list for related rows. @see https://m3.material.io/components/lists/overview */
 export const List = React.forwardRef<HTMLUListElement, ListProps>(function List(
   {
     variant = "standard",

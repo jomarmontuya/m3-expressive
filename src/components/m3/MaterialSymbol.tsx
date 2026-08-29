@@ -26,6 +26,7 @@ export interface MaterialSymbolProps extends React.HTMLAttributes<HTMLSpanElemen
  *
  * Usage: <MaterialSymbol icon="home" size={20} fill weight={500} />
  */
+/** Google Material Symbols icon font wrapper. @see https://m3.material.io/styles/icons/overview */
 export const MaterialSymbol = React.forwardRef<HTMLSpanElement, MaterialSymbolProps>(
   function MaterialSymbol(
     { icon, fill, weight, grade, opticalSize, size, className, style, raw, ...props },

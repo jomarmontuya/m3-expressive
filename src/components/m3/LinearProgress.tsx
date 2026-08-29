@@ -136,6 +136,7 @@ function PulsingWave({
  * determinate, and nothing while indeterminate). All M3 visuals stay ours via
  * className; no buffer/range styling exists in the M3 spec or the current API.
  */
+/** Material 3 linear progress indicator. @see https://m3.material.io/components/progress-indicators/overview */
 export const LinearProgress = React.forwardRef<
   HTMLDivElement,
   LinearProgressProps

@@ -43,6 +43,7 @@ export interface SwitchProps
  * activation (adapted to our public `checked`/`onCheckedChange` API); the
  * M3 thumb + track visuals and spring motion are unchanged.
  */
+/** Material 3 switch for binary settings. @see https://m3.material.io/components/switch/overview */
 export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function Switch(
   {
     checked,

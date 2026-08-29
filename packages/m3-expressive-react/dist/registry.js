@@ -1,6 +1,6 @@
 import {
   categoryLabels
-} from "./chunk-EL3OZXJK.js";
+} from "./chunk-ZPV4VB5B.js";
 import {
   autocompleteMeta,
   badgeMeta,
@@ -43,7 +43,7 @@ import {
   toolbarMeta,
   tooltipMeta,
   topAppBarMeta
-} from "./chunk-GMKC2BAW.js";
+} from "./chunk-BN3VGWWW.js";
 
 // ../../src/lib/m3/registry.ts
 var COMPONENT_DIR = "src/components/m3";
@@ -131,4 +131,3 @@ export {
   m3Registry,
   searchComponents
 };
-//# sourceMappingURL=registry.js.map

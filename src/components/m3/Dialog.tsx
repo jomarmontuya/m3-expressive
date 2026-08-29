@@ -54,6 +54,7 @@ export interface DialogProps {
  * element-form `render` prop; Base UI defers unmounting until the exit
  * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 dialog for focused decisions. @see https://m3.material.io/components/dialogs/overview */
 export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
   function Dialog(
     {

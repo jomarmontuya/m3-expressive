@@ -4,6 +4,19 @@
   "description": "Material 3 Expressive React component library — 41 spec-audited components, design tokens, spring motion, agentic-compatible metadata",
   "type": "module",
   "license": "MIT",
+  "author": "Jomar Montuya / Medianeth",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jomarmontuya/m3-expressive.git",
+    "directory": "packages/m3-expressive-react"
+  },
+  "homepage": "https://github.com/jomarmontuya/m3-expressive#readme",
+  "bugs": {
+    "url": "https://github.com/jomarmontuya/m3-expressive/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "sideEffects": ["**/*.css"],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -54,13 +67,13 @@
     "./package.json": "./package.json",
     "./*": "./*"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": ["dist", "README.md", "LICENSE", "NOTICE", "APACHE-2.0.txt"],
   "scripts": {
     "build": "tsup && node scripts/patch-client-directive.mjs && cp styles-src/m3-tokens.css dist/styles.css && bunx @tailwindcss/cli -i compiled-src/entry.css -o dist/compiled.css --minify",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@material/material-color-utilities": "^0.4.0",
+    "@base-ui/react": "^1.7.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.3.1"
   },

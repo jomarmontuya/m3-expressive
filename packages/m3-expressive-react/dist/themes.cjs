@@ -324,4 +324,3 @@ function schemeToCssVars(scheme) {
 
 
 exports.defaultThemeId = defaultThemeId; exports.getTheme = getTheme; exports.m3Themes = m3Themes; exports.schemeToCssVars = schemeToCssVars; exports.themeIds = themeIds;
-//# sourceMappingURL=themes.cjs.map

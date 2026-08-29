@@ -39,6 +39,7 @@ export interface BannerProps {
  * implementation), on surface-container-low.
  */
 // Dismiss-on-click banner — Base UI Collapsible adds no value for this shape
+/** Material 2 and Flutter banner compatibility extension. @see https://m2.material.io/components/banners */
 export const Banner = React.forwardRef<HTMLDivElement, BannerProps>(
   function Banner(
     {

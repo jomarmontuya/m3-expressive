@@ -18,15 +18,24 @@ import { defineConfig } from "tsup";
  * themes/theme-builder/registry) must stay directive-free so RSC/API code
  * can import them.
  */
-const external = [
+const sharedExternal = [
   "react",
   "react-dom",
   "react/jsx-runtime",
   "framer-motion",
-  "@material/material-color-utilities",
   "clsx",
   "tailwind-merge",
 ];
+
+// Keep Base UI external so the component bundle does not carry a second copy.
+const clientExternal = [
+  ...sharedExternal,
+  "@base-ui/react",
+];
+
+// theme-builder must load in plain Node ESM, where @material's package export
+// is not consistently resolvable. Bundle that engine into server-safe output.
+const serverExternal = sharedExternal;
 
 export default defineConfig([
   {
@@ -38,11 +47,11 @@ export default defineConfig([
     format: ["esm", "cjs"],
     dts: true,
     splitting: true,
-    sourcemap: true,
+    sourcemap: false,
     clean: true, // only the first config cleans dist
     target: "es2020",
     tsconfig: "./tsconfig.json",
-    external,
+    external: clientExternal,
     banner: { js: '"use client";' },
   },
   {
@@ -58,9 +67,10 @@ export default defineConfig([
     format: ["esm", "cjs"],
     dts: true,
     splitting: true,
-    sourcemap: true,
+    sourcemap: false,
     target: "es2020",
     tsconfig: "./tsconfig.json",
-    external,
+    external: serverExternal,
+    noExternal: ["@material/material-color-utilities"],
   },
 ]);

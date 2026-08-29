@@ -1134,6 +1134,7 @@ const TimePickerDialog = React.forwardRef<HTMLDivElement, TimePickerDialogProps>
 
 TimePickerDialog.displayName = "TimePickerDialog";
 
+/** Material 3 time picker for clock selection. @see https://m3.material.io/components/time-pickers/overview */
 export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(function TimePicker(
   {
     presentation = "inline",

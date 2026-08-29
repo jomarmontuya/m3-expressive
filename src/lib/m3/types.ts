@@ -50,6 +50,35 @@ export interface M3Guidelines {
   donts?: string[];
 }
 
+/** The audited Material source and web implementation notes for one component. */
+export type M3SpecStatus =
+  | "material-3"
+  | "material-3-expressive"
+  | "material-3-and-expressive"
+  | "extension";
+
+/** Pinned source sets used when a live Material page needs implementation detail. */
+export type M3SpecReferenceId =
+  | "androidx-compose-material3"
+  | "material-web"
+  | "flutter-material"
+  | "base-ui-react";
+
+export interface M3ComponentSpec {
+  /** Whether the component belongs to Material 3, Material 3 Expressive, or this library. */
+  status: M3SpecStatus;
+  /** Official Material overview page; extensions intentionally have no current M3 page. */
+  materialUrl: string | null;
+  /** Date of the per-component Material audit. */
+  auditedAt: "2026-08-28";
+  /** Pinned implementation source sets consulted by this audit. */
+  references: readonly M3SpecReferenceId[];
+  /** How platform behavior maps to browser behavior in this library. */
+  webMapping: string;
+  /** Intentional difference from the audited source, if any. */
+  deviations: readonly string[];
+}
+
 export interface M3ComponentMeta {
   /** kebab-case id, e.g. "button" */
   id: string;
@@ -58,6 +87,8 @@ export interface M3ComponentMeta {
   category: M3Category;
   /** One-sentence official-style description */
   description: string;
+  /** Required audited Material traceability record. */
+  spec: M3ComponentSpec;
   /** Full import line agents should emit */
   importLine: string;
   /** Named variant values the `variant`-like props accept */

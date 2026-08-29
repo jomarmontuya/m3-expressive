@@ -58,6 +58,7 @@ export interface ChipProps {
  * selected state. Assist and suggestion chips are actions. Input chips keep
  * separate primary and remove actions without nested interactive elements.
  */
+/** Material 3 chip for compact actions and filters. @see https://m3.material.io/components/chips/overview */
 export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(function Chip(
   {
     variant = "assist",

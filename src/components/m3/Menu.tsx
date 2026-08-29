@@ -232,6 +232,7 @@ function MenuItems({
  * focus, typeahead and Enter/Space activation, closing the menu on select.
  * Only the M3 surface visuals and the fastVisual spring are ours.
  */
+/** Material 3 menu for contextual choices. @see https://m3.material.io/components/menus/overview */
 export const Menu = React.forwardRef<HTMLButtonElement, MenuProps>(function Menu({
   trigger,
   items,

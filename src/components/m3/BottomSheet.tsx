@@ -54,6 +54,7 @@ export interface BottomSheetProps {
  * the sheet (a Base UI primitive for swipeable sheets does not exist in
  * v1.0.0-rc.0).
  */
+/** Material 3 bottom sheet for supplementary content. @see https://m3.material.io/components/bottom-sheets/overview */
 export const BottomSheet = React.forwardRef<HTMLDivElement, BottomSheetProps>(function BottomSheet(
   {
     open,

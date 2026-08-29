@@ -49,6 +49,7 @@ const sizeStyles: Record<SegmentedButtonSize, { height: number; icon: number }> 
  * while this layer keeps the M3 Expressive visuals (connected pill outline,
  * 48dp touch expanders, springy check icon, ripple).
  */
+/** Material 3 segmented button for grouped choices. @see https://m3.material.io/components/segmented-buttons/overview */
 export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonProps>(
   function SegmentedButton(
     { options, type = "single", value, onValueChange, size = "sm", disabled = false, className, ...props },

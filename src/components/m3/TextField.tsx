@@ -59,6 +59,7 @@ export interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInput
  * error message, so `helperText` always maps to `Field.Description` and the
  * error state flows through `Field.Root`'s `invalid` prop.
  */
+/** Material 3 text field for labeled input. @see https://m3.material.io/components/text-fields/overview */
 export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   {
     variant = "outlined",

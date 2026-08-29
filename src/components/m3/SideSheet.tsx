@@ -49,6 +49,7 @@ export interface SideSheetProps {
  * `actionsRef.unmount`. (No Base UI primitive for docked side surfaces
  * exists in v1.0.0-rc.0; the standard variant stays a custom panel.)
  */
+/** Material 3 side sheet for supplementary content. @see https://m3.material.io/components/side-sheets/overview */
 export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(
   function SideSheet(
     {

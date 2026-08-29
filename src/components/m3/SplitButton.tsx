@@ -101,6 +101,7 @@ export interface SplitButtonProps {
  * rotating chevron stay ours. The menu is kept mounted while the exit
  * spring plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 Expressive split button for default and related actions. @see https://m3.material.io/components/split-button/overview */
 export const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(function SplitButton(
   { label, icon, ariaLabel, onClick, items, variant = "filled", size = "sm", disabled = false, className },
   ref

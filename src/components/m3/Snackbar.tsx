@@ -10,22 +10,19 @@ import { MaterialSymbol } from "./MaterialSymbol";
 
 /**
  * Fixed positioning lives on the Base UI Viewport (it is the positioned
- * ancestor of the toast card now). Consumer `className` merges here too, so
- * overrides like `bottom-24 left-1/2 -translate-x-1/2` (playground) keep
- * working exactly as they did against the old fixed-positioned card.
+ * ancestor of the toast card). Consumer `className` merges here too, so
+ * overrides like `bottom-24 left-1/2 -translate-x-1/2` remain effective.
  */
 const POSITION_CLASSES =
   "fixed bottom-4 left-4 z-[70] flex sm:bottom-6 sm:left-6";
 
-/** Card visuals — verbatim token classes from the pre-migration card. */
+/** Material snackbar card token classes. */
 const CARD_CLASSES =
   "m3-elevation-3 md-body-medium flex min-h-12 w-[calc(100vw-32px)] max-w-[600px] items-center gap-3 rounded-[4px] bg-m3-inverse-surface px-4 py-3 text-m3-inverse-on-surface sm:w-auto sm:min-w-[344px]";
 
 /**
- * Presence motion, owned by Base UI. Entrance/exit used to be framer-motion
- * springs (`springs.expressive` via AnimatePresence variants); Base UI detects
- * transition completion through the Web Animations API (`getAnimations()`),
- * which JS-driven springs never register with — so presence is expressed as
+ * Base UI owns presence motion and detects transition completion through the
+ * Web Animations API (`getAnimations()`). Presence is expressed as
  * CSS transitions on the Root's `data-starting-style` / `data-ending-style`
  * states instead, using the M3 emphasized curves (the spec's non-spring
  * fallback; values mirror `tokens.easings.emphasizedDecelerate` for the enter
@@ -33,8 +30,7 @@ const CARD_CLASSES =
  * because Tailwind cannot see interpolated class names).
  *
  * Swipe dismissals exit along the drag: Base UI exposes the released pointer
- * offset as `--toast-swipe-movement-x/y` CSS vars, which replace the old
- * hand-rolled `exitDirectionFor` dynamic-exit variant for every direction.
+ * offset as `--toast-swipe-movement-x/y` CSS vars for every direction.
  */
 const MOTION_CLASSES = [
   "transition-[transform,opacity]",
@@ -108,6 +104,7 @@ export interface SnackbarProps {
  * motion-driven transform would fight it, and JS springs cannot participate
  * in Base UI's transition-end detection.
  */
+/** Material 3 snackbar for transient feedback. @see https://m3.material.io/components/snackbar/overview */
 export const Snackbar = React.forwardRef<HTMLDivElement, SnackbarProps>(
   function Snackbar(
     {
@@ -160,9 +157,8 @@ export const Snackbar = React.forwardRef<HTMLDivElement, SnackbarProps>(
       if (activeSnackbar && activeSnackbar.ownerId !== ownerId) {
         activeSnackbar.replace();
       }
-      // Sticky when there is nothing to dismiss to or duration <= 0 — mirrors
-      // the pre-migration timer, whose no-op `onClose?.()` left the snackbar
-      // on screen. Base UI treats timeout 0 as "never auto-dismiss".
+      // Sticky when there is nothing to dismiss to or duration <= 0. Base UI
+      // treats timeout 0 as "never auto-dismiss".
       activeIdRef.current = SHARED_SNACKBAR_ID;
       activeSnackbar = {
         ownerId,
@@ -233,10 +229,8 @@ type SnackbarToastsProps = Pick<
 /**
  * Renders the Base UI Viewport + Root for the toast synced by <Snackbar>.
  * Renders nothing while idle so no empty `role="region"` landmark is left in
- * the DOM (the old implementation also rendered nothing when closed).
- * The Viewport intentionally renders in place (no Toast.Portal): the old card
- * was not portaled either, and in-place rendering keeps consumer positioning
- * overrides on `className` effective.
+ * the DOM. The Viewport intentionally renders in place (no Toast.Portal) so
+ * consumer positioning overrides on `className` stay effective.
  */
 function SnackbarToasts({
   ownerId,

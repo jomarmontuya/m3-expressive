@@ -1853,3 +1853,26 @@ Task: Fix the navigation layout shift shown in the Text Field hard-refresh recor
 - Five live Text Field hard refreshes settled on the correct heading and active item. Every run kept the Sidebar at 299px, the main start at x=300, each icon at 22px, and each guide label at x=66. Server HTML contains no false `aria-current="page"` and still contains the Home heading fallback.
 - Root TypeScript, full lint, package TypeScript, package build, and the full 41-component visual-regression gate passed. Lint kept only the known `src/app/layout.tsx` warning. VR finished with 23 identical, 18 minor, and 0 changed components; Text Field, Navigation Rail, Top App Bar, Bottom App Bar, Toolbar, and Menu were identical.
 - No visual baseline, commit, push, publish, or deployment was changed or performed. The required package build regenerated already-dirty package output, and VR regenerated current captures plus `tool-results/vr-report.json`.
+
+---
+Task ID: 2026-08-29-open-source-readiness-cleanup
+Agent: Codex with Orca audit and review workers
+Task: Audit and clean the full repository for open-source readiness, remove confirmed dead code and generated artifacts, and make Material source traceability independently reviewable.
+
+## Work Log
+- Fanned out repository audits for dead code, tracked artifacts, public documentation and packaging, and Material source traceability. Used separate implementation workers, then fresh read-only release and provenance reviewers.
+- Removed 247 tracked generated audit files and current captures totaling 59,755,437 bytes. Kept the 41 approved PNG files in `tool-results/vr-baselines/` and changed `.gitignore` so generated evidence stays local.
+- Removed confirmed dead files: `src/hooks/use-mobile.ts`, `public/logo.svg`, `mini-services/.gitkeep`, and `scripts/check-chip-selection-motion.ts`. Removed stale ESLint paths and the unused direct dependencies `sharp`, `@types/react-dom`, `bun-types`, and `eslint-config-next`.
+- Added a required `meta.spec` record for all 41 registry components through `src/lib/m3/spec-sources.ts`. Each record includes its classification, audited date, live Material page when one exists, pinned source revisions, browser mapping, and deliberate deviations. Banner and Autocomplete remain explicit extensions with pinned Flutter Material and Base UI references.
+- Added one concise direct source comment to all 43 component and primitive files. Comment-stripped TypeScript transpilation proved that these edits changed no runtime JavaScript.
+- Fixed npm release blockers in `packages/m3-expressive-react/`: Base UI stays external, the Dynamic Color engine is bundled where Node ESM needs it, source maps and workstation paths are absent, package metadata is complete, generated whitespace is normalized, and the full Apache 2.0 license ships with the notice.
+- Added `SECURITY.md` and `THIRD_PARTY_LICENSES.md`, corrected public links and claims, added the independent-project disclaimer, and pinned Bun plus `agent-browser` so CI can reproduce the visual gate.
+- Strengthened `scripts/vr-compare.ts` so changed, new, or missing baselines all fail. CI now starts one owned dev server, waits for readiness, runs the visual comparison, and cleans up the process.
+
+## Stage Summary
+- `bun install --frozen-lockfile`, `bun run lint`, `bunx tsc --noEmit`, package TypeScript, `bun run build:package`, and `bun run build` passed. Lint retained only the known `src/app/layout.tsx` stylesheet warning.
+- A fresh 43-file npm tarball was 561,122 bytes compressed and 2,661,381 bytes unpacked, down from 1,439,768 and 7,028,648 bytes. All eight ESM and eight CommonJS JavaScript entries imported from a fresh install; CSS and legal files were present.
+- Package output contains zero source maps, zero workstation paths, and zero bundled Base UI runtime markers. All 40 unique live or pinned metadata URLs and all 39 direct component-comment URLs resolved.
+- The final 41-component visual-regression run passed with 23 identical, 18 minor, and 0 changed, new, or missing components. No baseline changed.
+- Fresh read-only reviewers first returned REVISE for missing full Apache text, empty extension pins, and generated whitespace. After correction, the final reviewer returned APPROVE with no material blocker.
+- GitHub-hosted CI, npm publication, and changing the private GitHub repository to public remain operational steps and were not performed. No commit, push, publish, or deployment was performed.

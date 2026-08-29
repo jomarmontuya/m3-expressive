@@ -89,6 +89,7 @@ export interface SearchViewProps {
  *   <ProductResults query={q} />
  * </SearchView>
  */
+/** Material 3 search view for focused search. @see https://m3.material.io/components/search/overview */
 export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(function SearchView(
   {
     open,

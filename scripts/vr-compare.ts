@@ -16,7 +16,7 @@
  * Components in KNOWN_ANIMATED (perpetually animated demos) have their status
  * capped at "minor" — informational, never a failure.
  *
- * Exit code 1 if any component (outside the known-animated cap) ends up "changed".
+ * Exit code 1 if any component ends up "changed", "new", or "missing".
  */
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";
@@ -114,14 +114,16 @@ async function main() {
   console.log(`Report → ${REPORT_PATH}`);
   console.log(`Summary — ${summary}`);
 
-  const failures = rows.filter((r) => r.status === "changed");
+  const failures = rows.filter(
+    (r) => r.status === "changed" || r.status === "new" || r.status === "missing",
+  );
   if (failures.length > 0) {
     console.error(
-      `FAIL: ${failures.length} component(s) changed beyond the minor band: ${failures.map((r) => r.id).join(", ")}`,
+      `FAIL: ${failures.length} component(s) need baseline review: ${failures.map((r) => `${r.id} (${r.status})`).join(", ")}`,
     );
     process.exit(1);
   }
-  console.log("PASS: no components changed beyond the minor band.");
+  console.log("PASS: no components changed, added, or missing against the baseline.");
 }
 
 main().catch((err) => {

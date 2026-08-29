@@ -115,6 +115,7 @@ export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
  * `render` composition), so segments inherit the same native-<button>
  * disabled/focus handling as the standalone buttons.
  */
+/** Material 3 Expressive group for related buttons. @see https://m3.material.io/components/button-groups/overview */
 export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(function ButtonGroup(
   {
     buttons,

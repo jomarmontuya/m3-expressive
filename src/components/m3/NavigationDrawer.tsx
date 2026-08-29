@@ -48,9 +48,8 @@ export interface NavigationDrawerProps {
  *
  * The modal variant is presented with the Base UI Dialog primitive:
  * `Dialog.Root/Portal/Backdrop/Popup` own Escape + scrim dismissal, the
- * focus trap, focus restore on close and the body scroll lock (all of
- * which were hand-rolled before the migration). The standard variant stays
- * a static inline panel — no dialog semantics apply to it.
+ * focus trap, focus restore on close, and body scroll lock. The standard
+ * variant stays a static inline panel, so dialog semantics do not apply.
  *
  * Animation note: the M3 slide uses a physics spring, which framer-motion
  * drives on the main thread (no CSS transition for Base UI to await before
@@ -59,6 +58,7 @@ export interface NavigationDrawerProps {
  * spring completes (`onAnimationComplete`) — the documented Base UI escape
  * hatch for externally-animated popups.
  */
+/** Material 3 navigation drawer for top-level destinations. @see https://m3.material.io/components/navigation-drawer/overview */
 export const NavigationDrawer = React.forwardRef<HTMLElement, NavigationDrawerProps>(function NavigationDrawer({
   items,
   value,

@@ -70,6 +70,7 @@ export type SliderProps = SliderSingleProps | SliderRangeProps;
  * vertical orientation and the sm/md/lg/xl sizes select the other official
  * configurations. Base UI owns pointer, keyboard and range-thumb behavior.
  */
+/** Material 3 Expressive slider for value selection. @see https://m3.material.io/components/sliders/overview */
 export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Slider(
   {
     value,

@@ -44,6 +44,7 @@ export interface CircularProgressProps {
  * `data-indeterminate`/`data-progressing`/`data-complete` states) from a
  * wrapper element while the ring itself stays a plain `aria-hidden` SVG.
  */
+/** Material 3 circular progress indicator. @see https://m3.material.io/components/progress-indicators/overview */
 export const CircularProgress = React.forwardRef<
   HTMLDivElement,
   CircularProgressProps

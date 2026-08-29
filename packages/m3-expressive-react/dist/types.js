@@ -1,7 +1,6 @@
 import {
   categoryLabels
-} from "./chunk-EL3OZXJK.js";
+} from "./chunk-ZPV4VB5B.js";
 export {
   categoryLabels
 };
-//# sourceMappingURL=types.js.map

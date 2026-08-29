@@ -47,6 +47,7 @@ export interface BadgeProps {
  * four characters, including a trailing "+". Changing `value` remounts the badge,
  * popping in with the bouncy M3E spring.
  */
+/** Material 3 badge for status or notification counts. @see https://m3.material.io/components/badges/overview */
 export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
   {
     value,

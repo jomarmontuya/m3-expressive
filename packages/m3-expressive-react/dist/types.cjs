@@ -1,7 +1,6 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true});
 
-var _chunkQFKXKI3Tcjs = require('./chunk-QFKXKI3T.cjs');
+var _chunkBBN2XBAPcjs = require('./chunk-BBN2XBAP.cjs');
 
 
-exports.categoryLabels = _chunkQFKXKI3Tcjs.categoryLabels;
-//# sourceMappingURL=types.cjs.map
+exports.categoryLabels = _chunkBBN2XBAPcjs.categoryLabels;

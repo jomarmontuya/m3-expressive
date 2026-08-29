@@ -1,6 +1,6 @@
 "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } }
 
-var _chunkQFKXKI3Tcjs = require('./chunk-QFKXKI3T.cjs');
+var _chunkBBN2XBAPcjs = require('./chunk-BBN2XBAP.cjs');
 
 
 
@@ -43,52 +43,52 @@ var _chunkQFKXKI3Tcjs = require('./chunk-QFKXKI3T.cjs');
 
 
 
-var _chunkJACYCSMIcjs = require('./chunk-JACYCSMI.cjs');
+var _chunkGKCKVHSGcjs = require('./chunk-GKCKVHSG.cjs');
 
 // ../../src/lib/m3/registry.ts
 var COMPONENT_DIR = "src/components/m3";
 var TABLE = [
-  { meta: _chunkJACYCSMIcjs.buttonMeta, file: "Button" },
-  { meta: _chunkJACYCSMIcjs.iconButtonMeta, file: "IconButton" },
-  { meta: _chunkJACYCSMIcjs.fabMeta, file: "FAB" },
-  { meta: _chunkJACYCSMIcjs.extendedFabMeta, file: "ExtendedFab" },
-  { meta: _chunkJACYCSMIcjs.fabMenuMeta, file: "FabMenu" },
-  { meta: _chunkJACYCSMIcjs.splitButtonMeta, file: "SplitButton" },
-  { meta: _chunkJACYCSMIcjs.buttonGroupMeta, file: "ButtonGroup" },
-  { meta: _chunkJACYCSMIcjs.segmentedButtonMeta, file: "SegmentedButton" },
-  { meta: _chunkJACYCSMIcjs.badgeMeta, file: "Badge" },
-  { meta: _chunkJACYCSMIcjs.linearProgressMeta, file: "LinearProgress" },
-  { meta: _chunkJACYCSMIcjs.circularProgressMeta, file: "CircularProgress" },
-  { meta: _chunkJACYCSMIcjs.loadingIndicatorMeta, file: "LoadingIndicator" },
-  { meta: _chunkJACYCSMIcjs.snackbarMeta, file: "Snackbar" },
-  { meta: _chunkJACYCSMIcjs.tooltipMeta, file: "Tooltip" },
-  { meta: _chunkJACYCSMIcjs.bannerMeta, file: "Banner" },
-  { meta: _chunkJACYCSMIcjs.dialogMeta, file: "Dialog" },
-  { meta: _chunkJACYCSMIcjs.dividerMeta, file: "Divider" },
-  { meta: _chunkJACYCSMIcjs.cardMeta, file: "Card" },
-  { meta: _chunkJACYCSMIcjs.listMeta, file: "List" },
-  { meta: _chunkJACYCSMIcjs.bottomSheetMeta, file: "BottomSheet" },
-  { meta: _chunkJACYCSMIcjs.sideSheetMeta, file: "SideSheet" },
-  { meta: _chunkJACYCSMIcjs.carouselMeta, file: "Carousel" },
-  { meta: _chunkJACYCSMIcjs.textFieldMeta, file: "TextField" },
-  { meta: _chunkJACYCSMIcjs.searchBarMeta, file: "SearchBar" },
-  { meta: _chunkJACYCSMIcjs.searchViewMeta, file: "SearchView" },
-  { meta: _chunkJACYCSMIcjs.autocompleteMeta, file: "Autocomplete" },
-  { meta: _chunkJACYCSMIcjs.checkboxMeta, file: "Checkbox" },
-  { meta: _chunkJACYCSMIcjs.radioMeta, file: "Radio" },
-  { meta: _chunkJACYCSMIcjs.switchMeta, file: "Switch" },
-  { meta: _chunkJACYCSMIcjs.sliderMeta, file: "Slider" },
-  { meta: _chunkJACYCSMIcjs.chipMeta, file: "Chip" },
-  { meta: _chunkJACYCSMIcjs.tabsMeta, file: "Tabs" },
-  { meta: _chunkJACYCSMIcjs.navigationBarMeta, file: "NavigationBar" },
-  { meta: _chunkJACYCSMIcjs.navigationDrawerMeta, file: "NavigationDrawer" },
-  { meta: _chunkJACYCSMIcjs.navigationRailMeta, file: "NavigationRail" },
-  { meta: _chunkJACYCSMIcjs.topAppBarMeta, file: "TopAppBar" },
-  { meta: _chunkJACYCSMIcjs.bottomAppBarMeta, file: "BottomAppBar" },
-  { meta: _chunkJACYCSMIcjs.toolbarMeta, file: "Toolbar" },
-  { meta: _chunkJACYCSMIcjs.menuMeta, file: "Menu" },
-  { meta: _chunkJACYCSMIcjs.datePickerMeta, file: "DatePicker" },
-  { meta: _chunkJACYCSMIcjs.timePickerMeta, file: "TimePicker" }
+  { meta: _chunkGKCKVHSGcjs.buttonMeta, file: "Button" },
+  { meta: _chunkGKCKVHSGcjs.iconButtonMeta, file: "IconButton" },
+  { meta: _chunkGKCKVHSGcjs.fabMeta, file: "FAB" },
+  { meta: _chunkGKCKVHSGcjs.extendedFabMeta, file: "ExtendedFab" },
+  { meta: _chunkGKCKVHSGcjs.fabMenuMeta, file: "FabMenu" },
+  { meta: _chunkGKCKVHSGcjs.splitButtonMeta, file: "SplitButton" },
+  { meta: _chunkGKCKVHSGcjs.buttonGroupMeta, file: "ButtonGroup" },
+  { meta: _chunkGKCKVHSGcjs.segmentedButtonMeta, file: "SegmentedButton" },
+  { meta: _chunkGKCKVHSGcjs.badgeMeta, file: "Badge" },
+  { meta: _chunkGKCKVHSGcjs.linearProgressMeta, file: "LinearProgress" },
+  { meta: _chunkGKCKVHSGcjs.circularProgressMeta, file: "CircularProgress" },
+  { meta: _chunkGKCKVHSGcjs.loadingIndicatorMeta, file: "LoadingIndicator" },
+  { meta: _chunkGKCKVHSGcjs.snackbarMeta, file: "Snackbar" },
+  { meta: _chunkGKCKVHSGcjs.tooltipMeta, file: "Tooltip" },
+  { meta: _chunkGKCKVHSGcjs.bannerMeta, file: "Banner" },
+  { meta: _chunkGKCKVHSGcjs.dialogMeta, file: "Dialog" },
+  { meta: _chunkGKCKVHSGcjs.dividerMeta, file: "Divider" },
+  { meta: _chunkGKCKVHSGcjs.cardMeta, file: "Card" },
+  { meta: _chunkGKCKVHSGcjs.listMeta, file: "List" },
+  { meta: _chunkGKCKVHSGcjs.bottomSheetMeta, file: "BottomSheet" },
+  { meta: _chunkGKCKVHSGcjs.sideSheetMeta, file: "SideSheet" },
+  { meta: _chunkGKCKVHSGcjs.carouselMeta, file: "Carousel" },
+  { meta: _chunkGKCKVHSGcjs.textFieldMeta, file: "TextField" },
+  { meta: _chunkGKCKVHSGcjs.searchBarMeta, file: "SearchBar" },
+  { meta: _chunkGKCKVHSGcjs.searchViewMeta, file: "SearchView" },
+  { meta: _chunkGKCKVHSGcjs.autocompleteMeta, file: "Autocomplete" },
+  { meta: _chunkGKCKVHSGcjs.checkboxMeta, file: "Checkbox" },
+  { meta: _chunkGKCKVHSGcjs.radioMeta, file: "Radio" },
+  { meta: _chunkGKCKVHSGcjs.switchMeta, file: "Switch" },
+  { meta: _chunkGKCKVHSGcjs.sliderMeta, file: "Slider" },
+  { meta: _chunkGKCKVHSGcjs.chipMeta, file: "Chip" },
+  { meta: _chunkGKCKVHSGcjs.tabsMeta, file: "Tabs" },
+  { meta: _chunkGKCKVHSGcjs.navigationBarMeta, file: "NavigationBar" },
+  { meta: _chunkGKCKVHSGcjs.navigationDrawerMeta, file: "NavigationDrawer" },
+  { meta: _chunkGKCKVHSGcjs.navigationRailMeta, file: "NavigationRail" },
+  { meta: _chunkGKCKVHSGcjs.topAppBarMeta, file: "TopAppBar" },
+  { meta: _chunkGKCKVHSGcjs.bottomAppBarMeta, file: "BottomAppBar" },
+  { meta: _chunkGKCKVHSGcjs.toolbarMeta, file: "Toolbar" },
+  { meta: _chunkGKCKVHSGcjs.menuMeta, file: "Menu" },
+  { meta: _chunkGKCKVHSGcjs.datePickerMeta, file: "DatePicker" },
+  { meta: _chunkGKCKVHSGcjs.timePickerMeta, file: "TimePicker" }
 ];
 var REGISTRY_VERSION = "1.0.0";
 var m3Registry = {
@@ -117,7 +117,7 @@ function searchComponents(query) {
       c.id,
       c.name,
       c.description,
-      _chunkQFKXKI3Tcjs.categoryLabels[c.category],
+      _chunkBBN2XBAPcjs.categoryLabels[c.category],
       ..._nullishCoalesce(c.variants, () => ( [])),
       ...c.props.map((p) => p.name)
     ].join(" ").toLowerCase();
@@ -131,4 +131,3 @@ function searchComponents(query) {
 
 
 exports.REGISTRY_VERSION = REGISTRY_VERSION; exports.getComponent = getComponent; exports.getComponentsByCategory = getComponentsByCategory; exports.m3Registry = m3Registry; exports.searchComponents = searchComponents;
-//# sourceMappingURL=registry.cjs.map

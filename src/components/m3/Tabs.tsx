@@ -53,6 +53,7 @@ export interface TabsProps {
  * Leading and trailing scroll arrows remain custom because Base UI Tabs has
  * no scroller primitive.
  */
+/** Material 3 tabs for peer content sections. @see https://m3.material.io/components/tabs/overview */
 export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs({
   items,
   value,
@@ -141,7 +142,7 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs({
 
   const tablist = (
     // BaseTabs.List renders the tablist <div> (role="tablist") and doubles as
-    // the horizontal scroller, exactly like the pre-migration markup.
+    // the horizontal scroller.
     // activateOnFocus = automatic activation: arrows move focus AND select.
     <BaseTabs.List
       ref={scrollerRef}

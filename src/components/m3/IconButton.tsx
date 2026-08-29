@@ -139,6 +139,7 @@ export interface IconButtonProps
  * to the primary role (standard/outlined) and pops it in with the expressive
  * spring (`aria-pressed` stays wired for assistive tech).
  */
+/** Material 3 icon button for compact actions. @see https://m3.material.io/components/icon-buttons/overview */
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   {
     variant = "filled",

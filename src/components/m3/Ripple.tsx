@@ -27,6 +27,7 @@ let rippleCounter = 0;
  * (icon, label, padding). The parent should be `relative overflow-hidden`
  * with a defined `color`.
  */
+/** Material state-layer ripple feedback. @see https://m3.material.io/foundations/interaction/states/state-layers */
 export const Ripple = React.forwardRef<HTMLSpanElement, RippleProps>(function Ripple(
   { className, disabled },
   ref,

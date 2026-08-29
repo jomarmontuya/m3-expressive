@@ -8,8 +8,9 @@
  * when it is part of the directive prologue, so this script guarantees:
  *   dist/index.js  · dist/hooks.js   → already patched by tsup banner (no-op)
  *   dist/index.cjs · dist/hooks.cjs  → '"use client";' prepended if missing
- * Server-safe subpath builds (tokens/types/meta/themes/theme-builder/
- * registry) are intentionally NOT touched.
+ * Server-safe subpath directives are intentionally not touched. The final
+ * pass removes trailing spaces emitted by the CJS transform so tracked build
+ * output also passes `git diff --check`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -29,3 +30,15 @@ for (const file of CLIENT_ENTRIES) {
   console.log(`[patch-client-directive] prepended "use client" → dist/${file}`);
 }
 console.log(`[patch-client-directive] done (${patched} file(s) patched)`);
+
+let normalized = 0;
+for (const file of fs.readdirSync(dist)) {
+  if (!file.endsWith(".js") && !file.endsWith(".cjs")) continue;
+  const full = path.join(dist, file);
+  const code = fs.readFileSync(full, "utf8");
+  const clean = code.replace(/[\t ]+$/gm, "");
+  if (clean === code) continue;
+  fs.writeFileSync(full, clean);
+  normalized++;
+}
+console.log(`[patch-client-directive] normalized whitespace → ${normalized} file(s)`);

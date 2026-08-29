@@ -53,6 +53,7 @@ const verticalInsets: Record<DividerInset, string> = {
  * A future labeled-divider variant would render this separator plus a
  * text span; no label prop exists in the public API yet.
  */
+/** Material 3 divider for visual or semantic separation. @see https://m3.material.io/components/divider/overview */
 export const Divider = React.forwardRef<HTMLDivElement, DividerProps>(function Divider({
   inset = "none",
   thickness = 1,

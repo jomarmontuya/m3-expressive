@@ -50,6 +50,7 @@ export interface ExtendedFabProps
  * Elevation 3 → 4 on hover (lowered: 1 → 2);
  * disabled uses the on-surface 12%/38% tokens with no elevation.
  */
+/** Material 3 Expressive extended FAB for primary actions. @see https://m3.material.io/components/extended-fab/overview */
 export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>(
   function ExtendedFab(
     { color = "primary-container", size = "small", icon, label, lowered = false, disabled, className, ...props },

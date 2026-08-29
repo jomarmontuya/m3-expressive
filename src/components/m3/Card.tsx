@@ -62,6 +62,7 @@ export interface CardProps
  * elevation 2 on hover, filled cards lift to elevation 1, and every active
  * card emits a state layer (8% hover / 10% pressed) plus ripple.
  */
+/** Material 3 card for grouped content and actions. @see https://m3.material.io/components/cards/overview */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
   {
     variant = "elevated",

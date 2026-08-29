@@ -18,7 +18,7 @@ bun run dev   # showcase app on http://localhost:3000
 
 Every component in `src/components/m3/` follows a mandatory contract: named-export `forwardRef`, metadata in `src/lib/m3/meta.ts`, registration in `src/lib/m3/registry.ts`, barrel re-export, and a matching demo in `src/components/showcase/demos/`. The full rules (including the Base UI primitive policy and token-driven styling rules) are in [AGENTS.md](AGENTS.md) — **read the "Component contract" section before adding or changing components.**
 
-Visual behavior that looks wrong may be spec-mandated: check the matching file in [`audit/`](audit/) before "fixing" it.
+Visual behavior that looks wrong may be spec-mandated: check the [tracked compliance report](audit/compliance-2026-08-29.md) before "fixing" it.
 
 ## Verification gates
 
@@ -37,4 +37,4 @@ All four must pass locally before a PR (CI runs the same):
 
 ## PRs
 
-Small, focused PRs with the gates green. Describe what changed and why; for visual changes include before/after notes or a VR baseline refresh rationale.
+Small, focused PRs with the gates green. Describe what changed and why; for visual changes include before/after notes or a VR baseline refresh rationale. Open pull requests against the [GitHub repository](https://github.com/jomarmontuya/m3-expressive).

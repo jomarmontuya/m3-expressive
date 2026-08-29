@@ -46,6 +46,7 @@ export interface AutocompleteProps {
  * spring are ours; typing or selecting both flow through our public
  * `value`/`onChange` contract.
  */
+/** Material 3 text-field and combobox compatibility extension. @see https://m3.material.io/components/text-fields/overview */
 export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(function Autocomplete(
   {
     options,

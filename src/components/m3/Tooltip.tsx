@@ -78,6 +78,7 @@ const HIDE_DELAY = durations.long4 * 2.5; // 1500ms
  * + aria-describedby are handled for us. A 500ms touch long-press opens the
  * same popup because Base UI deliberately limits its hover listener to mouse.
  */
+/** Material 3 tooltip for contextual help. @see https://m3.material.io/components/tooltips/overview */
 export const Tooltip = React.forwardRef<HTMLElement, TooltipProps>(
   function Tooltip(
     {

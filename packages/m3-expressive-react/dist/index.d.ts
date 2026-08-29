@@ -38,6 +38,24 @@ interface M3Guidelines {
     /** Don'ts from official Material guidelines */
     donts?: string[];
 }
+/** The audited Material source and web implementation notes for one component. */
+type M3SpecStatus = "material-3" | "material-3-expressive" | "material-3-and-expressive" | "extension";
+/** Pinned source sets used when a live Material page needs implementation detail. */
+type M3SpecReferenceId = "androidx-compose-material3" | "material-web" | "flutter-material" | "base-ui-react";
+interface M3ComponentSpec {
+    /** Whether the component belongs to Material 3, Material 3 Expressive, or this library. */
+    status: M3SpecStatus;
+    /** Official Material overview page; extensions intentionally have no current M3 page. */
+    materialUrl: string | null;
+    /** Date of the per-component Material audit. */
+    auditedAt: "2026-08-28";
+    /** Pinned implementation source sets consulted by this audit. */
+    references: readonly M3SpecReferenceId[];
+    /** How platform behavior maps to browser behavior in this library. */
+    webMapping: string;
+    /** Intentional difference from the audited source, if any. */
+    deviations: readonly string[];
+}
 interface M3ComponentMeta {
     /** kebab-case id, e.g. "button" */
     id: string;
@@ -46,6 +64,8 @@ interface M3ComponentMeta {
     category: M3Category;
     /** One-sentence official-style description */
     description: string;
+    /** Required audited Material traceability record. */
+    spec: M3ComponentSpec;
     /** Full import line agents should emit */
     importLine: string;
     /** Named variant values the `variant`-like props accept */
@@ -175,6 +195,7 @@ type ButtonProps = ButtonNativeProps & ButtonCommonProps & ButtonToggleProps;
  * to the size-specific pressed corner with the expressive spring. Keyboard
  * presses through Space and Enter use the same state.
  */
+/** Material 3 Expressive button for user actions. @see https://m3.material.io/components/buttons/overview */
 declare const Button: React.ForwardRefExoticComponent<ButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
 type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
@@ -212,6 +233,7 @@ interface IconButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElem
  * to the primary role (standard/outlined) and pops it in with the expressive
  * spring (`aria-pressed` stays wired for assistive tech).
  */
+/** Material 3 icon button for compact actions. @see https://m3.material.io/components/icon-buttons/overview */
 declare const IconButton: React.ForwardRefExoticComponent<IconButtonProps & React.RefAttributes<HTMLButtonElement>>;
 
 type FabColor = "primary" | "secondary" | "tertiary" | "primary-container" | "secondary-container" | "tertiary-container" | "surface";
@@ -240,6 +262,7 @@ interface FabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "
  * level 4 on hover/pressed (lowered: 1 → 2). Disabled drops to the
  * on-surface 12%/38% disabled tokens with no elevation.
  */
+/** Material 3 Expressive floating action button. @see https://m3.material.io/components/floating-action-button/overview */
 declare const Fab: React.ForwardRefExoticComponent<FabProps & React.RefAttributes<HTMLButtonElement>>;
 
 type ExtendedFabSize = "small" | "medium" | "large";
@@ -271,6 +294,7 @@ interface ExtendedFabProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEle
  * Elevation 3 → 4 on hover (lowered: 1 → 2);
  * disabled uses the on-surface 12%/38% tokens with no elevation.
  */
+/** Material 3 Expressive extended FAB for primary actions. @see https://m3.material.io/components/extended-fab/overview */
 declare const ExtendedFab: React.ForwardRefExoticComponent<ExtendedFabProps & React.RefAttributes<HTMLButtonElement>>;
 
 interface FabMenuAction {
@@ -328,6 +352,7 @@ type FabMenuDockTarget = "screen" | "bottom-app-bar";
  * Enter/Space activation. The menu is kept mounted while the staggered
  * exit plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 Expressive FAB menu for related actions. @see https://m3.material.io/components/fab-menu/overview */
 declare const FabMenu: React.ForwardRefExoticComponent<FabMenuProps & React.RefAttributes<HTMLDivElement>>;
 
 type SplitButtonVariant = "filled" | "tonal" | "outlined" | "elevated";
@@ -364,6 +389,7 @@ interface SplitButtonProps {
  * rotating chevron stay ours. The menu is kept mounted while the exit
  * spring plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 Expressive split button for default and related actions. @see https://m3.material.io/components/split-button/overview */
 declare const SplitButton: React.ForwardRefExoticComponent<SplitButtonProps & React.RefAttributes<HTMLDivElement>>;
 
 type ButtonGroupVariant = "outlined" | "filled" | "tonal" | "elevated";
@@ -409,6 +435,7 @@ interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
  * `render` composition), so segments inherit the same native-<button>
  * disabled/focus handling as the standalone buttons.
  */
+/** Material 3 Expressive group for related buttons. @see https://m3.material.io/components/button-groups/overview */
 declare const ButtonGroup: React.ForwardRefExoticComponent<ButtonGroupProps & React.RefAttributes<HTMLDivElement>>;
 
 type SegmentedButtonType = "single" | "multiple";
@@ -438,6 +465,7 @@ interface SegmentedButtonProps extends Omit<React.HTMLAttributes<HTMLDivElement>
  * while this layer keeps the M3 Expressive visuals (connected pill outline,
  * 48dp touch expanders, springy check icon, ripple).
  */
+/** Material 3 segmented button for grouped choices. @see https://m3.material.io/components/segmented-buttons/overview */
 declare const SegmentedButton: React.ForwardRefExoticComponent<SegmentedButtonProps & React.RefAttributes<HTMLDivElement>>;
 
 type BadgeColor = "error" | "primary" | "tertiary";
@@ -469,6 +497,7 @@ interface BadgeProps {
  * four characters, including a trailing "+". Changing `value` remounts the badge,
  * popping in with the bouncy M3E spring.
  */
+/** Material 3 badge for status or notification counts. @see https://m3.material.io/components/badges/overview */
 declare const Badge: React.ForwardRefExoticComponent<BadgeProps & React.RefAttributes<HTMLSpanElement>>;
 
 type LinearProgressColor = "primary" | "secondary" | "tertiary" | "error";
@@ -500,6 +529,7 @@ interface LinearProgressProps {
  * determinate, and nothing while indeterminate). All M3 visuals stay ours via
  * className; no buffer/range styling exists in the M3 spec or the current API.
  */
+/** Material 3 linear progress indicator. @see https://m3.material.io/components/progress-indicators/overview */
 declare const LinearProgress: React.ForwardRefExoticComponent<LinearProgressProps & React.RefAttributes<HTMLDivElement>>;
 
 type CircularProgressColor = "primary" | "secondary" | "tertiary" | "error";
@@ -532,6 +562,7 @@ interface CircularProgressProps {
  * `data-indeterminate`/`data-progressing`/`data-complete` states) from a
  * wrapper element while the ring itself stays a plain `aria-hidden` SVG.
  */
+/** Material 3 circular progress indicator. @see https://m3.material.io/components/progress-indicators/overview */
 declare const CircularProgress: React.ForwardRefExoticComponent<CircularProgressProps & React.RefAttributes<HTMLDivElement>>;
 
 type LoadingIndicatorColor = "primary" | "secondary" | "tertiary" | "error";
@@ -562,6 +593,7 @@ interface LoadingIndicatorProps {
  * indeterminate indicators leave the accessibility tree so they stop announcing
  * progress.
  */
+/** Material 3 Expressive loading indicator. @see https://m3.material.io/components/loading-indicator/overview */
 declare const LoadingIndicator: React.ForwardRefExoticComponent<LoadingIndicatorProps & React.RefAttributes<HTMLDivElement>>;
 
 interface SnackbarProps {
@@ -601,6 +633,7 @@ interface SnackbarProps {
  * motion-driven transform would fight it, and JS springs cannot participate
  * in Base UI's transition-end detection.
  */
+/** Material 3 snackbar for transient feedback. @see https://m3.material.io/components/snackbar/overview */
 declare const Snackbar: React.ForwardRefExoticComponent<SnackbarProps & React.RefAttributes<HTMLDivElement>>;
 
 interface TooltipProps {
@@ -651,6 +684,7 @@ interface TooltipAction {
  * + aria-describedby are handled for us. A 500ms touch long-press opens the
  * same popup because Base UI deliberately limits its hover listener to mouse.
  */
+/** Material 3 tooltip for contextual help. @see https://m3.material.io/components/tooltips/overview */
 declare const Tooltip: React.ForwardRefExoticComponent<TooltipProps & React.RefAttributes<HTMLElement>>;
 
 interface BannerAction {
@@ -678,6 +712,7 @@ interface BannerProps {
  * sits below the content above a divider, end-aligned (official reference
  * implementation), on surface-container-low.
  */
+/** Material 2 and Flutter banner compatibility extension. @see https://m2.material.io/components/banners */
 declare const Banner: React.ForwardRefExoticComponent<BannerProps & React.RefAttributes<HTMLDivElement>>;
 
 interface DialogProps {
@@ -721,6 +756,7 @@ interface DialogProps {
  * element-form `render` prop; Base UI defers unmounting until the exit
  * animation finishes (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 dialog for focused decisions. @see https://m3.material.io/components/dialogs/overview */
 declare const Dialog: React.ForwardRefExoticComponent<DialogProps & React.RefAttributes<HTMLDivElement>>;
 
 type DividerInset = "none" | "start" | "middle" | "end" | "list";
@@ -751,6 +787,7 @@ interface DividerProps {
  * A future labeled-divider variant would render this separator plus a
  * text span; no label prop exists in the public API yet.
  */
+/** Material 3 divider for visual or semantic separation. @see https://m3.material.io/components/divider/overview */
 declare const Divider: React.ForwardRefExoticComponent<DividerProps & React.RefAttributes<HTMLDivElement>>;
 
 type CardVariant = "elevated" | "filled" | "outlined";
@@ -775,6 +812,7 @@ interface CardProps extends Omit<React.ComponentPropsWithoutRef<typeof motion.di
  * elevation 2 on hover, filled cards lift to elevation 1, and every active
  * card emits a state layer (8% hover / 10% pressed) plus ripple.
  */
+/** Material 3 card for grouped content and actions. @see https://m3.material.io/components/cards/overview */
 declare const Card: React.ForwardRefExoticComponent<CardProps & React.RefAttributes<HTMLDivElement>>;
 
 type ListVariant = "standard" | "segmented";
@@ -796,6 +834,7 @@ interface ListProps extends React.HTMLAttributes<HTMLUListElement> {
  * M3 List — a vertical collection of ListItem rows.
  * Long lists scroll with the thin m3-scroll styling.
  */
+/** Material 3 list for related rows. @see https://m3.material.io/components/lists/overview */
 declare const List: React.ForwardRefExoticComponent<ListProps & React.RefAttributes<HTMLUListElement>>;
 interface ListItemProps {
     /** Primary text (md-body-large) */
@@ -872,6 +911,7 @@ interface BottomSheetProps {
  * the sheet (a Base UI primitive for swipeable sheets does not exist in
  * v1.0.0-rc.0).
  */
+/** Material 3 bottom sheet for supplementary content. @see https://m3.material.io/components/bottom-sheets/overview */
 declare const BottomSheet: React.ForwardRefExoticComponent<BottomSheetProps & React.RefAttributes<HTMLDivElement>>;
 
 type SideSheetSide = "start" | "end" | "left" | "right";
@@ -908,6 +948,7 @@ interface SideSheetProps {
  * `actionsRef.unmount`. (No Base UI primitive for docked side surfaces
  * exists in v1.0.0-rc.0; the standard variant stays a custom panel.)
  */
+/** Material 3 side sheet for supplementary content. @see https://m3.material.io/components/side-sheets/overview */
 declare const SideSheet: React.ForwardRefExoticComponent<SideSheetProps & React.RefAttributes<HTMLDivElement>>;
 
 type CarouselLayout = "multi-browse" | "uncontained" | "hero" | "full-screen" | "inline";
@@ -999,6 +1040,7 @@ interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
  * />
  * ```
  */
+/** Material 3 Expressive carousel for browsing items. @see https://m3.material.io/components/carousel/overview */
 declare const Carousel: React.ForwardRefExoticComponent<CarouselProps & React.RefAttributes<HTMLDivElement>>;
 
 type TextFieldVariant = "filled" | "outlined";
@@ -1038,6 +1080,7 @@ interface TextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * error message, so `helperText` always maps to `Field.Description` and the
  * error state flows through `Field.Root`'s `invalid` prop.
  */
+/** Material 3 text field for labeled input. @see https://m3.material.io/components/text-fields/overview */
 declare const TextField: React.ForwardRefExoticComponent<TextFieldProps & React.RefAttributes<HTMLInputElement>>;
 
 type SearchBarSize = "sm" | "md" | "lg";
@@ -1076,6 +1119,7 @@ interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * before. Trailing strings are decorative; actionable entries require an
  * explicit callback so the component never creates inert icon buttons.
  */
+/** Material 3 search bar for search queries. @see https://m3.material.io/components/search/overview */
 declare const SearchBar: React.ForwardRefExoticComponent<SearchBarProps & React.RefAttributes<HTMLInputElement>>;
 
 type SearchViewMode = "full-screen" | "docked";
@@ -1148,6 +1192,7 @@ interface SearchViewProps {
  *   <ProductResults query={q} />
  * </SearchView>
  */
+/** Material 3 search view for focused search. @see https://m3.material.io/components/search/overview */
 declare const SearchView: React.ForwardRefExoticComponent<SearchViewProps & React.RefAttributes<HTMLInputElement>>;
 
 interface AutocompleteProps {
@@ -1181,6 +1226,7 @@ interface AutocompleteProps {
  * spring are ours; typing or selecting both flow through our public
  * `value`/`onChange` contract.
  */
+/** Material 3 text-field and combobox compatibility extension. @see https://m3.material.io/components/text-fields/overview */
 declare const Autocomplete: React.ForwardRefExoticComponent<AutocompleteProps & React.RefAttributes<HTMLInputElement>>;
 
 interface CheckboxProps extends Omit<CheckboxRootProps, "checked" | "onCheckedChange" | "className" | "render" | "children"> {
@@ -1213,6 +1259,7 @@ interface CheckboxProps extends Omit<CheckboxRootProps, "checked" | "onCheckedCh
  * stay custom (framer-motion pathLength springs — no Base UI primitive
  * animates SVG paths).
  */
+/** Material 3 checkbox for independent selection. @see https://m3.material.io/components/checkbox/overview */
 declare const Checkbox: React.ForwardRefExoticComponent<Omit<CheckboxProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
 
 interface RadioProps extends Omit<RadioRootProps<string>, "value" | "className" | "render" | "children"> {
@@ -1235,6 +1282,7 @@ interface RadioProps extends Omit<RadioRootProps<string>, "value" | "className" 
  * when selected. Wrap a set of Radios in `RadioGroup` for roving arrow-key
  * navigation (now handled by Base UI's RadioGroup).
  */
+/** Material 3 radio button for exclusive selection. @see https://m3.material.io/components/radio-button/overview */
 declare const Radio: React.ForwardRefExoticComponent<Omit<RadioProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
 interface RadioGroupProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange"> {
     /** Accessible name for the group (rendered as aria-label on role="radiogroup"). */
@@ -1284,6 +1332,7 @@ interface SwitchProps extends Omit<SwitchRootProps, "checked" | "onCheckedChange
  * activation (adapted to our public `checked`/`onCheckedChange` API); the
  * M3 thumb + track visuals and spring motion are unchanged.
  */
+/** Material 3 switch for binary settings. @see https://m3.material.io/components/switch/overview */
 declare const Switch: React.ForwardRefExoticComponent<Omit<SwitchProps, "ref"> & React.RefAttributes<HTMLButtonElement>>;
 
 type SliderOrientation = "horizontal" | "vertical";
@@ -1332,6 +1381,7 @@ type SliderProps = SliderSingleProps | SliderRangeProps;
  * vertical orientation and the sm/md/lg/xl sizes select the other official
  * configurations. Base UI owns pointer, keyboard and range-thumb behavior.
  */
+/** Material 3 Expressive slider for value selection. @see https://m3.material.io/components/sliders/overview */
 declare const Slider: React.ForwardRefExoticComponent<SliderProps & React.RefAttributes<HTMLDivElement>>;
 
 type ChipVariant = "assist" | "filter" | "input" | "suggestion";
@@ -1365,6 +1415,7 @@ interface ChipProps {
  * selected state. Assist and suggestion chips are actions. Input chips keep
  * separate primary and remove actions without nested interactive elements.
  */
+/** Material 3 chip for compact actions and filters. @see https://m3.material.io/components/chips/overview */
 declare const Chip: React.ForwardRefExoticComponent<ChipProps & React.RefAttributes<HTMLButtonElement>>;
 interface ChipGroupProps extends React.HTMLAttributes<HTMLDivElement> {
     /** Accessible name for the chip collection. */
@@ -1412,6 +1463,7 @@ interface TabsProps {
  * Leading and trailing scroll arrows remain custom because Base UI Tabs has
  * no scroller primitive.
  */
+/** Material 3 tabs for peer content sections. @see https://m3.material.io/components/tabs/overview */
 declare const Tabs: React.ForwardRefExoticComponent<TabsProps & React.RefAttributes<HTMLDivElement>>;
 
 interface NavItem$2 {
@@ -1443,6 +1495,7 @@ interface NavigationBarProps {
  * roving/tab behavior stays intentionally simple (every destination is
  * tabbable) which suits a 3–5 item bar.
  */
+/** Material 3 navigation bar for top-level destinations. @see https://m3.material.io/components/navigation-bar/overview */
 declare const NavigationBar: React.ForwardRefExoticComponent<NavigationBarProps & React.RefAttributes<HTMLElement>>;
 
 interface NavItem$1 {
@@ -1475,9 +1528,8 @@ interface NavigationDrawerProps {
  *
  * The modal variant is presented with the Base UI Dialog primitive:
  * `Dialog.Root/Portal/Backdrop/Popup` own Escape + scrim dismissal, the
- * focus trap, focus restore on close and the body scroll lock (all of
- * which were hand-rolled before the migration). The standard variant stays
- * a static inline panel — no dialog semantics apply to it.
+ * focus trap, focus restore on close, and body scroll lock. The standard
+ * variant stays a static inline panel, so dialog semantics do not apply.
  *
  * Animation note: the M3 slide uses a physics spring, which framer-motion
  * drives on the main thread (no CSS transition for Base UI to await before
@@ -1486,6 +1538,7 @@ interface NavigationDrawerProps {
  * spring completes (`onAnimationComplete`) — the documented Base UI escape
  * hatch for externally-animated popups.
  */
+/** Material 3 navigation drawer for top-level destinations. @see https://m3.material.io/components/navigation-drawer/overview */
 declare const NavigationDrawer: React.ForwardRefExoticComponent<NavigationDrawerProps & React.RefAttributes<HTMLElement>>;
 
 interface NavItem {
@@ -1521,6 +1574,7 @@ interface NavigationRailProps {
  * The current M3E wide rail morphs between a 96dp collapsed rail and a
  * 220–360dp expanded rail. The 80dp narrow baseline remains available.
  */
+/** Material 3 Expressive navigation rail for wider screens. @see https://m3.material.io/components/navigation-rail/overview */
 declare const NavigationRail: React.ForwardRefExoticComponent<NavigationRailProps & React.RefAttributes<HTMLElement>>;
 
 type TopAppBarVariant = "small" | "center" | "medium" | "large" | "medium-flexible" | "large-flexible";
@@ -1572,6 +1626,7 @@ interface TopAppBarProps {
     fullWidth?: boolean;
     className?: string;
 }
+/** Material 3 Expressive top app bar for navigation and actions. @see https://m3.material.io/components/app-bars/overview */
 declare const TopAppBar: React.ForwardRefExoticComponent<TopAppBarProps & React.RefAttributes<HTMLElement>>;
 
 interface BottomAppBarAction {
@@ -1611,6 +1666,7 @@ interface BottomAppBarProps {
     fullWidth?: boolean;
     className?: string;
 }
+/** Material 3 bottom app bar for persistent actions. @see https://m3.material.io/components/app-bars/overview */
 declare const BottomAppBar: React.ForwardRefExoticComponent<BottomAppBarProps & React.RefAttributes<HTMLDivElement>>;
 
 interface ToolbarIconItem {
@@ -1654,6 +1710,7 @@ interface ToolbarProps {
  * prop so the bar keeps its framer-motion animation while still being the
  * toolbar root (Base UI merges role/aria/handlers onto the motion element).
  */
+/** Material 3 Expressive toolbar for frequent actions. @see https://m3.material.io/components/toolbars/overview */
 declare const Toolbar: React.ForwardRefExoticComponent<ToolbarProps & React.RefAttributes<HTMLDivElement>>;
 
 type MenuItemType = "item" | "divider" | "label";
@@ -1713,6 +1770,7 @@ interface MenuProps {
  * focus, typeahead and Enter/Space activation, closing the menu on select.
  * Only the M3 surface visuals and the fastVisual spring are ours.
  */
+/** Material 3 menu for contextual choices. @see https://m3.material.io/components/menus/overview */
 declare const Menu: React.ForwardRefExoticComponent<MenuProps & React.RefAttributes<HTMLButtonElement>>;
 
 /** Official date-range shape (androidx DateRangePicker / MaterialDatePicker) */
@@ -1805,6 +1863,7 @@ interface DatePickerProps {
  * the range is complete — Escape/scrim mid-selection never fabricate an
  * end. The forwardRef lands on the inline root / the modal dialog panel.
  */
+/** Material 3 date picker for calendar selection. @see https://m3.material.io/components/date-pickers/overview */
 declare const DatePicker: React.ForwardRefExoticComponent<DatePickerProps & React.RefAttributes<HTMLDivElement>>;
 
 interface TimePickerValue {
@@ -1844,6 +1903,7 @@ interface TimePickerProps {
     fullWidth?: boolean;
     className?: string;
 }
+/** Material 3 time picker for clock selection. @see https://m3.material.io/components/time-pickers/overview */
 declare const TimePicker: React.ForwardRefExoticComponent<TimePickerProps & React.RefAttributes<HTMLDivElement>>;
 
 interface MaterialSymbolProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -1868,6 +1928,7 @@ interface MaterialSymbolProps extends React.HTMLAttributes<HTMLSpanElement> {
  *
  * Usage: <MaterialSymbol icon="home" size={20} fill weight={500} />
  */
+/** Google Material Symbols icon font wrapper. @see https://m3.material.io/styles/icons/overview */
 declare const MaterialSymbol: React.ForwardRefExoticComponent<MaterialSymbolProps & React.RefAttributes<HTMLSpanElement>>;
 
 interface RippleProps {
@@ -1884,6 +1945,7 @@ interface RippleProps {
  * (icon, label, padding). The parent should be `relative overflow-hidden`
  * with a defined `color`.
  */
+/** Material state-layer ripple feedback. @see https://m3.material.io/foundations/interaction/states/state-layers */
 declare const Ripple: React.ForwardRefExoticComponent<RippleProps & React.RefAttributes<HTMLSpanElement>>;
 
 declare const springs: {
@@ -2271,4 +2333,4 @@ declare const themeIds: string[];
 /** Flatten a scheme into the --md-* CSS custom property map. */
 declare function schemeToCssVars(scheme: M3ColorScheme): Record<string, string>;
 
-export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Carousel, type CarouselAlignment, type CarouselItem, type CarouselLayout, type CarouselProps, type CarouselShape, type CarouselTone, Checkbox, type CheckboxProps, Chip, ChipGroup, type ChipGroupProps, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, type DateRange, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };
+export { Autocomplete, type AutocompleteProps, Badge, type BadgeProps, Banner, type BannerProps, BottomAppBar, type BottomAppBarProps, BottomSheet, type BottomSheetProps, Button, ButtonGroup, type ButtonGroupProps, type ButtonProps, type ButtonSize, type ButtonVariant, Card, type CardProps, Carousel, type CarouselAlignment, type CarouselItem, type CarouselLayout, type CarouselProps, type CarouselShape, type CarouselTone, Checkbox, type CheckboxProps, Chip, ChipGroup, type ChipGroupProps, type ChipProps, CircularProgress, type CircularProgressProps, DatePicker, type DatePickerProps, type DateRange, Dialog, type DialogProps, Divider, type DividerProps, ExtendedFab, type ExtendedFabProps, Fab, FabMenu, type FabMenuDockTarget, type FabMenuProps, type FabProps, IconButton, type IconButtonProps, LinearProgress, type LinearProgressProps, List, ListItem, type ListItemProps, type ListProps, LoadingIndicator, type LoadingIndicatorProps, type M3Category, type M3ColorScheme, type M3ComponentMeta, type M3ComponentSpec, type M3Guidelines, type M3Registry, type M3RegistryEntry, type M3SpecReferenceId, type M3SpecStatus, type M3Spring, type M3ThemeDef, MaterialSymbol, type MaterialSymbolProps, Menu, type MenuItemData, type MenuProps, NavigationBar, type NavigationBarProps, NavigationDrawer, type NavigationDrawerProps, NavigationRail, type NavigationRailProps, type PaletteColor, type PropDoc, Radio, RadioGroup, type RadioGroupProps, type RadioProps, Ripple, type RippleProps, SearchBar, type SearchBarProps, SearchView, type SearchViewMode, type SearchViewProps, SegmentedButton, type SegmentedButtonProps, SideSheet, type SideSheetProps, Slider, type SliderProps, Snackbar, type SnackbarProps, SplitButton, type SplitButtonProps, Switch, type SwitchProps, Tabs, type TabsProps, TextField, type TextFieldProps, TimePicker, type TimePickerProps, type TimePickerValue, Toolbar, type ToolbarProps, Tooltip, type TooltipProps, TopAppBar, type TopAppBarProps, autocompleteMeta, badgeMeta, bannerMeta, bottomAppBarMeta, bottomSheetMeta, buttonGroupMeta, buttonMeta, cardMeta, carouselMeta, categoryLabels, checkboxMeta, chipMeta, circularProgressMeta, colorRoles, colorVar, datePickerMeta, defaultThemeId, dialogMeta, dividerMeta, durations, easings, elevations, extendedFabMeta, fabMenuMeta, fabMeta, getComponent, getComponentsByCategory, getTheme, iconButtonMeta, linearProgressMeta, listMeta, loadingIndicatorMeta, m3Registry, m3Themes, menuMeta, navigationBarMeta, navigationDrawerMeta, navigationRailMeta, radioMeta, schemeToCssVars, searchBarMeta, searchComponents, searchViewMeta, segmentedButtonMeta, shapeMorph, shapes, sideSheetMeta, sliderMeta, snackbarMeta, splitButtonMeta, springs, stateOpacities, switchMeta, tabsMeta, textFieldMeta, themeIds, timePickerMeta, toolbarMeta, tooltipMeta, topAppBarMeta, typeScale };

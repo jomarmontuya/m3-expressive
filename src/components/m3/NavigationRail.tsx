@@ -53,6 +53,7 @@ export interface NavigationRailProps {
  * The current M3E wide rail morphs between a 96dp collapsed rail and a
  * 220–360dp expanded rail. The 80dp narrow baseline remains available.
  */
+/** Material 3 Expressive navigation rail for wider screens. @see https://m3.material.io/components/navigation-rail/overview */
 export const NavigationRail = React.forwardRef<HTMLElement, NavigationRailProps>(function NavigationRail({
   items,
   value,

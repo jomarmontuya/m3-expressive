@@ -72,6 +72,7 @@ export interface BottomAppBarProps {
 const EMPTY_ACTIONS: BottomAppBarAction[] = [];
 const EMPTY_TRAILING_ACTIONS: BottomAppBarTrailingAction[] = [];
 
+/** Material 3 bottom app bar for persistent actions. @see https://m3.material.io/components/app-bars/overview */
 export const BottomAppBar = React.forwardRef<HTMLDivElement, BottomAppBarProps>(function BottomAppBar({
   navigationIcon,
   actions = EMPTY_ACTIONS,

@@ -138,6 +138,7 @@ function AppBarIconButton({
 // Shared stable default — a literal `[]` default is re-created per render.
 const EMPTY_ACTIONS: TopAppBarAction[] = [];
 
+/** Material 3 Expressive top app bar for navigation and actions. @see https://m3.material.io/components/app-bars/overview */
 export const TopAppBar = React.forwardRef<HTMLElement, TopAppBarProps>(function TopAppBar({
   title,
   subtitle,

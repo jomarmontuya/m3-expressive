@@ -126,6 +126,7 @@ export interface LoadingIndicatorProps {
  * indeterminate indicators leave the accessibility tree so they stop announcing
  * progress.
  */
+/** Material 3 Expressive loading indicator. @see https://m3.material.io/components/loading-indicator/overview */
 export const LoadingIndicator = React.forwardRef<
   HTMLDivElement,
   LoadingIndicatorProps

@@ -44,6 +44,7 @@ export interface CheckboxProps
  * stay custom (framer-motion pathLength springs — no Base UI primitive
  * animates SVG paths).
  */
+/** Material 3 checkbox for independent selection. @see https://m3.material.io/components/checkbox/overview */
 export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
   {
     checked,

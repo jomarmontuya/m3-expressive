@@ -56,6 +56,12 @@ server.log
 /upload/
 /download/
 
+# generated visual-regression output - keep only committed baselines
+/tool-results/*
+!/tool-results/vr-baselines/
+/tool-results/vr-baselines/*
+!/tool-results/vr-baselines/*.png
+
 # internal strategy docs — keep local until public launch
 /audit/*
 !/audit/compliance-2026-08-29.md

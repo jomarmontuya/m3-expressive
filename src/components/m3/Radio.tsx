@@ -52,6 +52,7 @@ const M3RadioGroupContext = React.createContext<M3RadioGroupBridge | null>(null)
  * when selected. Wrap a set of Radios in `RadioGroup` for roving arrow-key
  * navigation (now handled by Base UI's RadioGroup).
  */
+/** Material 3 radio button for exclusive selection. @see https://m3.material.io/components/radio-button/overview */
 export const Radio = React.forwardRef<HTMLButtonElement, RadioProps>(function Radio(
   {
     checked = false,

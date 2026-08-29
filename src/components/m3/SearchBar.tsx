@@ -54,6 +54,7 @@ export interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInput
  * before. Trailing strings are decorative; actionable entries require an
  * explicit callback so the component never creates inert icon buttons.
  */
+/** Material 3 search bar for search queries. @see https://m3.material.io/components/search/overview */
 export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
   {
     value,

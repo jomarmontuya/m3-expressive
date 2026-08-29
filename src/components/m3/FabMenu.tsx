@@ -91,6 +91,7 @@ export type FabMenuDockTarget = "screen" | "bottom-app-bar";
  * Enter/Space activation. The menu is kept mounted while the staggered
  * exit plays (`preventUnmountOnClose` + `actionsRef.unmount`).
  */
+/** Material 3 Expressive FAB menu for related actions. @see https://m3.material.io/components/fab-menu/overview */
 export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function FabMenu(
   {
     actions,

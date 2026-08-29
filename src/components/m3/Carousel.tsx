@@ -131,6 +131,7 @@ const clampCount = (n: number) => Math.min(5, Math.max(1, Math.round(n)));
  * />
  * ```
  */
+/** Material 3 Expressive carousel for browsing items. @see https://m3.material.io/components/carousel/overview */
 export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
   function Carousel(
     {

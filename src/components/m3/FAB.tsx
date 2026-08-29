@@ -70,6 +70,7 @@ export interface FabProps
  * level 4 on hover/pressed (lowered: 1 → 2). Disabled drops to the
  * on-surface 12%/38% disabled tokens with no elevation.
  */
+/** Material 3 Expressive floating action button. @see https://m3.material.io/components/floating-action-button/overview */
 export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
   { color = "primary-container", size = "standard", icon, lowered = false, disabled, className, ...props },
   ref
