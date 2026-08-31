@@ -366,7 +366,7 @@ export function ThemeBuilderTab() {
           Applying injects all 34 <code className="font-mono">--md-*</code> roles as{" "}
           <code className="font-mono">:root[data-theme=&quot;custom&quot;]</code> /{" "}
           <code className="font-mono">[data-theme=&quot;custom&quot;].dark</code> blocks, persists the scheme
-          (pre-paint, no flash), and re-themes every component. Agents:{" "}
+          (pre-paint, no flash), and re-themes every component. The same generator is available at{" "}
           <code className="font-mono">GET /api/theme-builder?seed=#FF0000&amp;variant=vibrant&amp;contrast=0.5</code>.
         </p>
       </div>

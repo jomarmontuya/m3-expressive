@@ -310,5 +310,3 @@ export const LinearProgress = React.forwardRef<
 });
 
 LinearProgress.displayName = "LinearProgress";
-
-export { linearProgressMeta } from "@/lib/m3/meta";

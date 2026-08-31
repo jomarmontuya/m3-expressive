@@ -278,5 +278,3 @@ export const SplitButton = React.forwardRef<HTMLDivElement, SplitButtonProps>(fu
     </DirectionProvider>
   );
 });
-
-export { splitButtonMeta } from "@/lib/m3/meta";

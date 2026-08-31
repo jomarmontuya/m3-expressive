@@ -1196,5 +1196,3 @@ export const TimePicker = React.forwardRef<HTMLDivElement, TimePickerProps>(func
     />
   );
 });
-
-export { timePickerMeta } from "@/lib/m3/meta";

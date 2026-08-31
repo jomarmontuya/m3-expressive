@@ -216,5 +216,3 @@ export const SideSheet = React.forwardRef<HTMLDivElement, SideSheetProps>(
     );
   },
 );
-
-export { sideSheetMeta } from "@/lib/m3/meta";

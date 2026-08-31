@@ -4,14 +4,14 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Material 3 Expressive React — Component Library & Design System",
   description:
-    "A complete Material 3 Expressive React component library: 40+ components built on official M3 design tokens, spring-based expressive motion, and agentic-compatible APIs.",
+    "A Material 3 Expressive React registry with 41 components, official design tokens, and spring-based expressive motion.",
   keywords: [
     "Material 3 Expressive",
     "Material Design 3",
     "React components",
     "design system",
     "M3 Expressive",
-    "agentic UI",
+    "shadcn registry",
   ],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
@@ -26,8 +26,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Self-hosted Roboto Flex (official M3E typeface) + Material Symbols Rounded (official icon font) */}
-        <link rel="stylesheet" href="/fonts/fonts.css" />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{

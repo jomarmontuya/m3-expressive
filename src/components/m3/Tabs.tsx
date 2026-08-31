@@ -281,5 +281,3 @@ export const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(function Tabs({
 });
 
 Tabs.displayName = "Tabs";
-
-export { tabsMeta } from "@/lib/m3/meta";

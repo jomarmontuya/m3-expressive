@@ -380,5 +380,3 @@ export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(func
     </Field.Root>
   );
 });
-
-export { textFieldMeta } from "@/lib/m3/meta";

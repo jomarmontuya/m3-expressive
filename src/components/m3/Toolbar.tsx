@@ -202,5 +202,3 @@ export const Toolbar = React.forwardRef<HTMLDivElement, ToolbarProps>(function T
 });
 
 Toolbar.displayName = "Toolbar";
-
-export { toolbarMeta } from "@/lib/m3/meta";

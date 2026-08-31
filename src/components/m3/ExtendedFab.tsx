@@ -93,5 +93,3 @@ export const ExtendedFab = React.forwardRef<HTMLButtonElement, ExtendedFabProps>
     );
   }
 );
-
-export { extendedFabMeta } from "@/lib/m3/meta";

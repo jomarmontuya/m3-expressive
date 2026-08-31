@@ -251,5 +251,3 @@ export const Dialog = React.forwardRef<HTMLDivElement, DialogProps>(
 );
 
 Dialog.displayName = "Dialog";
-
-export { dialogMeta } from "@/lib/m3/meta";

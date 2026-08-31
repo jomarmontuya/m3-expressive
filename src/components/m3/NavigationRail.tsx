@@ -279,5 +279,3 @@ export const NavigationRail = React.forwardRef<HTMLElement, NavigationRailProps>
 });
 
 NavigationRail.displayName = "NavigationRail";
-
-export { navigationRailMeta } from "@/lib/m3/meta";

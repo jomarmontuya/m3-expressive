@@ -239,5 +239,3 @@ export const LoadingIndicator = React.forwardRef<
 });
 
 LoadingIndicator.displayName = "LoadingIndicator";
-
-export { loadingIndicatorMeta } from "@/lib/m3/meta";

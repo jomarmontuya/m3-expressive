@@ -1,12 +1,7 @@
 /**
  * MATERIAL 3 EXPRESSIVE — LIBRARY CONTRACT TYPES
  *
- * Every component file in `@/components/m3` exports:
- *   1. The component (named export, e.g. `Button`)
- *   2. Its metadata object (e.g. `buttonMeta: M3ComponentMeta`)
- *
- * Metadata powers BOTH the docs showcase AND the agentic API
- * (`/api/registry`, `/llms.txt`), keeping a single source of truth.
+ * Component metadata powers the docs showcase and generated shadcn registry.
  */
 
 export type M3Category =
@@ -89,7 +84,7 @@ export interface M3ComponentMeta {
   description: string;
   /** Required audited Material traceability record. */
   spec: M3ComponentSpec;
-  /** Full import line agents should emit */
+  /** Direct local import used in examples */
   importLine: string;
   /** Named variant values the `variant`-like props accept */
   variants?: string[];
@@ -112,7 +107,7 @@ export interface M3RegistryEntry extends M3ComponentMeta {
 }
 
 export interface M3Registry {
-  library: "m3-expressive-react";
+  library: "m3-expressive";
   version: string;
   description: string;
   spec: string;

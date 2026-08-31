@@ -165,5 +165,3 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(func
     </div>
   );
 });
-
-export { searchBarMeta } from "@/lib/m3/meta";

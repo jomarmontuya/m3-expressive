@@ -13,7 +13,6 @@ const GUIDE_ITEMS: { label: string; icon: string; route: Route }[] = [
   { label: "Overview", icon: "home", route: { kind: "home" } },
   { label: "Getting started", icon: "rocket_launch", route: { kind: "docs" } },
   { label: "Design foundations", icon: "palette", route: { kind: "foundations" } },
-  { label: "For AI agents", icon: "smart_toy", route: { kind: "agents" } },
   { label: "All components", icon: "grid_view", route: { kind: "components" } },
 ];
 

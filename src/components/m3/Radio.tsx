@@ -230,5 +230,3 @@ export const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(func
 });
 
 RadioGroup.displayName = "RadioGroup";
-
-export { radioMeta } from "@/lib/m3/meta";

@@ -209,5 +209,3 @@ export const BottomSheet = React.forwardRef<HTMLDivElement, BottomSheetProps>(fu
     </BaseDialog.Root>
   );
 });
-
-export { bottomSheetMeta } from "@/lib/m3/meta";

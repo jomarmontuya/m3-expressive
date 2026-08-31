@@ -183,5 +183,3 @@ export const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(function 
     </DirectionProvider>
   );
 });
-
-export { switchMeta } from "@/lib/m3/meta";

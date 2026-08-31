@@ -49,7 +49,7 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
         <div className="relative">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-m3-surface/60 px-3 py-1.5 md-label-medium text-m3-on-primary-container backdrop-blur">
             <span className="h-2 w-2 animate-pulse rounded-full bg-m3-tertiary" />
-            The 2025 Google design language · v1.0.0
+            The 2025 Google design language · v0.1.0-beta.1
           </div>
           <h1 className="md-display-large font-semibold tracking-tight sm:font-bold">
             Material 3
@@ -59,7 +59,7 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
           <p className="mt-5 max-w-2xl md-body-large text-m3-on-primary-container/85">
             A complete React component library implementing Google&apos;s Material 3 Expressive
             system — <strong>{m3Registry.totalCount} components</strong>, official design tokens,
-            physics-based spring motion, shape morphing, and agentic-compatible metadata APIs.
+            physics-based spring motion, shape morphing, and an ownable shadcn registry.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button
@@ -77,14 +77,6 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
               onClick={() => navigate({ kind: "components" })}
             >
               Browse components
-            </Button>
-            <Button
-              variant="outlined"
-              size="lg"
-              icon="smart_toy"
-              onClick={() => navigate({ kind: "agents" })}
-            >
-              Agent API
             </Button>
             <Button
               variant="text"
@@ -185,20 +177,19 @@ export function HomeView({ navigate }: { navigate: (r: Route) => void }) {
       <section className="mt-16">
         <h2 className="md-headline-large font-medium">Quick start</h2>
         <p className="mt-2 md-body-large text-m3-on-surface-variant">
-          Install the npm package — or copy the source into
-          <code className="mx-1 rounded bg-m3-surface-container-highest px-1.5 py-0.5 text-[13px]">src/components/m3/</code>
-          and own the code (runtime deps: Base UI, framer-motion, clsx, tailwind-merge).
+          Add one component from the GitHub-hosted shadcn registry. The command also adds the shared Material tokens,
+          fonts, helpers, and runtime dependencies. You own the installed source.
         </p>
         <div className="mt-6 max-w-xl">
           <CodeBlock
             language="bash"
-            code={`npm install m3-expressive-react framer-motion`}
+            code={`bunx shadcn@latest add jomarmontuya/m3-expressive/button#v0.1.0-beta.1`}
           />
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <CodeBlock
-            code={`import { Button, Card, Dialog } from "m3-expressive-react";
-import "m3-expressive-react/styles.css";
+            code={`import { Button } from "@/components/m3/Button";
+import { Card } from "@/components/m3/Card";
 
 export function Checkout() {
   return (
@@ -224,7 +215,7 @@ export function Checkout() {
           />
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          {["Zero-config theming", "Light + dark", "Accessible by default", "TypeScript strict", "Agentic metadata", "Material Symbols"].map(
+          {["Automatic Material setup", "Light + dark", "Accessible by default", "TypeScript strict", "Audited metadata", "Material Symbols"].map(
             (t) => (
               <Chip key={t} variant="assist">
                 {t}

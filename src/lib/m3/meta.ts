@@ -1,9 +1,7 @@
 /**
  * MATERIAL 3 EXPRESSIVE — COMPONENT METADATA (single source of truth)
  *
- * Server-safe module (no "use client"): importable from API routes,
- * RSC and client components alike. Each component file in
- * src/components/m3 re-exports its meta from here.
+ * Server-safe module used by the catalog, registry generator, and audits.
  */
 import type { M3ComponentMeta } from "./types";
 import { componentSpecs } from "./spec-sources";
@@ -16,7 +14,7 @@ export const buttonGroupMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: standard button groups use size-aware 18/12/8/8/8dp gaps; connected groups use 2dp gaps and size-aware asymmetric corners. Both support five official sizes, selected shape inversion, and pressed-width redistribution.",
-  importLine: `import { ButtonGroup } from "m3-expressive-react";`,
+  importLine: `import { ButtonGroup } from "@/components/m3/ButtonGroup";`,
   spec: componentSpecs["button-group"],
   variants: ["standard", "connected", "outlined", "filled", "tonal", "elevated"],
   props: [
@@ -74,7 +72,7 @@ export const dividerMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "A divider is a decorative 1dp line that groups content in lists and layouts. Separator semantics are opt-in when the line represents a meaningful boundary.",
-  importLine: `import { Divider } from "m3-expressive-react";`,
+  importLine: `import { Divider } from "@/components/m3/Divider";`,
   spec: componentSpecs.divider,
   variants: ["full-width", "inset-start", "list-inset", "inset-middle", "inset-end", "vertical"],
   props: [
@@ -118,7 +116,7 @@ export const datePickerMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Date pickers support localized calendar and numeric input modes, single-date or range selection, and a 1900–2100 three-column year grid. The official default is a docked text field with an anchored popup; inline and modal presentations remain available.",
-  importLine: `import { DatePicker } from "m3-expressive-react";`,
+  importLine: `import { DatePicker } from "@/components/m3/DatePicker";`,
   spec: componentSpecs["date-picker"],
   variants: ["docked", "calendar · inline", "input", "year-view", "modal", "range · inline", "range · modal"],
   props: [
@@ -217,7 +215,7 @@ export const sideSheetMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Side sheets are dialog surfaces anchored to a logical inline edge and automatically mirror in RTL. Modal variants overlay a 32% scrim; standard variants sit inline. The official 16dp radius rounds the inner edge only.",
-  importLine: `import { SideSheet } from "m3-expressive-react";`,
+  importLine: `import { SideSheet } from "@/components/m3/SideSheet";`,
   spec: componentSpecs["side-sheet"],
   variants: ["modal", "standard"],
   props: [
@@ -266,7 +264,7 @@ export const carouselMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Material 3 Expressive carousels support multi-browse, standard or multi-aspect uncontained, hero, and vertical portrait full-screen layouts. Items use parallax, snap scrolling, keyboard movement, and reduced-motion fallbacks.",
-  importLine: `import { Carousel } from "m3-expressive-react";`,
+  importLine: `import { Carousel } from "@/components/m3/Carousel";`,
   spec: componentSpecs.carousel,
   variants: ["multi-browse", "uncontained", "hero", "full-screen"],
   props: [
@@ -334,7 +332,7 @@ export const dialogMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Dialogs inform users about a task and can contain critical information or require decisions — a modal surface over a 32% scrim that blocks interaction until resolved. Focus is trapped inside while open and returns to the trigger on close.",
-  importLine: `import { Dialog } from "m3-expressive-react";`,
+  importLine: `import { Dialog } from "@/components/m3/Dialog";`,
   spec: componentSpecs.dialog,
   variants: ["basic", "fullscreen", "dismissible", "non-dismissible"],
   props: [
@@ -392,7 +390,7 @@ export const snackbarMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Snackbars inform users of a process that an app has performed or will perform, appearing briefly at the bottom of the screen on an inverse surface.",
-  importLine: `import { Snackbar } from "m3-expressive-react";`,
+  importLine: `import { Snackbar } from "@/components/m3/Snackbar";`,
   spec: componentSpecs.snackbar,
   variants: ["with-action", "with-icon", "sticky"],
   props: [
@@ -443,7 +441,7 @@ export const navigationDrawerMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Baseline Material 3 navigation drawers provide ergonomic access to destinations. Modal uses surface-container-low at elevation 1 over a scrim; standard docks as a square surface at elevation 0. Active items carry a spring-animated tonal pill.",
-  importLine: `import { NavigationDrawer } from "m3-expressive-react";`,
+  importLine: `import { NavigationDrawer } from "@/components/m3/NavigationDrawer";`,
   spec: componentSpecs["navigation-drawer"],
   variants: ["modal", "standard"],
   props: [
@@ -497,7 +495,7 @@ export const listMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Lists are vertical indexes of one-, two-, or three-line items. Current M3E supports standard continuous rows and segmented groups with 2dp gaps, shaped outer/inner corners, selection shapes, and interaction morphs.",
-  importLine: `import { List, ListItem } from "m3-expressive-react";`,
+  importLine: `import { List, ListItem } from "@/components/m3/List";`,
   spec: componentSpecs.list,
   variants: ["standard", "segmented", "single-line", "two-line", "three-line"],
   props: [
@@ -556,7 +554,7 @@ export const cardMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Cards contain content and actions about a single subject, elevated with a shadow, a filled container, or an outline. M3 Expressive cards morph their shape and scale on press with a springy bounce.",
-  importLine: `import { Card } from "m3-expressive-react";`,
+  importLine: `import { Card } from "@/components/m3/Card";`,
   spec: componentSpecs.card,
   variants: ["elevated", "filled", "outlined"],
   props: [
@@ -605,7 +603,7 @@ export const segmentedButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Not recommended for new work: use ButtonGroup instead. This compatibility component keeps the baseline 40dp segmented control, while its 56dp medium size is a library extension. Each segment expands its touch target to ≥48dp vertically via an invisible ::before hit area.",
-  importLine: `import { SegmentedButton } from "m3-expressive-react";`,
+  importLine: `import { SegmentedButton } from "@/components/m3/SegmentedButton";`,
   spec: componentSpecs["segmented-button"],
   variants: ["single · not recommended", "multiple · not recommended", "56dp medium · library extension"],
   props: [
@@ -662,7 +660,7 @@ export const sliderMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Current Material 3 Expressive sliders support standard, centered, and range values in horizontal or vertical layouts. Five official size configurations scale the track and handle, with optional inset icons, stops, value labels, and native form association.",
-  importLine: `import { Slider } from "m3-expressive-react";`,
+  importLine: `import { Slider } from "@/components/m3/Slider";`,
   spec: componentSpecs.slider,
   variants: ["standard", "centered", "range", "horizontal", "vertical", "stops", "inset icons"],
   props: [
@@ -732,7 +730,7 @@ export const textFieldMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "Text fields accept single-line or multiline text in filled or outlined containers, with floating labels, optional prefix/suffix content, icons, supporting text, validation, and native form attributes.",
-  importLine: `import { TextField } from "m3-expressive-react";`,
+  importLine: `import { TextField } from "@/components/m3/TextField";`,
   spec: componentSpecs["text-field"],
   variants: ["outlined", "filled"],
   props: [
@@ -795,7 +793,7 @@ export const autocompleteMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "Library extension: Material 3 does not publish a standalone Autocomplete component. This composite combines the official outlined text-field treatment with accessible combobox/listbox behavior for filterable suggestions.",
-  importLine: `import { Autocomplete } from "m3-expressive-react";`,
+  importLine: `import { Autocomplete } from "@/components/m3/Autocomplete";`,
   spec: componentSpecs.autocomplete,
   variants: ["outlined"],
   props: [
@@ -845,7 +843,7 @@ export const navigationRailMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Navigation rails provide primary navigation on medium and expanded screens. The current 96dp wide rail expands into a standard in-layout 220–360dp rail by default; an explicit modal mode adds a 32% scrim and a focus trap. The 80dp narrow baseline remains available.",
-  importLine: `import { NavigationRail } from "m3-expressive-react";`,
+  importLine: `import { NavigationRail } from "@/components/m3/NavigationRail";`,
   spec: componentSpecs["navigation-rail"],
   variants: ["wide collapsed", "standard expanded · default", "modal expanded · focus trapped", "narrow", "with header", "folding-line"],
   props: [
@@ -899,7 +897,7 @@ export const chipMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Chips are compact elements that represent an input, attribute, or action — assist, filter, input, and suggestion variants.",
-  importLine: `import { Chip, ChipGroup } from "m3-expressive-react";`,
+  importLine: `import { Chip, ChipGroup } from "@/components/m3/Chip";`,
   spec: componentSpecs.chip,
   variants: ["assist", "filter", "input", "suggestion"],
   props: [
@@ -954,7 +952,7 @@ export const bannerMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Library extension from Material 2 and Flutter: Material 3 does not publish Banner as a current standalone component. It displays a persistent screen-wide message with optional actions.",
-  importLine: `import { Banner } from "m3-expressive-react";`,
+  importLine: `import { Banner } from "@/components/m3/Banner";`,
   spec: componentSpecs.banner,
   variants: ["with-icon", "with-actions", "dismissible"],
   props: [
@@ -1002,7 +1000,7 @@ export const checkboxMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Checkboxes let users select one or more items from a set, toggling each option on or off (or to an indeterminate state).",
-  importLine: `import { Checkbox } from "m3-expressive-react";`,
+  importLine: `import { Checkbox } from "@/components/m3/Checkbox";`,
   spec: componentSpecs.checkbox,
   variants: ["checked", "unchecked", "indeterminate"],
   props: [
@@ -1051,7 +1049,7 @@ export const fabMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "A floating action button represents the primary action on a screen. Current M3E sizes are standard 56dp, medium 80dp, and large 96dp. The old 40dp small and 132dp extra-large sizes remain explicit compatibility options.",
-  importLine: `import { Fab } from "m3-expressive-react";`,
+  importLine: `import { Fab } from "@/components/m3/FAB";`,
   spec: componentSpecs.fab,
   variants: ["primary-container · default", "secondary-container", "tertiary-container", "primary", "secondary", "tertiary", "surface · legacy"],
   props: [
@@ -1095,7 +1093,7 @@ export const tabsMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Tabs organize peer views. Primary tabs use 64dp icon-and-label columns with an indicator inset 2dp beyond each side of the label. Official secondary tabs use a 48dp surface row with a full-tab-width underline; the old tonal pill is retained as an explicitly named compatibility variant.",
-  importLine: `import { Tabs } from "m3-expressive-react";`,
+  importLine: `import { Tabs } from "@/components/m3/Tabs";`,
   spec: componentSpecs.tabs,
   variants: ["primary", "secondary", "tonal · compatibility"],
   props: [
@@ -1145,7 +1143,7 @@ export const loadingIndicatorMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "The M3 Expressive loading indicator loops through seven official polygon shapes when indeterminate. With progress, it uses the official determinate Circle-to-SoftBurst morph from 0 to 1. The uncontained indicator is the default; a contained tonal treatment is available for stronger emphasis.",
-  importLine: `import { LoadingIndicator } from "m3-expressive-react";`,
+  importLine: `import { LoadingIndicator } from "@/components/m3/LoadingIndicator";`,
   spec: componentSpecs["loading-indicator"],
   variants: ["indeterminate", "determinate Circle-to-SoftBurst", "uncontained", "contained", "primary", "secondary", "tertiary", "error"],
   props: [
@@ -1191,7 +1189,7 @@ export const menuMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Menus display choices on a temporary surface. The current segmented M3E style supports shaped 44dp items, selection shape morphs, supporting text, standard or vibrant colors, keyboard navigation, labels and dividers; the baseline 48dp list remains available.",
-  importLine: `import { Menu } from "m3-expressive-react";`,
+  importLine: `import { Menu } from "@/components/m3/Menu";`,
   spec: componentSpecs.menu,
   variants: ["segmented", "standard", "standard color", "vibrant color", "bottom-start", "bottom-end"],
   props: [
@@ -1241,7 +1239,7 @@ export const bottomAppBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Bottom app bars hold key actions on small screens. The library keeps a 64dp flexible form with configurable arrangements as a compatibility surface; the 80dp standard baseline remains available. Every trailing action is a labeled action object, and an optional end FAB uses expressive press shape morphing.",
-  importLine: `import { BottomAppBar } from "m3-expressive-react";`,
+  importLine: `import { BottomAppBar } from "@/components/m3/BottomAppBar";`,
   spec: componentSpecs["bottom-app-bar"],
   variants: ["flexible · compatibility", "standard · baseline", "with end FAB", "center FAB · compatibility"],
   props: [
@@ -1291,7 +1289,7 @@ export const extendedFabMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "An extended floating action button is a wider FAB that pairs an icon with a short text label, making the primary action unmistakable on wide screens and content-heavy layouts.",
-  importLine: `import { ExtendedFab } from "m3-expressive-react";`,
+  importLine: `import { ExtendedFab } from "@/components/m3/ExtendedFab";`,
   spec: componentSpecs["extended-fab"],
   variants: ["primary-container · default", "secondary-container", "tertiary-container", "primary", "secondary", "tertiary", "surface · legacy"],
   props: [
@@ -1335,7 +1333,7 @@ export const circularProgressMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Circular progress indicators display progress by animating an arc along a circular track, for compact or inline loading states.",
-  importLine: `import { CircularProgress } from "m3-expressive-react";`,
+  importLine: `import { CircularProgress } from "@/components/m3/CircularProgress";`,
   spec: componentSpecs["circular-progress"],
   variants: ["flat determinate", "flat indeterminate", "wavy determinate", "wavy indeterminate"],
   props: [
@@ -1378,7 +1376,7 @@ export const badgeMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Badges are small status descriptors for UI elements — a count or dot anchored to an icon, avatar, or navigation item that indicates it requires attention.",
-  importLine: `import { Badge } from "m3-expressive-react";`,
+  importLine: `import { Badge } from "@/components/m3/Badge";`,
   spec: componentSpecs.badge,
   variants: ["error", "primary", "tertiary", "dot"],
   props: [
@@ -1427,7 +1425,7 @@ export const searchBarMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "A search bar is a rounded text field dedicated to search queries. The official default is 56dp high, 360–720dp wide, and uses 24dp horizontal padding; compact and large sizes are library extensions.",
-  importLine: `import { SearchBar } from "m3-expressive-react";`,
+  importLine: `import { SearchBar } from "@/components/m3/SearchBar";`,
   spec: componentSpecs["search-bar"],
   variants: ["md · official", "sm · extension", "lg · extension"],
   props: [
@@ -1481,7 +1479,7 @@ export const searchViewMeta: M3ComponentMeta = {
   category: "textinput",
   description:
     "The expanded companion of the search bar: full-screen uses the current contained 56dp focused bar on surface-container-low; docked uses a 360–720dp floating result surface over a scrim.",
-  importLine: `import { SearchView } from "m3-expressive-react";`,
+  importLine: `import { SearchView } from "@/components/m3/SearchView";`,
   spec: componentSpecs["search-view"],
   variants: ["full-screen", "docked"],
   props: [
@@ -1545,7 +1543,7 @@ export const splitButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: a split button joins a primary action with an arrow segment that opens a dropdown of related actions, saving space while keeping the default action one tap away.",
-  importLine: `import { SplitButton } from "m3-expressive-react";`,
+  importLine: `import { SplitButton } from "@/components/m3/SplitButton";`,
   spec: componentSpecs["split-button"],
   variants: ["filled", "tonal", "outlined", "elevated"],
   props: [
@@ -1596,7 +1594,7 @@ export const switchMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "A switch toggles the state of a single setting on or off, committing the change immediately.",
-  importLine: `import { Switch } from "m3-expressive-react";`,
+  importLine: `import { Switch } from "@/components/m3/Switch";`,
   spec: componentSpecs.switch,
   variants: ["checked", "unchecked"],
   props: [
@@ -1642,7 +1640,7 @@ export const timePickerMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Time pickers select a time through a dial, keyboard input, or three-row scroll layout. The official modal stages changes and provides dismiss/confirm actions plus a dial/input/scroll toggle; inline layouts remain compatible.",
-  importLine: `import { TimePicker } from "m3-expressive-react";`,
+  importLine: `import { TimePicker } from "@/components/m3/TimePicker";`,
   spec: componentSpecs["time-picker"],
   variants: ["modal", "dial · inline", "horizontal · inline", "input · inline", "scroll · inline", "12-hour", "24-hour-double-ring"],
   props: [
@@ -1697,7 +1695,7 @@ export const radioMeta: M3ComponentMeta = {
   category: "selection",
   description:
     "Radio buttons let users select exactly one option from a set of mutually exclusive choices.",
-  importLine: `import { Radio, RadioGroup } from "m3-expressive-react";`,
+  importLine: `import { Radio, RadioGroup } from "@/components/m3/Radio";`,
   spec: componentSpecs.radio,
   variants: ["checked", "unchecked"],
   props: [
@@ -1743,7 +1741,7 @@ export const toolbarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "New in Material 3 Expressive: a 64dp pill of contextual actions with 8dp internal horizontal padding and at least 16dp outside padding. Toggle actions always expose aria-pressed=true or false. The dockable variant morphs between a horizontal pill and a square full-width docked bar.",
-  importLine: `import { Toolbar } from "m3-expressive-react";`,
+  importLine: `import { Toolbar } from "@/components/m3/Toolbar";`,
   spec: componentSpecs.toolbar,
   m3e: true,
   variants: ["horizontal floating", "vertical floating", "dockable", "standard", "vibrant"],
@@ -1799,7 +1797,7 @@ export const iconButtonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Icon buttons let people take a compact action with a single tap, using an icon as the label. Toggleable icon buttons flip between unselected and selected states with a springy M3 Expressive pop.",
-  importLine: `import { IconButton } from "m3-expressive-react";`,
+  importLine: `import { IconButton } from "@/components/m3/IconButton";`,
   spec: componentSpecs["icon-button"],
   variants: ["standard", "filled", "tonal", "outlined"],
   props: [
@@ -1854,7 +1852,7 @@ export const tooltipMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Tooltips display informative text when users hover over, focus on, or long-press an element — a compact plain label or a rich card with title and action.",
-  importLine: `import { Tooltip } from "m3-expressive-react";`,
+  importLine: `import { Tooltip } from "@/components/m3/Tooltip";`,
   spec: componentSpecs.tooltip,
   variants: ["plain", "rich"],
   props: [
@@ -1907,7 +1905,7 @@ export const fabMenuMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "New in Material 3 Expressive: a separate 56dp container-colored close button reveals a staggered cascade of 56dp solid-color extended action buttons. Horizontal and docked layouts remain documented library extensions.",
-  importLine: `import { FabMenu } from "m3-expressive-react";`,
+  importLine: `import { FabMenu } from "@/components/m3/FabMenu";`,
   spec: componentSpecs["fab-menu"],
   variants: ["primary", "secondary", "tertiary", "primary-container", "secondary-container", "tertiary-container", "surface", "docked · screen", "docked · bottom app bar"],
   props: [
@@ -1974,7 +1972,7 @@ export const navigationBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Navigation bars switch between 3–5 primary destinations. The current short M3E bar is 64dp surface-container and uses secondary for the active top label. The 80dp baseline bar uses surface with elevation 2 and on-surface for its active label.",
-  importLine: `import { NavigationBar } from "m3-expressive-react";`,
+  importLine: `import { NavigationBar } from "@/components/m3/NavigationBar";`,
   spec: componentSpecs["navigation-bar"],
   variants: ["short top-icon", "short start-icon", "short centered", "tall baseline"],
   props: [
@@ -2025,7 +2023,7 @@ export const topAppBarMeta: M3ComponentMeta = {
   category: "navigation",
   description:
     "Top app bars display screen information and actions. Baseline variants are 64dp small/center, 112dp medium, and 152dp large; current flexible variants add larger type and subtitles. When search is configured, a search action activates the current SearchView overlay instead of replacing the title inline.",
-  importLine: `import { TopAppBar } from "m3-expressive-react";`,
+  importLine: `import { TopAppBar } from "@/components/m3/TopAppBar";`,
   spec: componentSpecs["top-app-bar"],
   m3e: true,
   variants: ["small", "center", "medium", "large", "medium-flexible", "large-flexible"],
@@ -2083,7 +2081,7 @@ export const bottomSheetMeta: M3ComponentMeta = {
   category: "containment",
   description:
     "Bottom sheets are surfaces anchored to the bottom of the screen that present supplementary content with a drag handle for pull-to-dismiss; the modal variant overlays a 32% scrim, the standard variant renders inline without one.",
-  importLine: `import { BottomSheet } from "m3-expressive-react";`,
+  importLine: `import { BottomSheet } from "@/components/m3/BottomSheet";`,
   spec: componentSpecs["bottom-sheet"],
   variants: ["modal", "standard"],
   props: [
@@ -2132,7 +2130,7 @@ export const buttonMeta: M3ComponentMeta = {
   category: "actions",
   description:
     "Buttons trigger actions or events, such as submitting a form or opening a dialog. M3 Expressive adds a bouncy shape-morph press interaction and five emphasis sizes.",
-  importLine: `import { Button } from "m3-expressive-react";`,
+  importLine: `import { Button } from "@/components/m3/Button";`,
   spec: componentSpecs.button,
   variants: ["filled", "tonal", "outlined", "text", "elevated"],
   props: [
@@ -2181,7 +2179,7 @@ export const linearProgressMeta: M3ComponentMeta = {
   category: "communication",
   description:
     "Linear progress indicators express an unspecified wait time or display the length of a process. Material 3 Expressive adds a signature wavy indicator that slides and pulses.",
-  importLine: `import { LinearProgress } from "m3-expressive-react";`,
+  importLine: `import { LinearProgress } from "@/components/m3/LinearProgress";`,
   spec: componentSpecs["linear-progress"],
   variants: ["determinate", "indeterminate", "wavy-determinate", "wavy-indeterminate"],
   props: [

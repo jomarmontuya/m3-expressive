@@ -327,5 +327,3 @@ function SnackbarClose() {
     </BaseToast.Close>
   );
 }
-
-export { snackbarMeta } from "@/lib/m3/meta";

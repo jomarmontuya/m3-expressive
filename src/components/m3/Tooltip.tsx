@@ -384,5 +384,3 @@ export const Tooltip = React.forwardRef<HTMLElement, TooltipProps>(
 );
 
 Tooltip.displayName = "Tooltip";
-
-export { tooltipMeta } from "@/lib/m3/meta";

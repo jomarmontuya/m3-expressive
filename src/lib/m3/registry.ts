@@ -96,17 +96,16 @@ const TABLE: RegistryRow[] = [
   { meta: timePickerMeta, file: "TimePicker" },
 ];
 
-export const REGISTRY_VERSION = "1.0.0";
+export const REGISTRY_VERSION = "0.1.0-beta.1";
 
 /**
- * The full agentic-compatible registry. Powers /api/registry, /llms.txt
- * and the docs showcase — single source of truth.
+ * The docs catalog and source for the generated shadcn registry.
  */
 export const m3Registry: M3Registry = {
-  library: "m3-expressive-react",
+  library: "m3-expressive",
   version: REGISTRY_VERSION,
   description:
-    "A Material 3 and Material 3 Expressive React component library with 39 official component implementations plus two clearly labeled composites retained for compatibility: Banner (Material 2 / Flutter heritage) and Autocomplete (text-field + combobox). Every entry ships with structured design-guideline metadata for agentic consumption.",
+    "A Material 3 and Material 3 Expressive React component library with 39 official component implementations plus two clearly labeled composites retained for compatibility: Banner (Material 2 / Flutter heritage) and Autocomplete (text-field + combobox). Every entry includes structured Material traceability and design-guideline metadata.",
   spec: "https://m3.material.io",
   totalCount: TABLE.length,
   categories: ["actions", "communication", "containment", "selection", "textinput", "navigation"],

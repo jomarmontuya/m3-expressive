@@ -172,5 +172,3 @@ export const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps
     </DirectionProvider>
   );
 });
-
-export { autocompleteMeta } from "@/lib/m3/meta";

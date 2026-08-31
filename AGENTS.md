@@ -1,114 +1,97 @@
 # AGENTS.md — m3-expressive
 
-Guidance for AI coding agents working in this repository. Read this before touching `src/`.
+## Purpose
 
-## What this repo is
+This repository ships 41 Material 3 and Material 3 Expressive React components through a GitHub-hosted shadcn registry. It also contains the Next.js catalog used to inspect the components.
 
-A **Material 3 Expressive React component library** plus everything that ships around it:
+The supported beta surface is:
 
-- `packages/m3-expressive-react/` — the publishable npm package (`m3-expressive-react`)
-- `src/` — a Next.js 16 showcase/docs app that renders all 41 registered components
-- `mini-services/mcp-server/` — an MCP server exposing the library to AI agents (stdio + HTTP)
-- `src/app/llms.txt/route.ts` — an `/llms.txt` agent handbook route
+- `registry.json`
+- `src/components/m3/`
+- `src/lib/m3/`
+- the Next.js catalog in `src/`
+- `docs/material-compliance.md`
 
-**Stack:** Bun (runtime + package manager) · Next.js 16 App Router · React 19 · TypeScript strict · Tailwind 4 · framer-motion 12 · `@base-ui/react` 1.7.0.
+`mcp-server/` is unreleased and unsupported. Do not advertise it, add it to release checks, or change it unless the task explicitly targets future MCP work.
 
-**Path alias:** `@/*` → `./src/*`.
+## Source chain
 
-## Source-of-truth chain
-
-One data source feeds every surface. A change to component metadata propagates everywhere — keep the chain consistent:
-
-```
-src/lib/m3/meta.ts        structured M3ComponentMeta per component (id, props, variants, guidelines, exampleCode, demoName)
-src/lib/m3/tokens.ts      springs, easings, durations, shapes, state-layer opacities, type scale
-src/lib/m3/themes.ts      4 curated color schemes
-src/lib/m3/theme-builder.ts  Dynamic Color engine (seed color → full light+dark scheme)
-        │
-        ▼
-src/lib/m3/registry.ts    TABLE: id → { meta, file } for all 41 components
-        │
-        ├─▶ src/components/showcase/    docs UI (demo-registry.ts maps id → demo component)
-        ├─▶ src/app/api/registry, /api/agent, /api/component-source, /api/theme-builder
-        ├─▶ src/app/llms.txt/route.ts   agent handbook
-        ├─▶ mini-services/mcp-server/   imports src/lib/m3/* directly (14 tools, 6 resources, 3 prompts)
-        └─▶ packages/m3-expressive-react/  published npm package
+```text
+src/lib/m3/meta.ts       component API and Material evidence
+src/lib/m3/tokens.ts     motion, shape, state, and type tokens
+src/lib/m3/themes.ts     baseline and curated color schemes
+src/lib/m3/registry.ts   41-component catalog
+        |
+        +-- src/components/showcase/  live docs and demos
+        +-- scripts/build-registry.ts shadcn registry generator
+        +-- registry.json             public release artifact
+        +-- src/lib/m3/component-sources.generated.ts catalog source-code data
 ```
 
 ## Commands
 
 | Task | Command |
 |---|---|
-| Dev server (port 3000, logs to `dev.log`) | `bun run dev` |
+| Dev server | `bun run dev` |
 | Lint | `bun run lint` |
-| Typecheck (repo) | `bunx tsc --noEmit` |
-| Typecheck (npm package) | `cd packages/m3-expressive-react && bun run typecheck` |
-| Build npm package | `bun run build:package` |
-| VR baseline capture | `bun run vr:baseline` (add `--only id1,id2` / `--force`) |
-| VR diff check | `bun run vr:check` |
-| MCP server (HTTP, port 3210) | `cd mini-services/mcp-server && bun install && bun run dev` |
-| MCP server (stdio, what clients spawn) | `cd mini-services/mcp-server && bun start` |
+| Typecheck | `bunx tsc --noEmit` |
+| Build registry | `bun run registry:build` |
+| Check registry contract | `bun run registry:check` |
+| Validate shadcn schema | `bun run registry:validate` |
+| Test a clean consumer | `bun run registry:smoke` |
+| Build catalog | `bun run build` |
 
-## Component contract (mandatory)
+## Component contract
 
-Every component file in `src/components/m3/` must:
+Every file in `src/components/m3/` must:
 
-1. Start with `'use client'` (line 1).
-2. Export the component as a **named export**, `forwardRef`.
-3. Have a `<id>Meta: M3ComponentMeta` defined in `src/lib/m3/meta.ts` (id, category, description, importLine, variants, props, guidelines, exampleCode, `m3e` flag, `demoName`).
-4. Be registered in the `TABLE` in `src/lib/m3/registry.ts`.
-5. Be re-exported from the barrel `src/components/m3/index.ts`.
-6. Have a `<Name>Demo` in the matching `src/components/showcase/demos/<category>-demos.tsx` (categories: actions, communication→feedback, containment, inputs, navigation) plus an entry in that batch's demo map (`meta.demoName` must resolve through `src/components/showcase/demo-registry.ts`).
+1. Start with `"use client"`.
+2. Export the component as a named `forwardRef` export.
+3. Have an `M3ComponentMeta` record in `src/lib/m3/meta.ts`.
+4. Be listed in `src/lib/m3/registry.ts`.
+5. Have a demo in the matching `src/components/showcase/demos/` file and demo map.
+6. Use direct local imports in documentation examples.
 
-**Forbidden inside `src/components/m3/**`:** re-introducing shadcn/Radix scaffolding (the old `src/components/ui/` set was removed as dead code). Use Base UI primitives, framer-motion, `Ripple`, and `MaterialSymbol` only.
+The public registry adds shared files through `m3-base`. Do not export showcase metadata from installable component files.
 
-**Styling rules:** token-driven, not hardcoded. Springs/easings/durations from `@/lib/m3/tokens`; colors via Tailwind M3 classes (`bg-m3-*`, `text-m3-*`, `border-m3-*`); type via `md-*` classes; state layers `.m3-state`; focus `.m3-focus`; elevation `.m3-elevation-*`.
+## Styling
 
-### Known gotchas
+Use:
 
-- **framer-motion 12 vs. token springs:** `tokens.ts` springs widen `type` to `string`, so `transition={springs.x}` fails typecheck. Fix per-file without touching `tokens.ts`: `const springs = springsTokens as { [K in keyof typeof springsTokens]: Transition };` (or a local `asTransition` helper). Never pass `easings.*` cubic-bezier strings as framer `ease` — use named easings or cast.
-- **Base UI is `@base-ui/react` 1.7.0** (renamed from the deprecated `@base-ui-components/react`, migrated 2026-08 with a 41/41 identical VR run). 31 of 41 components sit on it; 10 are custom-by-design — Badge, DatePicker/TimePicker, NavigationBar/Rail, Snackbar, Banner, Card, List, Carousel, LoadingIndicator — still absent from Base UI 1.7.0. Don't migrate those until Base UI ships the primitives. Base UI also now ships a stable `Drawer` (1.3+): a future simplification candidate for BottomSheet/SideSheet internals.
-- **Base UI portals to `<body>`.** `--md-*` CSS vars cascade from `:root`/`[data-theme]`/`.dark`, so token styling still works — but any selector that assumes DOM ancestry inside `.m3-*` containers will not cross a portal.
-- **`next.config.ts` sets `typescript.ignoreBuildErrors: true`** — `next build` will NOT catch type errors. Always run `bunx tsc --noEmit` yourself.
+- M3 colors through `bg-m3-*`, `text-m3-*`, and `border-m3-*`
+- M3 type through `md-*`
+- motion from `src/lib/m3/tokens.ts`
+- `.m3-state`, `.m3-focus`, and `.m3-elevation-*`
+- `Ripple` and `MaterialSymbol`
 
-## Verification gates
+Do not add hardcoded replacement tokens or shadcn/Radix component scaffolding inside `src/components/m3/`.
 
-CI (`.github/workflows/ci.yml`) runs these on every push/PR — pass all four locally before declaring done:
+Base UI is `@base-ui/react` `1.7.x`. Components without a matching Base UI primitive can stay custom. Base UI portals inherit M3 variables from `:root`, `[data-theme]`, and `.dark`, but ancestor-only selectors do not cross the portal.
 
-1. `bun run lint` → 0 errors (one known pre-existing warning in `src/app/layout.tsx`).
-2. `bunx tsc --noEmit` → no errors.
-3. `bun run build:package` → succeeds.
-4. `bun run vr:check` → no component in `changed` status. Requires the dev server running on `:3000` first (`bun run dev` in the background).
+Framer Motion transition values sometimes need a local `Transition` cast because token spring `type` values widen to `string`. Do not change the shared token shape only to satisfy one component.
 
-## Workflows
+## Material evidence
 
-### Add a component
+Before changing visual or behavioral rules:
 
-1. Write the meta in `src/lib/m3/meta.ts`.
-2. Write `src/components/m3/<Name>.tsx` following the contract above. Copy `Button.tsx` as the reference pattern.
-3. Register in `src/lib/m3/registry.ts` (`TABLE`) and export from `src/components/m3/index.ts`.
-4. Add `<Name>Demo` + demo-map entry in the right `demos/<category>-demos.tsx`.
-5. Verify: tsc → lint → dev server → `bun run vr:baseline` (captures the new baseline PNG) → `bun run vr:check` passes.
+1. Read the component record in `src/lib/m3/meta.ts`.
+2. Read `docs/material-compliance.md`.
+3. Use the linked Material page and listed reference implementations.
+4. Keep known deviations in `spec.deviations`.
 
-### Change a component visually
+Do not describe an approximation or extension as exact Material behavior.
 
-1. Edit the component.
-2. Verify: tsc → lint → eyeball `http://localhost:3000/#/component/<id>` → `bun run vr:check`.
-3. If the diff is intended, refresh that baseline: `bun scripts/vr-capture.ts --only <id> --force`, then re-run `vr:check`.
-4. If a demo gains a perpetual animation, add its id to `KNOWN_ANIMATED` in `scripts/vr-lib.ts` (its diff gets capped at `minor` and can't fail the run) and note it in `worklog.md`.
+## Registry release rules
 
-### Publish the npm package
+- Version target: `0.1.0-beta.1` / `v0.1.0-beta.1`.
+- Run `bun run registry:build`; do not edit `registry.json` by hand.
+- Every component depends on `jomarmontuya/m3-expressive/m3-base#v0.1.0-beta.1`.
+- Cross-component dependencies must use the full GitHub item address and the same tag.
+- The supported install form is `bunx shadcn@latest add jomarmontuya/m3-expressive/<id>#v0.1.0-beta.1`.
+- Do not publish an npm package or present MCP as released.
 
-Follow `packages/m3-expressive-react/PUBLISHING.md` exactly. Highlights: version must be synced in **four places** (package.json, `src/app/api/agent/route.ts`, `src/app/llms.txt/route.ts`, homepage hero copy) and publishing happens from a clean checkout.
+## Verification
 
-### Work on the MCP server
+Before declaring release work complete, run all six checks listed in the command table after `Dev server`. The registry smoke check must install all 41 components into a clean temporary app and pass both TypeScript and the production build.
 
-`mini-services/mcp-server/index.ts` imports `src/lib/m3/*` directly — no data duplication to maintain, but any metadata shape change hits the server too. Verify via `curl http://localhost:3210/` (health) and the JSON-RPC recipes in `mini-services/mcp-server/README.md`.
-
-## Conventions
-
-- **`worklog.md` is append-only.** Every task appends a block: `Task ID` / `Agent` / `Task` / `Work Log` / `Stage Summary`. Never rewrite or truncate existing entries; append at the end.
-- **`audit/`** holds per-family M3 spec audit docs (spec vs. implementation vs. deviations). Consult the matching audit file before "fixing" a component's visual behavior — apparent oddities are often spec-mandated.
-- **`tool-results/`** holds committed VR baselines (`vr-baselines/`), current captures (`vr-current/`), and `vr-report.json`. Baselines are never overwritten without `--force`.
-- **Removed as dead code (2026-08):** Prisma scaffold, shadcn `src/components/ui/` set, `examples/`, `tests/`, `.zscripts/`, `tailwind.config.ts`, `components.json`, plus 57 unused dependencies.
-- Component count references drift across docs (39/40/41 as the library grew). The registry `TABLE` in `src/lib/m3/registry.ts` is the current truth: **41**.
+For a visual change, also inspect the live component page at desktop and mobile sizes. Automated registry checks do not prove visual compliance.

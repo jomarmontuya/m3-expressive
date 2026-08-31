@@ -137,5 +137,3 @@ export const NavigationBar = React.forwardRef<HTMLElement, NavigationBarProps>(f
 });
 
 NavigationBar.displayName = "NavigationBar";
-
-export { navigationBarMeta } from "@/lib/m3/meta";

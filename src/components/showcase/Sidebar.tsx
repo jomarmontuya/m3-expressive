@@ -11,7 +11,6 @@ export type Route =
   | { kind: "home" }
   | { kind: "docs" }
   | { kind: "foundations"; tab?: string }
-  | { kind: "agents" }
   | { kind: "components"; cat?: M3Category }
   | { kind: "component"; id: string; code?: "source" };
 
@@ -23,8 +22,6 @@ export function routeToHash(r: Route): string {
       return "#/docs";
     case "foundations":
       return r.tab ? `#/foundation/${r.tab}` : "#/foundation";
-    case "agents":
-      return "#/agents";
     case "components":
       return r.cat ? `#/components/${r.cat}` : "#/components";
     case "component":
@@ -39,7 +36,6 @@ export function parseHash(hash: string): Route {
     return { kind: "component", id, code: sub === "source" ? "source" : undefined };
   }
   if (h.startsWith("foundation")) return { kind: "foundations", tab: h.split("/")[1] };
-  if (h === "agents") return { kind: "agents" };
   if (h.startsWith("components")) {
     const cat = h.split("/")[1] as M3Category | undefined;
     return { kind: "components", cat: cat || undefined };
@@ -64,7 +60,6 @@ export function Sidebar({ route, navigate }: SidebarProps) {
   const isHome = route?.kind === "home";
   const isDocs = route?.kind === "docs";
   const isFoundations = route?.kind === "foundations";
-  const isAgents = route?.kind === "agents";
 
   return (
     <nav aria-label="Component library navigation" className="flex h-full flex-col gap-2 p-4">
@@ -95,13 +90,6 @@ export function Sidebar({ route, navigate }: SidebarProps) {
           icon="palette"
           label="Design foundations"
           onClick={() => navigate({ kind: "foundations" })}
-        />
-        <NavItem
-          active={isAgents}
-          icon="smart_toy"
-          label="For AI agents"
-          badge="API"
-          onClick={() => navigate({ kind: "agents" })}
         />
         <NavItem
           active={route?.kind === "components"}

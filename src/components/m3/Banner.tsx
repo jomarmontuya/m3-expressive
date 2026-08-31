@@ -120,5 +120,3 @@ export const Banner = React.forwardRef<HTMLDivElement, BannerProps>(
 );
 
 Banner.displayName = "Banner";
-
-export { bannerMeta } from "@/lib/m3/meta";

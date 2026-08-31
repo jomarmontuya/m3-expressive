@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFileSync } from "node:fs";
-import { resolve, sep } from "node:path";
+import { componentSources } from "@/lib/m3/component-sources.generated";
 import { getComponent, m3Registry } from "@/lib/m3/registry";
 
 /**
@@ -11,8 +10,8 @@ import { getComponent, m3Registry } from "@/lib/m3/registry";
  * component — the same text an MCP client gets via `get_component_source`.
  * Powers the "Source code" tab on every component page.
  *
- * Security: the id must exist in the registry and the resolved file must
- * live inside src/components/m3 (no arbitrary filesystem reads).
+ * The source map is generated at build time, so the production server does
+ * not need access to repository files.
  */
 export async function GET(req: NextRequest) {
   const id = new URL(req.url).searchParams.get("id")?.trim() ?? "";
@@ -32,29 +31,13 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const libDir = resolve(process.cwd(), "src", "components", "m3");
-  const abs = resolve(process.cwd(), component.file);
-  if (!abs.startsWith(libDir + sep)) {
-    return NextResponse.json({ error: "Path outside the component library" }, { status: 403 });
-  }
-
-  try {
-    const source = readFileSync(abs, "utf8");
-    return NextResponse.json(
-      {
-        id: component.id,
-        name: component.name,
-        path: component.file,
-        lines: source.split("\n").length,
-        bytes: Buffer.byteLength(source, "utf8"),
-        source,
-      },
-      { headers: { "Cache-Control": "no-store" } }
-    );
-  } catch (e) {
-    return NextResponse.json(
-      { error: `Source for "${id}" not readable at ${component.file}: ${String(e)}` },
-      { status: 500 }
-    );
-  }
+  const source = componentSources[component.id as keyof typeof componentSources];
+  return NextResponse.json(
+    {
+      id: component.id,
+      name: component.name,
+      ...source,
+    },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

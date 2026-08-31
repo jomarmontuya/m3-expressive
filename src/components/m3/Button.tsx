@@ -315,5 +315,3 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
     />
   );
 });
-
-export { buttonMeta } from "@/lib/m3/meta";

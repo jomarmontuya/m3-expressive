@@ -1,74 +1,74 @@
-# m3-expressive
+# M3 Expressive React
 
-**Material 3 Expressive for React — the design system Google never shipped to the web.**
+Material 3 and Material 3 Expressive components for React. The beta ships as a GitHub-hosted shadcn registry, so each component is copied into your app as local source.
 
-41 spec-audited components, the official M3 token system, physics-based spring motion, a Dynamic Color theming engine, and structured metadata so AI coding agents use the library without guessing.
+Current release target: `v0.1.0-beta.1`.
 
-Google's own statement: _"Material 3 Expressive is not implemented on Web"_ — their web-components library is in maintenance mode. This project fills that gap: full M3 Expressive for React 19, built on [Base UI](https://base-ui.com/) and Tailwind CSS 4.
+## Install a component
 
-This is an independent community project. It is not affiliated with or endorsed by Google.
-
-## Why this exists
-
-- **The gap** — no official or established M3 Expressive implementation exists for the web (see [Material Design 3 for Web](https://m3.material.io/develop/web)). Every component here is audited against the [m3.material.io](https://m3.material.io) spec; deviations are documented in the [tracked compliance report](audit/compliance-2026-08-29.md).
-- **Agent-first** — every component ships structured metadata (`M3ComponentMeta`: props, variants, anatomy, guidelines, states, example code), a generated [`/llms.txt`](https://llmstxt.org/) handbook, and an MCP server (14 tools). Coding agents get it right on the first try — no prop guessing.
-- **Ownable like shadcn, versioned like a package** — consume the [npm package](https://www.npmjs.com/package/m3-expressive-react) for semver updates, or copy the component source into your repo shadcn-style via the registry. See the [GitHub repository](https://github.com/jomarmontuya/m3-expressive) for the current release status.
-
-## Install
+Run this from a React project with Tailwind CSS 4 and a valid `components.json` file:
 
 ```bash
-npm i m3-expressive-react
-# or: pnpm add m3-expressive-react / bun add m3-expressive-react
+bunx shadcn@latest add jomarmontuya/m3-expressive/button#v0.1.0-beta.1
 ```
 
-Peer dependencies: `react >=18 <20`, `react-dom >=18 <20`, `framer-motion >=11 <13`. Full styling requires Tailwind CSS 4 — see the [package README](packages/m3-expressive-react/README.md#tailwind-4-integration-required-for-full-component-styling) for the token mapping (a standalone, Tailwind-free `styles.css` path also exists).
+The component automatically installs `m3-base`. That shared item adds:
 
-## Quick start
+- Material color, shape, type, elevation, state, and motion tokens
+- Roboto Flex and Material Symbols Rounded from Google Fonts
+- `Ripple`, `MaterialSymbol`, `cn`, spring tokens, and text-direction support
+- Base UI, Framer Motion, clsx, and tailwind-merge runtime dependencies
+
+Import the installed file directly:
 
 ```tsx
-import { Button } from "m3-expressive-react";
-import "m3-expressive-react/styles.css";
+import { Button } from "@/components/m3/Button";
 
-export function Actions() {
-  return (
-    <Button variant="filled" icon="edit" onClick={() => console.log("hey")}>
-      Create
-    </Button>
-  );
+export function SaveButton() {
+  return <Button icon="save">Save changes</Button>;
 }
 ```
 
-## For AI agents
+Replace `button` in the install command with any component ID from the catalog. Same-repository dependencies are pinned to the same beta tag.
 
-Connect the MCP server (14 tools: search components, get API/examples/guidelines/states/source, generate themes):
+## What is included
 
-```bash
-cd mini-services/mcp-server && bun install && bun start
-```
+- `registry.json` — the public registry with 41 components and `m3-base`
+- `src/components/m3/` — installable component source
+- `src/` — the Next.js catalog and live component demos
+- `src/lib/m3/meta.ts` — component API and Material traceability metadata
+- `docs/material-compliance.md` — spec sources, audit method, and declared deviations
 
-The agent handbook is served at `/llms.txt` on the running site. Every component exposes an `exampleCode` sample through the same metadata used by the docs.
+`mcp-server/` is retained as unreleased source for possible later work. It is not part of this beta, not advertised, and not covered by the release checks.
 
-## What's inside
-
-| Path | What |
-|---|---|
-| `packages/m3-expressive-react/` | The publishable npm package (dist + compiled styles) |
-| `src/` | The Next.js 16 showcase/docs app — every component live, with interactive playgrounds |
-| `src/lib/m3/` | The source of truth: `meta.ts` (component metadata), `tokens.ts`, `themes.ts`, `theme-builder.ts` (Dynamic Color engine), `registry.ts` |
-| `mini-services/mcp-server/` | MCP server exposing the library to coding agents |
-| [`audit/compliance-2026-08-29.md`](audit/compliance-2026-08-29.md) | Tracked M3 compliance report: spec vs implementation vs documented deviations |
-| `tool-results/` | Committed visual-regression baselines |
-
-## Develop locally
+## Local development
 
 ```bash
-bun install
-bun install --cwd mini-services/mcp-server --frozen-lockfile
-bun run dev          # showcase on :3000
+bun install --frozen-lockfile
+bun run dev
 ```
 
-Gates (also run in CI): `bun run lint` · `bunx tsc --noEmit` · `bun run build:package` · `bun run vr:check`. See [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md) for the full component contract.
+Open `http://localhost:3000`.
+
+Release checks:
+
+```bash
+bun run lint
+bunx tsc --noEmit
+bun run registry:check
+bun run registry:validate
+bun run registry:smoke
+bun run build
+```
+
+The smoke check installs all 41 registry items into a temporary clean Next.js app, then typechecks and builds that app.
+
+## Material compliance
+
+Each component metadata record links to its Material source and declares its audit date, platform references, browser mapping, and known deviations. See [docs/material-compliance.md](docs/material-compliance.md).
+
+This project is not affiliated with or endorsed by Google. Material Design is a trademark of Google LLC.
 
 ## License
 
-[MIT](LICENSE) — open source, open code. Built by [Medianeth](https://medianeth.com). Bundled fonts and code keep their original licenses in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

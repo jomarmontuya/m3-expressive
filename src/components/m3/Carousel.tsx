@@ -873,5 +873,3 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     );
   },
 );
-
-export { carouselMeta } from "@/lib/m3/meta";

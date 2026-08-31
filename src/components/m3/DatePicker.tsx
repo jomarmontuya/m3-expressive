@@ -1527,5 +1527,3 @@ const DatePickerDocked = React.forwardRef<HTMLDivElement, DatePickerDockedProps>
 });
 
 DatePickerDocked.displayName = "DatePickerDocked";
-
-export { datePickerMeta } from "@/lib/m3/meta";

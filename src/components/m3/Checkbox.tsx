@@ -149,5 +149,3 @@ export const Checkbox = React.forwardRef<HTMLButtonElement, CheckboxProps>(funct
     </BaseCheckbox.Root>
   );
 });
-
-export { checkboxMeta } from "@/lib/m3/meta";

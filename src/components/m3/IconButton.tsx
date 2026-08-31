@@ -270,5 +270,3 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(f
     />
   );
 });
-
-export { iconButtonMeta } from "@/lib/m3/meta";

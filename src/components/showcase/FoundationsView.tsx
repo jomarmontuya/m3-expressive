@@ -138,8 +138,7 @@ function ThemesTab() {
           combinations that swap the 24 <code className="font-mono">--md-*</code> CSS custom properties. Components read
           semantic roles only, so one attribute change re-themes every surface, control, dialog and
           motion color in the app. Persisted to localStorage; applied pre-paint by an inline script
-          (no flash). Agents can fetch full schemes via <code className="font-mono">/api/registry?themes=true</code> or
-          the MCP tools <code className="font-mono">list_themes</code> / <code className="font-mono">get_theme</code>.
+          (no flash). The Theme Builder below can generate a complete light and dark scheme from one seed color.
         </p>
       </div>
     </div>

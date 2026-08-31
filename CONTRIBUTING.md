@@ -1,41 +1,50 @@
 # Contributing
 
-Thanks for considering a contribution. This repo is a component library with a strict spec contract — read this before opening a PR.
-
-## Prerequisites
-
-- [Bun](https://bun.sh) 1.4+ (runtime + package manager)
-- Node 22+ (for tooling that expects it)
-
-## Setup
+## Set up
 
 ```bash
-bun install
-bun install --cwd mini-services/mcp-server --frozen-lockfile
-bun run dev   # showcase app on http://localhost:3000
+bun install --frozen-lockfile
+bun run dev
 ```
 
-## The component contract
+The catalog runs at `http://localhost:3000`.
 
-Every component in `src/components/m3/` follows a mandatory contract: named-export `forwardRef`, metadata in `src/lib/m3/meta.ts`, registration in `src/lib/m3/registry.ts`, barrel re-export, and a matching demo in `src/components/showcase/demos/`. The full rules (including the Base UI primitive policy and token-driven styling rules) are in [AGENTS.md](AGENTS.md) — **read the "Component contract" section before adding or changing components.**
+## Before you change a component
 
-Visual behavior that looks wrong may be spec-mandated: check the [tracked compliance report](audit/compliance-2026-08-29.md) before "fixing" it.
+1. Read its record in `src/lib/m3/meta.ts`.
+2. Read the matching evidence in `docs/material-compliance.md`.
+3. Check the current Material page linked by `spec.materialUrl` when the behavior is unclear.
+4. Keep intentional deviations explicit in `spec.deviations`.
 
-## Verification gates
+## Component contract
 
-All four must pass locally before a PR (CI runs the same):
+Every public component must:
 
-1. `bun run lint` → 0 errors
-2. `bunx tsc --noEmit` → no errors in `src/` or `scripts/`
-3. `bun run build:package` → succeeds
-4. `bun run vr:check` → no component in `changed` status (needs the dev server on :3000; refresh a baseline only with `--force` and explain why in the PR)
+1. Live in `src/components/m3/` and start with `"use client"`.
+2. Use a named `forwardRef` export.
+3. Have metadata in `src/lib/m3/meta.ts`.
+4. Be registered in `src/lib/m3/registry.ts`.
+5. Have a live demo in `src/components/showcase/demos/`.
+6. Be generated into `registry.json` by `bun run registry:build`.
 
-## Style
+Use M3 token classes and helpers. Do not add shadcn or Radix component scaffolding inside `src/components/m3/`.
 
-- TypeScript strict; token-driven styling (never hardcode colors/motion — use `@/lib/m3/tokens`)
-- Material 3 fidelity beats personal taste; cite the m3.material.io section when proposing a deviation
-- Keep `exampleCode` in every component's metadata runnable as-is — agents and docs both depend on it
+## Required checks
 
-## PRs
+```bash
+bun run registry:build
+bun run lint
+bunx tsc --noEmit
+bun run registry:check
+bun run registry:validate
+bun run registry:smoke
+bun run build
+```
 
-Small, focused PRs with the gates green. Describe what changed and why; for visual changes include before/after notes or a VR baseline refresh rationale. Open pull requests against the [GitHub repository](https://github.com/jomarmontuya/m3-expressive).
+Also open the changed component page at desktop and mobile sizes. Check its interactive, disabled, focus, dark, and right-to-left states when they apply.
+
+Do not edit `registry.json` by hand. Change component source or `scripts/build-registry.ts`, then rebuild it.
+
+## Pull requests
+
+Keep each pull request focused. Explain the Material source used, the behavior changed, the checks run, and any state that was not verified.

@@ -6,7 +6,7 @@
  * Each spec declares the controls (segmented / switch / text / slider) for ONE
  * component, how to live-render the component from the current control values,
  * and how to generate the matching copy-paste code (imports from the published
- * `m3-expressive-react` package). Controls only ever expose props that exist
+ * installed component source). Controls only ever expose props that exist
  * on the real component API — nothing invented.
  *
  * Components without an entry here get NO playground (zero impact on their page).
@@ -190,7 +190,8 @@ export const pgNum = (v: PlaygroundValue | undefined, fallback: number): number 
 
 const joinCode = (component: string, props: string[], body?: string): string => {
   const open = `<${component}${props.length ? " " + props.join(" ") : ""}`;
-  return `import { ${component} } from "m3-expressive-react";\n\n${
+  const componentFile = component === "Fab" ? "FAB" : component;
+  return `import { ${component} } from "@/components/m3/${componentFile}";\n\n${
     body ? `${open}>\n  ${body}\n</${component}>` : `${open} />`
   }`;
 };
@@ -605,7 +606,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       else if (valueProp !== undefined) props.push(`value=${valueProp}`);
       if (v.color !== "error") props.push(`color="${pgStr(v.color, "error")}"`);
       const open = `<Badge${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { Badge, IconButton } from "m3-expressive-react";\n\n${open}\n  <IconButton icon="mail" aria-label="Messages" />\n</Badge>`;
+      return `import { Badge } from "@/components/m3/Badge";\nimport { IconButton } from "@/components/m3/IconButton";\n\n${open}\n  <IconButton icon="mail" aria-label="Messages" />\n</Badge>`;
     },
   },
 
@@ -1129,7 +1130,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         `content="${pgStr(v.content, "").trim() || "Attach documents, images, or videos up to 25 MB per file."}"`,
       );
       const open = `<Tooltip${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { Tooltip, Button } from "m3-expressive-react";\n\n${open}\n  <Button variant="outlined" icon="attach_file">Attach</Button>\n</Tooltip>`;
+      return `import { Tooltip } from "@/components/m3/Tooltip";\nimport { Button } from "@/components/m3/Button";\n\n${open}\n  <Button variant="outlined" icon="attach_file">Attach</Button>\n</Tooltip>`;
     },
   },
 
@@ -1187,7 +1188,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (interactive) props.push("onClick={handleClick}");
       const open = `<Card${props.length ? " " + props.join(" ") : ""}>`;
       const supporting = interactive ? "Click me" : "Supporting text";
-      return `import { Card, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <MaterialSymbol icon="image" size={28} />\n  <div className="md-title-medium">Headline</div>\n  <div className="md-body-medium">${supporting}</div>\n</Card>`;
+      return `import { Card } from "@/components/m3/Card";\nimport { MaterialSymbol } from "@/components/m3/MaterialSymbol";\n\n${open}\n  <MaterialSymbol icon="image" size={28} />\n  <div className="md-title-medium">Headline</div>\n  <div className="md-body-medium">${supporting}</div>\n</Card>`;
     },
   },
 
@@ -1289,7 +1290,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       ];
       if (v.placement !== "bottom-start") props.push(`placement="${pgStr(v.placement, "bottom-start")}"`);
       const open = `<Menu${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { Menu, Button } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { Menu } from "@/components/m3/Menu";\nimport { Button } from "@/components/m3/Button";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -1344,7 +1345,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.dismissible === false) props.push("dismissible={false}");
       props.push('actions={<>\n  <Button variant="text" onClick={handleClose}>Cancel</Button>\n  <Button variant="text" onClick={handleReset}>Reset</Button>\n</>}');
       const open = `<Dialog${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { Dialog, Button } from "m3-expressive-react";\n\n${open}\n  This will reset all app settings to their defaults.\n</Dialog>`;
+      return `import { Dialog } from "@/components/m3/Dialog";\nimport { Button } from "@/components/m3/Button";\n\n${open}\n  This will reset all app settings to their defaults.\n</Dialog>`;
     },
   },
 
@@ -1388,7 +1389,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.fullWidth === true) props.push("fullWidth");
       const open = `<Banner${props.length ? " " + props.join(" ") : ""}`;
       if (v.actions === true) {
-        return `import { Banner } from "m3-expressive-react";\n\n${open}\n  actions={[\n    { label: "Retry", onClick: handleRetry },\n    { label: "Dismiss", onClick: handleClose },\n  ]}\n/>`;
+        return `import { Banner } from "@/components/m3/Banner";\n\n${open}\n  actions={[\n    { label: "Retry", onClick: handleRetry },\n    { label: "Dismiss", onClick: handleClose },\n  ]}\n/>`;
       }
       return `${open} />`;
     },
@@ -1467,7 +1468,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       props.push('placeholder="Type a fruit…"');
       if (v.disabled === true) props.push("disabled");
       const open = `<Autocomplete${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { Autocomplete } from "m3-expressive-react";\n\nconst fruits = ["Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Guava"];\n\n${open}`;
+      return `import { Autocomplete } from "@/components/m3/Autocomplete";\n\nconst fruits = ["Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Guava"];\n\n${open}`;
     },
   },
 
@@ -1515,7 +1516,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.variant !== "primary") props.push(`variant="${pgStr(v.variant, "primary")}"`);
       if (v.fullWidth === true) props.push("fullWidth");
       const open = `<Tabs${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { Tabs } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { Tabs } from "@/components/m3/Tabs";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -1574,7 +1575,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       props.push("options={options}", "value={selected}", "onValueChange={setSelected}");
       if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       const open = `<SegmentedButton${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { SegmentedButton } from "m3-expressive-react";\n\nconst options = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { SegmentedButton } from "@/components/m3/SegmentedButton";\n\nconst options = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -1640,7 +1641,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.selection !== "none") props.push(`selection="${pgStr(v.selection, "single")}"`, "value={selected}", "onValueChange={setSelected}");
       if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       const open = `<ButtonGroup${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { ButtonGroup } from "m3-expressive-react";\n\nconst buttons = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { ButtonGroup } from "@/components/m3/ButtonGroup";\n\nconst buttons = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -1707,7 +1708,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       };
       const rows = [row("Inbox", "inbox", "Unread messages", true), row("Sent", "send", "Messages you've sent", false), row("Drafts", "draft", "Unfinished drafts", false)];
       const open = `<List${v.dividers === true ? " dividers" : ""}>`;
-      return `import { List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n${rows.join("\n")}\n</List>`;
+      return `import { List, ListItem } from "@/components/m3/List";\nimport { MaterialSymbol } from "@/components/m3/MaterialSymbol";\n\n${open}\n${rows.join("\n")}\n</List>`;
     },
   },
 
@@ -1797,7 +1798,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const width = pgNum(v.width, 560);
       if (width !== 560 && v.docked !== true) props.push(`width={${width}}`);
       const open = `<Toolbar${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { Toolbar } from "m3-expressive-react";\n\nconst icons = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { Toolbar } from "@/components/m3/Toolbar";\n\nconst icons = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -1983,7 +1984,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const rows = PG_CAROUSEL_ITEMS.map(
         (it) => `  { id: "${it.id}", label: "${it.label}", icon: "${it.icon}", tone: "${it.tone}", onClick: handlePick },`
       ).join("\n");
-      return `import { Carousel } from "m3-expressive-react";\n\nconst items = [\n${rows}\n];\n\n${open}`;
+      return `import { Carousel } from "@/components/m3/Carousel";\n\nconst items = [\n${rows}\n];\n\n${open}`;
     },
   },
 
@@ -2101,7 +2102,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       }
       if (v.color !== "primary") props.push(`color="${pgStr(v.color, "primary")}"`);
       const open = `<FabMenu${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { FabMenu } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { FabMenu } from "@/components/m3/FabMenu";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2167,7 +2168,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.size !== "sm") props.push(`size="${pgStr(v.size, "sm")}"`);
       if (v.disabled === true) props.push("disabled");
       const open = `<SplitButton${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { SplitButton } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { SplitButton } from "@/components/m3/SplitButton";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2231,7 +2232,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         props.push('footer={<Button variant="filled" fullWidth onClick={handleClose}>Save</Button>}');
       }
       const open = `<BottomSheet${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { BottomSheet, List, ListItem, Button, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <List>\n    <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" />\n    <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" />\n  </List>\n</BottomSheet>`;
+      return `import { BottomSheet } from "@/components/m3/BottomSheet";\nimport { List, ListItem } from "@/components/m3/List";\nimport { Button } from "@/components/m3/Button";\nimport { MaterialSymbol } from "@/components/m3/MaterialSymbol";\n\n${open}\n  <List>\n    <ListItem leading={<MaterialSymbol icon="favorite" />} headline="Favorites" />\n    <ListItem leading={<MaterialSymbol icon="history" />} headline="Recently played" />\n  </List>\n</BottomSheet>`;
     },
   },
 
@@ -2294,7 +2295,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const title = pgStr(v.title, "").trim() || "Filters";
       props.push(`title="${title}"`);
       const open = `<SideSheet${props.length ? " " + props.join(" ") : ""}>`;
-      return `import { SideSheet, List, ListItem, MaterialSymbol } from "m3-expressive-react";\n\n${open}\n  <List className="!px-0">\n    <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" selected />\n    <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" />\n    <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" />\n  </List>\n</SideSheet>`;
+      return `import { SideSheet } from "@/components/m3/SideSheet";\nimport { List, ListItem } from "@/components/m3/List";\nimport { MaterialSymbol } from "@/components/m3/MaterialSymbol";\n\n${open}\n  <List className="!px-0">\n    <ListItem leading={<MaterialSymbol icon="label" />} headline="Design" selected />\n    <ListItem leading={<MaterialSymbol icon="code" />} headline="Engineering" />\n    <ListItem leading={<MaterialSymbol icon="campaign" />} headline="Marketing" />\n  </List>\n</SideSheet>`;
     },
   },
 
@@ -2334,7 +2335,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const props: string[] = ["items={items}", "value={value}", "onChange={setValue}"];
       if (v.fullWidth === false) props.push("fullWidth={false}");
       const open = `<NavigationBar${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { NavigationBar } from "m3-expressive-react";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { NavigationBar } from "@/components/m3/NavigationBar";\n\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2383,7 +2384,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
         '  { icon: "edit", label: "Edit" },',
       ];
       const open = `<BottomAppBar${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { BottomAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `import { BottomAppBar } from "@/components/m3/BottomAppBar";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2432,7 +2433,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const state = 'import { useState } from "react";\n';
       const valueState = 'const [value, setValue] = useState("home");\n';
       const handler = v.menu === true ? "\nconst [expanded, setExpanded] = useState(false);\nconst handleMenu = () => setExpanded((open) => !open);\n" : "";
-      return `${state}import { NavigationRail, Fab } from "m3-expressive-react";\n\n${valueState}${handler}\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
+      return `${state}import { NavigationRail } from "@/components/m3/NavigationRail";\nimport { Fab } from "@/components/m3/FAB";\n\n${valueState}${handler}\nconst items = [\n${rows.join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2506,7 +2507,7 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       if (v.variant === "standard") props.push('variant="standard"');
       else props.push("open={open}", "onClose={handleClose}");
       const open = `<NavigationDrawer${props.length ? " " + props.join(" ") : ""} />`;
-      return `import { NavigationDrawer } from "m3-expressive-react";\n\nconst items = [\n${(v.badges === true ? rows : rowsNoBadge).join("\n")}\n];\n\n${open}`;
+      return `import { NavigationDrawer } from "@/components/m3/NavigationDrawer";\n\nconst items = [\n${(v.badges === true ? rows : rowsNoBadge).join("\n")}\n];\n\n${open}`;
     },
   },
 
@@ -2551,9 +2552,9 @@ export const PLAYGROUND_SPECS: Record<string, PlaygroundSpec> = {
       const rows = ['  { icon: "favorite", label: "Like" },', '  { icon: "more_vert", label: "More" },'];
       const open = `<TopAppBar${props.length ? " " + props.join(" ") : ""} />`;
       if (scrollBehavior === "none") {
-        return `import { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
+        return `import { TopAppBar } from "@/components/m3/TopAppBar";\n\nconst actions = [\n${rows.join("\n")}\n];\n\n${open}`;
       }
-      return `import { useRef } from "react";\nimport { TopAppBar } from "m3-expressive-react";\n\nconst actions = [\n${rows.join("\n")}\n];\n\nexport function Example() {\n  const scrollRef = useRef<HTMLDivElement>(null);\n\n  return (\n    <div className="h-80 overflow-hidden">\n      ${open}\n      <div ref={scrollRef} className="h-64 overflow-y-auto">\n        {/* scrollable content */}\n      </div>\n    </div>\n  );\n}`;
+      return `import { useRef } from "react";\nimport { TopAppBar } from "@/components/m3/TopAppBar";\n\nconst actions = [\n${rows.join("\n")}\n];\n\nexport function Example() {\n  const scrollRef = useRef<HTMLDivElement>(null);\n\n  return (\n    <div className="h-80 overflow-hidden">\n      ${open}\n      <div ref={scrollRef} className="h-64 overflow-y-auto">\n        {/* scrollable content */}\n      </div>\n    </div>\n  );\n}`;
     },
   },
 };

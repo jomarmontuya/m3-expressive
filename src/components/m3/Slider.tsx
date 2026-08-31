@@ -410,5 +410,3 @@ export const Slider = React.forwardRef<HTMLDivElement, SliderProps>(function Sli
     </div>
   );
 });
-
-export { sliderMeta } from "@/lib/m3/meta";

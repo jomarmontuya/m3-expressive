@@ -326,5 +326,3 @@ export const Menu = React.forwardRef<HTMLButtonElement, MenuProps>(function Menu
 });
 
 Menu.displayName = "Menu";
-
-export { menuMeta } from "@/lib/m3/meta";

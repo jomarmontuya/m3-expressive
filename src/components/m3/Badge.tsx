@@ -155,5 +155,3 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(function Badg
 });
 
 Badge.displayName = "Badge";
-
-export { badgeMeta } from "@/lib/m3/meta";

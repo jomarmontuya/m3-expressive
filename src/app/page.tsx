@@ -6,7 +6,6 @@ import { Sidebar, parseHash, routeToHash, type Route } from "@/components/showca
 import { HomeView } from "@/components/showcase/HomeView";
 import { FoundationsView } from "@/components/showcase/FoundationsView";
 import { ComponentView } from "@/components/showcase/ComponentView";
-import { AgentView } from "@/components/showcase/AgentView";
 import { DocsView } from "@/components/showcase/DocsView";
 import { SideSheet } from "@/components/m3/SideSheet";
 import { IconButton } from "@/components/m3/IconButton";
@@ -26,8 +25,6 @@ function routeTitle(route: Route): string {
       return "Getting started · M3 Expressive";
     case "foundations":
       return "Design foundations · M3 Expressive";
-    case "agents":
-      return "For AI agents · M3 Expressive";
     case "components":
       return "All components · M3 Expressive";
     case "component": {
@@ -148,7 +145,7 @@ export default function M3ExpressiveDocs() {
           </button>
 
           <span className="ml-2 hidden rounded-full border border-m3-outline-variant px-2.5 py-1 md-label-small text-m3-on-surface-variant sm:inline">
-            v1.0.0
+            v0.1.0-beta.1
           </span>
 
           <div className="ml-auto flex items-center gap-1">
@@ -158,13 +155,6 @@ export default function M3ExpressiveDocs() {
               aria-label="Search components (Command K)"
               onClick={() => setPaletteOpen(true)}
             />
-            <button
-              onClick={() => navigate({ kind: "agents" })}
-              className="m3-state m3-focus hidden items-center gap-2 rounded-full border border-m3-outline px-4 py-2 md-label-large text-m3-primary sm:flex"
-            >
-              <MaterialSymbol icon="smart_toy" size={18} fill />
-              Agent API
-            </button>
             <IconButton
               icon={isDark ? "light_mode" : "dark_mode"}
               variant="tonal"
@@ -204,7 +194,6 @@ export default function M3ExpressiveDocs() {
             {route.kind === "component" && (
               <ComponentView id={route.id} code={route.code} navigate={navigate} />
             )}
-            {route.kind === "agents" && <AgentView />}
           </motion.div>
         </main>
       </div>
@@ -219,15 +208,20 @@ export default function M3ExpressiveDocs() {
             <div>
               <div className="md-title-medium text-m3-on-surface">Material 3 Expressive React</div>
               <div className="md-body-small text-m3-on-surface-variant">
-                Built on official Google design tokens · v1.0.0
+                Built on official Google design tokens · v0.1.0-beta.1
               </div>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 md-body-medium text-m3-on-surface-variant">
             <a href="#/docs" className="m3-state m3-focus rounded px-2 py-2 hover:text-m3-primary">Getting started</a>
-            <a href="/api/registry" className="m3-state m3-focus rounded px-2 py-2 hover:text-m3-primary">Registry API</a>
-            <a href="/api/agent" className="m3-state m3-focus rounded px-2 py-2 hover:text-m3-primary">Agent manifest</a>
-            <a href="/llms.txt" className="m3-state m3-focus rounded px-2 py-2 hover:text-m3-primary">llms.txt</a>
+            <a
+              href="https://github.com/jomarmontuya/m3-expressive"
+              target="_blank"
+              rel="noreferrer"
+              className="m3-state m3-focus rounded px-2 py-2 hover:text-m3-primary"
+            >
+              GitHub registry ↗
+            </a>
             <a
               href="https://m3.material.io"
               target="_blank"

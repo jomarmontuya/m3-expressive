@@ -149,5 +149,3 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
     );
   }
 );
-
-export { segmentedButtonMeta } from "@/lib/m3/meta";

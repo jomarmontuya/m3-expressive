@@ -224,5 +224,3 @@ export const NavigationDrawer = React.forwardRef<HTMLElement, NavigationDrawerPr
 });
 
 NavigationDrawer.displayName = "NavigationDrawer";
-
-export { navigationDrawerMeta } from "@/lib/m3/meta";

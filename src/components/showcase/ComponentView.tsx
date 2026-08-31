@@ -362,8 +362,7 @@ function m3SortedIds(): string[] {
 }
 
 /* ------------------------------------------------------------------ */
-/* Source code tab — the real .tsx file, fetched from                  */
-/* /api/component-source (same text MCP's get_component_source reads). */
+/* Source code tab — the real .tsx file from /api/component-source.   */
 /* ------------------------------------------------------------------ */
 
 type SourceState =
@@ -442,7 +441,7 @@ function ComponentSource({
 
   return (
     <div className="space-y-3">
-      {/* file facts + MCP cross-link */}
+      {/* file facts */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-m3-surface-container-low px-3 py-1.5 font-mono text-[12px] text-m3-on-surface-variant">
           <MaterialSymbol icon="description" size={14} className="text-m3-primary" />
@@ -456,13 +455,6 @@ function ComponentSource({
           <MaterialSymbol icon="hard_drive" size={14} />
           {(state.bytes / 1024).toFixed(1)} KB
         </span>
-        <button
-          onClick={() => navigate({ kind: "agents" })}
-          className="m3-state m3-focus ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 md-label-small text-m3-primary"
-        >
-          <MaterialSymbol icon="smart_toy" size={14} />
-          Also via MCP · get_component_source
-        </button>
       </div>
 
       <CodeBlock code={state.source} maxHeight={560} />
@@ -513,7 +505,7 @@ interface SourceDeps {
   m3: { base: string; entry?: M3RegistryEntry }[];
   /** @/lib/* imports (tokens, utils, …) */
   libs: string[];
-  /** npm packages (react, framer-motion, …) */
+  /** external runtime packages (React, Framer Motion, and similar) */
   externals: string[];
 }
 

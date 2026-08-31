@@ -16,7 +16,8 @@ const MAX_FILE_LINES = 250;
 // reviewer must follow, so a size ceiling would fire on regenerations and
 // data tables rather than on anything worth refactoring.
 const generatedOrNonSourceFiles = [
-  // m3: none yet — fastpromos listed generated Payload/primitives output here.
+  // Registry style data is intentionally kept beside the deterministic generator.
+  '**/scripts/build-registry.ts',
 ];
 
 // Literal content with no control flow: each declares one exported value and
@@ -45,15 +46,12 @@ const testFiles = [
 // that is the whole point of the baseline. The trailing number is the line
 // count at the time of writing.
 const maxLinesBaseline = [
-  '**/mini-services/mcp-server/index.ts', // 835
   '**/src/components/m3/Carousel.tsx', // 322
   '**/src/components/m3/DatePicker.tsx', // 718
   '**/src/components/m3/SearchView.tsx', // 274
   '**/src/components/m3/TimePicker.tsx', // 310
   '**/src/components/showcase/ComponentView.tsx', // 428
-  '**/src/components/showcase/DocsView.tsx', // 658
   '**/src/components/showcase/FoundationsView.tsx', // 484
-  '**/src/components/showcase/MCPPlayground.tsx', // 841
   '**/src/components/showcase/ThemeBuilderTab.tsx', // 436
   '**/src/components/showcase/demos/actions-demos.tsx', // 417
   '**/src/components/showcase/demos/containment-demos.tsx', // 401
@@ -82,6 +80,7 @@ const eslintConfig = [
       'examples/**',
       'skills',
       'packages/**/dist/**',
+      'mcp-server/**',
     ],
   },
   js.configs.recommended,

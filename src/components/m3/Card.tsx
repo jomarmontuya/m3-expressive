@@ -131,5 +131,3 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(function Card(
     </motion.div>
   );
 });
-
-export { cardMeta } from "@/lib/m3/meta";

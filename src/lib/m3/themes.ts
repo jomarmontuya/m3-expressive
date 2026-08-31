@@ -7,8 +7,8 @@
  * `<html data-theme="…">` and combined with the `.dark` class for dark mode;
  * both persist to localStorage (see src/hooks/use-m3-theme.ts).
  *
- * This module intentionally has NO "use client" and NO React imports so the
- * MCP server, API routes and RSC can consume it directly.
+ * This module intentionally has no client or React imports so registry build
+ * scripts, API routes, and server components can use it directly.
  */
 
 /** One full M3 color scheme. Keys mirror the --md-* CSS custom properties. */

@@ -82,5 +82,3 @@ export const Divider = React.forwardRef<HTMLDivElement, DividerProps>(function D
 });
 
 Divider.displayName = "Divider";
-
-export { dividerMeta } from "@/lib/m3/meta";

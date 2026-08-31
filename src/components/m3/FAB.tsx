@@ -112,5 +112,3 @@ export const Fab = React.forwardRef<HTMLButtonElement, FabProps>(function Fab(
     />
   );
 });
-
-export { fabMeta } from "@/lib/m3/meta";

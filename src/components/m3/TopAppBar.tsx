@@ -387,5 +387,3 @@ export const TopAppBar = React.forwardRef<HTMLElement, TopAppBarProps>(function 
 });
 
 TopAppBar.displayName = "TopAppBar";
-
-export { topAppBarMeta } from "@/lib/m3/meta";

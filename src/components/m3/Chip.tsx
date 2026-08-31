@@ -387,5 +387,3 @@ export const ChipGroup = React.forwardRef<HTMLDivElement, ChipGroupProps>(functi
 });
 
 ChipGroup.displayName = "ChipGroup";
-
-export { chipMeta } from "@/lib/m3/meta";

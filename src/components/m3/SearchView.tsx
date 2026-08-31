@@ -462,5 +462,3 @@ export const SearchView = React.forwardRef<HTMLInputElement, SearchViewProps>(fu
     </span>
   );
 });
-
-export { searchViewMeta } from "@/lib/m3/meta";

@@ -4,7 +4,6 @@ This repository distributes these third-party works:
 
 - `public/fonts/material-symbols-rounded.woff2`: Google Material Symbols, Apache License 2.0.
 - `public/fonts/roboto-flex-latin.woff2`: Roboto Flex, SIL Open Font License 1.1.
-- Bundled `@material/material-color-utilities` code in `packages/m3-expressive-react/dist/`: Copyright 2021 Google LLC, Apache License 2.0.
 
 ## Apache License 2.0
 

@@ -280,5 +280,3 @@ export const CircularProgress = React.forwardRef<
 });
 
 CircularProgress.displayName = "CircularProgress";
-
-export { circularProgressMeta } from "@/lib/m3/meta";

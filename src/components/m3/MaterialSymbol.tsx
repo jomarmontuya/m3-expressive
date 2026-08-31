@@ -32,12 +32,12 @@ export const MaterialSymbol = React.forwardRef<HTMLSpanElement, MaterialSymbolPr
     { icon, fill, weight, grade, opticalSize, size, className, style, raw, ...props },
     ref
   ) {
-    const cssVars: React.CSSProperties = {};
+    const cssVars: React.CSSProperties & Record<`--msr-${string}`, string | number> = {};
     if (!raw) {
-      if (fill !== undefined) cssVars["--msr-fill" as string] = fill ? 1 : 0;
-      if (weight !== undefined) cssVars["--msr-wght" as string] = weight;
-      if (grade !== undefined) cssVars["--msr-grad" as string] = grade;
-      if (opticalSize !== undefined) cssVars["--msr-opsz" as string] = opticalSize;
+      if (fill !== undefined) cssVars["--msr-fill"] = fill ? 1 : 0;
+      if (weight !== undefined) cssVars["--msr-wght"] = weight;
+      if (grade !== undefined) cssVars["--msr-grad"] = grade;
+      if (opticalSize !== undefined) cssVars["--msr-opsz"] = opticalSize;
     }
     return (
       <span

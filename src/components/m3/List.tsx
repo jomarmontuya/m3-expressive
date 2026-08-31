@@ -333,5 +333,3 @@ export const ListItem = React.forwardRef<HTMLLIElement, ListItemProps>(
     );
   },
 );
-
-export { listMeta } from "@/lib/m3/meta";

@@ -275,5 +275,3 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(fu
     </div>
   );
 });
-
-export { buttonGroupMeta } from "@/lib/m3/meta";

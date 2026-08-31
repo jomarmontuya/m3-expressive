@@ -12,7 +12,7 @@
  * tones, inverse roles and contrast adjustments all match the engine exactly.
  *
  * This module intentionally has NO "use client" and NO React/DOM imports so
- * the MCP server, API routes and RSC can consume it directly.
+ * API routes and server components can consume it directly.
  */
 import {
   DynamicScheme,

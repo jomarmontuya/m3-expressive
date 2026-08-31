@@ -251,5 +251,3 @@ export const FabMenu = React.forwardRef<HTMLDivElement, FabMenuProps>(function F
     </BaseMenu.Root>
   );
 });
-
-export { fabMenuMeta } from "@/lib/m3/meta";
