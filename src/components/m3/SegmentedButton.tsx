@@ -103,7 +103,7 @@ export const SegmentedButton = React.forwardRef<HTMLDivElement, SegmentedButtonP
               value={option.value}
               aria-label={option.ariaLabel ?? (!option.label ? (option.icon ?? option.value).replaceAll("_", " ") : undefined)}
               className={cn(
-                "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 px-4",
+                "m3-state m3-focus relative flex h-full flex-1 items-center justify-center gap-2 whitespace-nowrap px-4",
                 size === "sm" && "before:absolute before:content-[''] before:[inset-inline:0] before:-inset-y-1",
                 "md-label-large transition-colors duration-150",
                 i > 0 && (disabled ? "border-s border-m3-on-surface/12" : "border-s border-m3-outline"),

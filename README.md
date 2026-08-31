@@ -1,8 +1,44 @@
-# M3 Expressive React
+<p align="center">
+  <img src=".github/assets/m3-expressive-banner.png" alt="M3 Expressive React — an independent open-source project inspired by Material 3" width="100%" />
+</p>
 
-Material 3 and Material 3 Expressive components for React. The beta ships as a GitHub-hosted shadcn registry, so each component is copied into your app as local source.
+<h1 align="center">M3 Expressive React</h1>
+
+<p align="center">
+  An independent React component library inspired by Google's Material Design 3 and Material 3 Expressive guidance. Built for the web with Tailwind CSS 4, Base UI, and Framer Motion.
+</p>
+
+<p align="center">
+  Not affiliated with, sponsored by, or endorsed by Google.
+</p>
+
+<p align="center">
+  <a href="https://github.com/jomarmontuya/m3-expressive/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/jomarmontuya/m3-expressive/ci.yml?branch=main&amp;style=flat-square&amp;label=CI" /></a>
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&amp;logo=react&amp;logoColor=white" />
+  <img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&amp;logo=tailwindcss&amp;logoColor=white" />
+  <img alt="41 components" src="https://img.shields.io/badge/components-41-C7EE68?style=flat-square&amp;labelColor=141218" />
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-D0BCFF?style=flat-square&amp;labelColor=141218" /></a>
+</p>
+
+Install only what you need through the shadcn CLI. Each component becomes local source in your app, so you can inspect and adapt the implementation.
 
 Current release target: `v0.1.0-beta.1`.
+
+## Browse the registry
+
+List all 42 registry items:
+
+```bash
+bunx shadcn@latest list jomarmontuya/m3-expressive
+```
+
+Inspect one component before installing it:
+
+```bash
+bunx shadcn@latest view jomarmontuya/m3-expressive/button
+```
+
+For the visual catalog, run `bun run dev` and open `http://localhost:3000`. The raw registry is in [`registry.json`](registry.json).
 
 ## Install a component
 
@@ -63,11 +99,26 @@ bun run build
 
 The smoke check installs all 41 registry items into a temporary clean Next.js app, then typechecks and builds that app.
 
-## Material compliance
+## Material sources and attribution
 
-Each component metadata record links to its Material source and declares its audit date, platform references, browser mapping, and known deviations. See [docs/material-compliance.md](docs/material-compliance.md).
+Google created [Material Design](https://m3.material.io/) and [Material 3 Expressive](https://m3.material.io/). This independent project uses Google's published guidance as its design reference.
 
-This project is not affiliated with or endorsed by Google. Material Design is a trademark of Google LLC.
+Primary design sources:
+
+- [Material Design 3 and Material 3 Expressive](https://m3.material.io/)
+- [Google Design: the research behind Material 3 Expressive](https://design.google/library/expressive-material-design-google-research)
+- [Material component guidance](https://m3.material.io/components)
+
+Pinned implementation references used for web mapping:
+
+- [AndroidX Compose Material3](https://android.googlesource.com/platform/frameworks/support/+/38aa2e813c80c10eb2326e211f9091ee7d79e069/compose/material3/material3/)
+- [Material Web](https://github.com/material-components/material-web/tree/cac97678831d48d4eb4a606ca50f92673a1dc20c)
+- [Flutter Material Banner](https://github.com/flutter/flutter/blob/d3b14c876900e553bc736ca19295fc09e3853e8e/packages/flutter/lib/src/material/banner.dart), used for the Banner compatibility extension
+- [Base UI React Autocomplete](https://github.com/mui/base-ui/tree/254f4744f0a241c20697b9eeab33402f4469a081/packages/react/src/autocomplete), used for the Autocomplete extension
+
+The React code in this repository is an independent implementation. It is not official Google code and is not affiliated with, sponsored by, or endorsed by Google. Material Design is a trademark of Google LLC.
+
+Each component metadata record links to its source and lists its audit date, web mapping, and known deviations. See [docs/material-compliance.md](docs/material-compliance.md).
 
 ## License
 
