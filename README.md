@@ -26,6 +26,8 @@ Current release target: `v0.1.0-beta.1`.
 
 ## Browse the registry
 
+Open the [live visual catalog](https://m3-expressive.medianeth.dev/).
+
 List all 42 registry items:
 
 ```bash
@@ -38,7 +40,7 @@ Inspect one component before installing it:
 bunx shadcn@latest view jomarmontuya/m3-expressive/button
 ```
 
-For the visual catalog, run `bun run dev` and open `http://localhost:3000`. The raw registry is in [`registry.json`](registry.json).
+For a local catalog, run `bun run dev` and open `http://localhost:3000`. The raw registry is in [`registry.json`](registry.json).
 
 ## Install a component
 

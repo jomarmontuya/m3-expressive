@@ -62,3 +62,6 @@ server.log
 
 # Skills directory
 /skills/
+/dist/
+.vinext/
+.wrangler/
